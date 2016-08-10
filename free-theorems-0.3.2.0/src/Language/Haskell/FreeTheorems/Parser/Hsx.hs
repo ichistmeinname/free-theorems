@@ -11,7 +11,9 @@ import Data.Generics (everywhere, mkT)
 import Data.Maybe (fromMaybe)
 import Data.List (nub, (\\), intersect)
 import Language.Haskell.Exts.Parser (parseModule, ParseResult(..))
+import Language.Haskell.Exts.SrcLoc (SrcLoc, SrcSpanInfo, srcFilename, srcColumn, srcLine, fromSrcInfo)
 import Language.Haskell.Exts.Syntax
+--import Language.Haskell.Syntax;
 import Text.PrettyPrint
 
 import qualified Language.Haskell.FreeTheorems.Syntax as S
@@ -26,13 +28,13 @@ import Language.Haskell.FreeTheorems.Frontend.Error
 -- | Parses a string to a list of declarations.
 --   The string should contain a Haskell module.
 --
---   This function is based on the extended Haskell parser of the 
+--   This function is based on the extended Haskell parser of the
 --   \'haskell-src-exts\' package.
 --
---   The declarations returned by 'parse' include only @type@, @data@, 
+--   The declarations returned by 'parse' include only @type@, @data@,
 --   @newtype@, @class@ and type signature declarations.
 --   All other declarations and syntactical elements in the input are ignored.
---   
+--
 --   Furthermore, the following restrictions apply:
 --
 --   * Multi-parameter type classes are not allowed and therefore ignored. When
@@ -50,12 +52,12 @@ import Language.Haskell.FreeTheorems.Frontend.Error
 --
 --   * The module names are ignored. If any identifier was given qualified, the
 --     module part of a qualified name is ignored.
---   
+--
 --   * Special Haskell constructors (unit, list function) are not allowed as
 --     identifiers.
 --
 --   * Further extensions over Haskell98 allowed by the underlying parser are
---     also forbidden, namely generalised algebraic data types and unboxed 
+--     also forbidden, namely generalised algebraic data types and unboxed
 --     tuples.
 --
 --   If a parser error occurs, as suitable error message is returned in the
@@ -75,29 +77,29 @@ parse text = case parseModule text of
                                    ++ ":" ++ show (srcColumn l) ++ ").")]
                          return []
   where
-    collectDeclarations :: [S.Declaration] -> Decl -> Parsed [S.Declaration]
-    collectDeclarations ds d = 
+    collectDeclarations :: [S.Declaration] -> Decl SrcSpanInfo -> Parsed [S.Declaration]
+    collectDeclarations ds d =
       case mkDeclaration d of
         Left e   -> tell [e] >> return ds
         Right d' -> return (ds ++ [d'])
-      
+
 
 
 
 
 ------- Filter declarations ---------------------------------------------------
 
-
+--data SrcSpanInfo = SrcSpanInfo
 
 -- | Filters all declarations of a Haskell module.
 
-filterDeclarations :: Module -> [Decl]
-filterDeclarations (Module _ _ _ _ _ _ ds) = filter isAcceptedDeclaration ds
+filterDeclarations :: Module SrcSpanInfo -> [Decl SrcSpanInfo]
+filterDeclarations (Module _ _ _ _ ds) = filter isAcceptedDeclaration ds
   where
     isAcceptedDeclaration decl = case decl of
-      TypeDecl _ _ _ _        -> True
-      DataDecl _ _ _ _ _ _ _  -> True
-      ClassDecl _ _ _ _ _ _   -> True
+      TypeDecl _ _ _        -> True
+      DataDecl _ _ _ _ _ _  -> True
+      ClassDecl _ _ _ _ _   -> True
       TypeSig _ _ _           -> True
       otherwise               -> False
 
@@ -105,13 +107,13 @@ filterDeclarations (Module _ _ _ _ _ _ ds) = filter isAcceptedDeclaration ds
 
 -- | Transforms a list of declarations by simplifying type signatures.
 
-transform :: [Decl] -> [Decl]
+transform :: [Decl SrcSpanInfo] -> [Decl SrcSpanInfo]
 transform = everywhere (mkT extendTypeSignature)
   where
     -- Type signatures can be given for several names at once.
     -- This function transforms declarations such that every type signature is
     -- given for exactly one name only.
-    extendTypeSignature :: [Decl] -> [Decl]
+    extendTypeSignature :: [Decl SrcSpanInfo] -> [Decl SrcSpanInfo]
     extendTypeSignature ds = case ds of
       ((TypeSig l ns t):ds') -> (map (\n -> TypeSig l [n] t) ns) ++ ds'
       otherwise                -> ds
@@ -125,40 +127,53 @@ transform = everywhere (mkT extendTypeSignature)
 
 -- | Transforms a class declaration.
 
-clsDeclToDecl :: ClassDecl -> ErrorOr Decl
+clsDeclToDecl :: ClassDecl SrcSpanInfo -> ErrorOr (Decl SrcSpanInfo)
 clsDeclToDecl decl = case decl of
-  ClsDecl decl         -> return decl
-  ClsDataFam _ _ _ _ _ -> throwError noDataFam
+  ClsDecl _ decl       -> return decl
+  ClsDataFam _ _ _ _   -> throwError noDataFam
   ClsTyFam _ _ _ _     -> throwError noTypeFam
-  ClsTyDef _ _ _       -> throwError noTypeFam
+  ClsTyDef _ _         -> throwError noTypeFam
 
 noDataFam   = pp "Data Families are not allowed"
 noTypeFam   = pp "Type Families are not allowed"
 
 -- | Transforms a declaration.
 
-mkDeclaration :: Decl -> ErrorOr S.Declaration
+-- TODO: TypeDecl implementation changed
+mkDeclaration :: Decl SrcSpanInfo -> ErrorOr S.Declaration
 mkDeclaration decl = case decl of
-  TypeDecl l n vs t                -> do
-                                        ns <- sequence (map unkind vs) 
-                                        addErr l n (mkType n ns t)
-  DataDecl l DataType _ n vs cs _  -> do
-                                        ns <- sequence (map unkind vs) 
-                                        addErr l n (mkData n ns cs)
-  DataDecl l NewType  _ n vs [c] _ -> do
-                                        ns <- sequence (map unkind vs) 
-                                        addErr l n (mkNewtype n ns c)
-  ClassDecl l scs n [v] _ ds       -> do
-                                        nv <- unkind v 
-                                        addErr l n (mkClass scs n nv ds)
-  TypeSig l [n] t                  -> addErr l n (mkSignature n t)
+  TypeDecl l dh t                  -> do
+                                        ns <- sequence (map unkind (dhToList dh))
+                                        addErr (fromSrcInfo l) (dhName dh) (mkType (dhName dh) ns t)
+  DataDecl l (DataType _) _ dh   cs _  -> do
+                                        ns <- sequence (map unkind (dhToList dh))
+                                        addErr (fromSrcInfo l) (dhName dh) (mkData (dhName dh) ns cs)
+  DataDecl l (NewType _)  _ dh [c] _ -> do
+                                        ns <- sequence (map unkind (dhToList dh))
+                                        addErr (fromSrcInfo l) (dhName dh) (mkNewtype (dhName dh) ns c)
+  ClassDecl l (Just scs) dh _ (Just ds)       -> do
+                                        nv <- unkind (head (dhToList dh))
+                                        addErr (fromSrcInfo l) (dhName dh) (mkClass scs (dhName dh) nv ds)
+                                        -- TODO: OTHER cases (Nothing, ...)
+  TypeSig l [n] t                  -> addErr (fromSrcInfo l) n (mkSignature n t)
 
-  ClassDecl l _ n [] _ _           -> addErr l n (throwError missingVar)
-  ClassDecl l _ n (_:_:_) _ _      -> addErr l n (throwError noMultiParam)
+--  ClassDecl l _ n [] _ _           -> addErr l n (throwError missingVar)
+--  ClassDecl l _ n (_:_:_) _ _      -> addErr l n (throwError noMultiParam)
+-- TODO: the last two cases have to be translated into the new implementation
 
-  -- no other case con occur, see above function 'filterDeclarations'. 
-  where 
-    unkind (UnkindedVar x) = return x
+  -- no other case con occur, see above function 'filterDeclarations'.
+  where
+    dhToList (DHead l n)      = []
+    dhToList (DHInfix l vb n) = [vb]
+    dhToList (DHParen l dh)     = dhToList dh
+    dhToList (DHApp l dh vb)    = vb : (dhToList dh)
+
+    dhName (DHead l n)        = n
+    dhName (DHInfix l vb n)   = n
+    dhName (DHParen l dh)     = dhName dh
+    dhName (DHApp l dh vb)    = dhName dh
+
+    unkind (UnkindedVar l x) = return x
     unkind _               = throwError $ pp "Type variable declarations with explicit kind annotations are not allowed."
 
 
@@ -170,12 +185,12 @@ noMultiParam = pp "Multi-parameter type classes are not allowed."
 -- | Adds an error message based on the name of a declaration if the given
 --   transformation caused an error.
 
-addErr :: SrcLoc -> Name -> ErrorOr S.Declaration-> ErrorOr S.Declaration
+addErr :: SrcLoc -> Name SrcSpanInfo -> ErrorOr S.Declaration-> ErrorOr S.Declaration
 addErr loc name e = case getError e of
   Nothing  -> e
   Just doc -> throwError $
-                pp ("In the declaration of `" ++ hsNameToString name 
-                    ++ "' at (" ++ show (srcLine loc) ++ ":" 
+                pp ("In the declaration of `" ++ hsNameToString name
+                    ++ "' at (" ++ show (srcLine loc) ++ ":"
                     ++ show (srcColumn loc) ++ "):")
                 $$ nest 2 doc
 
@@ -183,7 +198,7 @@ addErr loc name e = case getError e of
 
 -- | Transforms the components of a type declaration.
 
-mkType :: Name -> [Name] -> Type -> ErrorOr S.Declaration
+mkType :: Name SrcSpanInfo -> [Name SrcSpanInfo] -> Type SrcSpanInfo -> ErrorOr S.Declaration
 mkType name vars ty = do
   ident <- mkIdentifier name
   tvs   <- mapM mkTypeVariable vars
@@ -194,34 +209,34 @@ mkType name vars ty = do
 
 -- | Transforms the components of a data declaration.
 
-mkData :: Name -> [Name] -> [QualConDecl] -> ErrorOr S.Declaration
+mkData :: Name SrcSpanInfo -> [Name SrcSpanInfo] -> [QualConDecl SrcSpanInfo] -> ErrorOr S.Declaration
 mkData name vars cons = do
   ident <- mkIdentifier name
   tvs   <- mapM mkTypeVariable vars
   ds    <- mapM mkDataConstructorDeclaration cons
   return (S.DataDecl (S.Data ident tvs ds))
-       
+
 
 
 -- | Transforms a data constructor declaration.
 
-mkDataConstructorDeclaration :: 
-    QualConDecl -> ErrorOr S.DataConstructorDeclaration
+mkDataConstructorDeclaration ::
+    QualConDecl SrcSpanInfo -> ErrorOr S.DataConstructorDeclaration
 
-mkDataConstructorDeclaration (QualConDecl _ _ _ (ConDecl name btys)) =
+mkDataConstructorDeclaration (QualConDecl _ _ _ (ConDecl _ name btys)) =
   mkDataConDecl name btys
 
-mkDataConstructorDeclaration (QualConDecl _ _ _ (RecDecl name rbtys)) =
-  let btys = concatMap (\(l,ty) -> replicate (length l) ty) rbtys
+mkDataConstructorDeclaration (QualConDecl _ _ _ (RecDecl _ name rbtys)) =
+  let btys = concatMap (\(FieldDecl _ l ty) -> replicate (length l) ty) rbtys
    in mkDataConDecl name btys
-  
+
 
 
 -- | Transforms the components of a data constructor declaration.
 
 mkDataConDecl ::
-    Name 
-    -> [BangType] 
+    Name SrcSpanInfo
+    -> [Type SrcSpanInfo]
     -> ErrorOr S.DataConstructorDeclaration
 
 mkDataConDecl name btys = do
@@ -229,32 +244,38 @@ mkDataConDecl name btys = do
   bts   <- mapM mkBangTyEx btys
   return (S.DataCon ident bts)
   where
-    mkBangTyEx (BangedTy ty)   = liftM S.Banged   (mkTypeExpression ty)
-    mkBangTyEx (UnBangedTy ty) = liftM S.Unbanged (mkTypeExpression ty)
-
+    mkBangTyEx ty = liftM S.Banged   (mkTypeExpression ty)
+--    mkBangTyEx (UnBangedTy ty) = liftM S.Unbanged (mkTypeExpression ty)
+-- TODO: removed to make it work, UnBangedTy doesnt exist anymore
+-- Seems to work completely different
 
 
 -- | Transforms the components of a newtype declaration.
 
-mkNewtype :: Name -> [Name] -> QualConDecl -> ErrorOr S.Declaration
+mkNewtype :: Name SrcSpanInfo -> [Name SrcSpanInfo] -> QualConDecl SrcSpanInfo -> ErrorOr S.Declaration
 mkNewtype name vars (QualConDecl _ _ _ con) = do
   ident   <- mkIdentifier name
   tvs     <- mapM mkTypeVariable vars
   (con,t) <- mkNewtypeConDecl con
   return (S.NewtypeDecl (S.Newtype ident tvs con t))
   where
-    mkNewtypeConDecl (ConDecl c bts) = mkNCD c bts
-    mkNewtypeConDecl (RecDecl c bts) = mkNCD c (snd $ unzip bts)
+    mkNewtypeConDecl (ConDecl _ c bts) = mkNCD c bts
+    mkNewtypeConDecl (RecDecl _ c bts) = mkNCD c (fieldTypes bts)
 
-    mkNCD c [bty] = liftM2 (,) (mkIdentifier c) (bang bty)
+    fieldTypes ((FieldDecl _ _ t) : fs) = t : fieldTypes fs
+    fieldTypes [] = []
+
+--    mkNCD c [bty] = liftM2 (,) (mkIdentifier c) (bang bty)
+    mkNCD c [bty] = liftM2 (,) (mkIdentifier c) (mkTypeExpression bty) -- TODO: check for strict types
     mkNCD c []      = throwError errNewtype
     mkNCD c (_:_:_) = throwError errNewtype
 
-    errNewtype = 
+    errNewtype =
       pp "A `newtype' declaration must have exactly one type expression."
 
-    bang (UnBangedTy ty) = mkTypeExpression ty
-    bang (BangedTy ty)   = 
+--    bang (UnBangedTy ty) = mkTypeExpression ty
+-- TODO: same here, works differently
+    bang (BangedTy ty)   =
       throwError (pp "A `newtype' declaration must not use a strictness flag.")
 
 
@@ -262,12 +283,12 @@ mkNewtype name vars (QualConDecl _ _ _ con) = do
 -- | Transforms the components of a Haskell class declaration.
 --   Every declaration in the class body is ignored except of type signatures.
 
-mkClass :: Context -> Name -> Name -> [ClassDecl] -> ErrorOr S.Declaration
+mkClass :: Context SrcSpanInfo -> Name SrcSpanInfo -> Name SrcSpanInfo -> [ClassDecl SrcSpanInfo] -> ErrorOr S.Declaration
 mkClass ctx name var clsDecls = do
   ident   <- mkIdentifier name
   tv      <- mkTypeVariable var
   superCs <- mkContext ctx >>= check tv
-  decls   <- mapM clsDeclToDecl clsDecls 
+  decls   <- mapM clsDeclToDecl clsDecls
   sigs    <- liftM (map toSig) (mapM mkDeclaration (filter isSig decls))
     -- mapping 'isSig' is safe because after applying 'filter' no other
     -- declarations are left except of type signatures
@@ -275,7 +296,7 @@ mkClass ctx name var clsDecls = do
   return (S.ClassDecl (S.Class superCs ident tv sigs))
   where
     -- Returns 'True' if a declaration is a type signature, otherwise 'False'.
-    isSig :: Decl -> Bool
+    isSig :: Decl SrcSpanInfo -> Bool
     isSig decl = case decl of
       TypeSig _ _ _ -> True
       otherwise       -> False
@@ -290,9 +311,9 @@ mkClass ctx name var clsDecls = do
     -- Checks if only the given type variable occurs in the second parameter.
     -- If not, an error is returned, otherwise, the list of type classes is
     -- extracted.
-    check :: 
-        S.TypeVariable 
-        -> [(S.TypeClass, S.TypeVariable)] 
+    check ::
+        S.TypeVariable
+        -> [(S.TypeClass, S.TypeVariable)]
         -> ErrorOr [S.TypeClass]
     check tv@(S.TV (S.Ident v)) ctx =
       let (tcs, tvs) = unzip ctx
@@ -300,7 +321,7 @@ mkClass ctx name var clsDecls = do
         then return tcs
         else throwError (errClass v)
 
-    errClass v = 
+    errClass v =
       pp $ "Only `" ++ v ++ "' can be constrained by the superclasses."
 
 
@@ -308,7 +329,7 @@ mkClass ctx name var clsDecls = do
 -- | Transforms the components of a Haskell type signature.
 --   The context is added to the type expression.
 
-mkSignature :: Name -> Type -> ErrorOr S.Declaration
+mkSignature :: Name SrcSpanInfo -> Type SrcSpanInfo -> ErrorOr S.Declaration
 mkSignature var ty = do
   ident   <- mkIdentifier var
   t       <- mkTypeExpression ty
@@ -320,22 +341,25 @@ mkSignature var ty = do
 --   If the context contains not only variables, but also more complex types,
 --   this function fails with an appropriate error message.
 
-mkContext :: Context -> ErrorOr [(S.TypeClass, S.TypeVariable)]
-mkContext = mapM trans
-  where
-    trans (ClassA qname [TyVar var]) = do
+mkContext :: Context SrcSpanInfo -> ErrorOr [(S.TypeClass, S.TypeVariable)]
+mkContext = mkContext'
+   where
+    mkContext' (CxSingle _ a) = mapM trans [a]
+    mkContext' (CxTuple _ as) = mapM trans as
+    mkContext' (CxEmpty _)    = mapM trans [] -- TODO: this doesnt seem right
+    trans (ClassA _ qname [TyVar _ var]) = do
       ident <- liftM S.TC (mkIdentifierQ qname)
       tv    <- mkTypeVariable var
-      return $ (ident, tv) 
-    
-    trans (ClassA _ _) = throwError errContext
-    trans (IParam _ _) = throwError errImplicit
+      return $ (ident, tv)
+
+    trans (ClassA _ _ _) = throwError errContext
+    trans (IParam _ _ _) = throwError errImplicit
 
 errContext =
   pp "Only a type variable may be constrained by a class in a context."
 
-errImplicit = 
-  pp "Implicit parameters are not allowed." 
+errImplicit =
+  pp "Implicit parameters are not allowed."
 
 
 
@@ -348,7 +372,7 @@ type EnvErrorOr a = ReaderT [S.TypeVariable] (Either Doc) a
 
 
 
-mkTypeExpression :: Type -> ErrorOr S.TypeExpression
+mkTypeExpression :: Type SrcSpanInfo -> ErrorOr S.TypeExpression
 mkTypeExpression ty = runReaderT (mkTypeExpressionT ty) []
 
 
@@ -356,43 +380,43 @@ mkTypeExpression ty = runReaderT (mkTypeExpressionT ty) []
 -- | Transforms a Haskell type.
 --   Note that a type variable is not allowed to be applied to some type.
 
-mkTypeExpressionT :: Type -> EnvErrorOr S.TypeExpression
-mkTypeExpressionT (TyVar var)     = liftM S.TypeVar 
+mkTypeExpressionT :: Type SrcSpanInfo -> EnvErrorOr S.TypeExpression
+mkTypeExpressionT (TyVar _ var)     = liftM S.TypeVar
                                             (lift (mkTypeVariable var))
-mkTypeExpressionT (TyApp ty1 ty2) = lift (mkAppTyEx ty1 [ty2])
-mkTypeExpressionT (TyCon qname)   = lift (mkTypeConstructorApp qname [])
+mkTypeExpressionT (TyApp _ ty1 ty2) = lift (mkAppTyEx ty1 [ty2])
+mkTypeExpressionT (TyCon _ qname)   = lift (mkTypeConstructorApp qname [])
 
-mkTypeExpressionT (TyInfix ty1 qname ty2) = -- infix type constructor
-  mkTypeExpressionT (TyApp (TyApp (TyCon qname) ty1) ty2)
+mkTypeExpressionT (TyInfix l ty1 qname ty2) = -- infix type constructor
+  mkTypeExpressionT (TyApp l (TyApp l (TyCon l qname) ty1) ty2)
 
-mkTypeExpressionT (TyFun ty1 ty2) = do
+mkTypeExpressionT (TyFun _ ty1 ty2) = do
   t1 <- mkTypeExpressionT ty1
   t2 <- mkTypeExpressionT ty2
   return (S.TypeFun t1 t2)
 
-mkTypeExpressionT (TyTuple Boxed tys)   = do
+mkTypeExpressionT (TyTuple _ Boxed tys)   = do
   ts <- mapM mkTypeExpressionT tys
   return (S.TypeCon (S.ConTuple (length ts)) ts)
 
-mkTypeExpressionT (TyForall maybeVars ctx ty) =
+mkTypeExpressionT (TyForall _ maybeVars (Just ctx) ty) = -- TODO: ctx is Maybe value, can be Nothing! (changed)
   mkForallTyEx (maybe [] (map unKind) maybeVars) ctx ty
-  where unKind (KindedVar n _) = n
-        unKind (UnkindedVar n) = n
+  where unKind (KindedVar _ n _) = n
+        unKind (UnkindedVar _ n) = n
 
 --- daniel
-mkTypeExpressionT (TyList ty) = do
+mkTypeExpressionT (TyList _ ty) = do
   t <- mkTypeExpressionT ty
   return (S.TypeCon (S.ConList) [t])
 
-mkTypeExpressionT (TyParen ty) = mkTypeExpressionT ty
+mkTypeExpressionT (TyParen _ ty) = mkTypeExpressionT ty
 
-mkTypeExpressionT (TyKind ty kd) = 
+mkTypeExpressionT (TyKind _ ty kd) =
     throwError (pp "Explicit kind signatures are not allowed.")
 
--- mkTypeExpressionT (TyPred _) = 
+-- mkTypeExpressionT (TyPred _) =
 --   throwError (pp "Implicit parameters are not allowed.")
 
-mkTypeExpressionT (TyTuple Unboxed _ ) = 
+mkTypeExpressionT (TyTuple _ Unboxed _ ) =
   throwError (pp "Unboxed tuples are not allowed.")
 
 
@@ -400,7 +424,7 @@ mkTypeExpressionT (TyTuple Unboxed _ ) =
 -- | Checks type abstractions for unique variables, merges the contexts and
 --   creates a type expression.
 
-mkForallTyEx :: [Name] -> Context -> Type -> EnvErrorOr S.TypeExpression
+mkForallTyEx :: [Name SrcSpanInfo] -> Context SrcSpanInfo -> Type SrcSpanInfo -> EnvErrorOr S.TypeExpression
 mkForallTyEx vars ctx ty = do
   vs <- unique vars
   cx <- lift (mkContext ctx)
@@ -408,14 +432,14 @@ mkForallTyEx vars ctx ty = do
   let allVars = vs ++ unboundVars
   knownVars <- ask
   let errVars = knownVars `intersect` unboundVars
-  when (not (null errVars)) $ throwError $ pp $ 
+  when (not (null errVars)) $ throwError $ pp $
     "The constrained type variable `" ++ (S.unpackIdent . (\(S.TV i) -> i) . head $ errVars)
     ++ "' must be explicitly quantified."
   liftM (merge allVars cx) (local (++ allVars) (mkTypeExpressionT ty))
   where
     -- Checks if the elements of the argument are unique, and throws an error
     -- otherwise.
-    unique :: [Name] -> EnvErrorOr [S.TypeVariable]
+    unique :: [Name SrcSpanInfo] -> EnvErrorOr [S.TypeVariable]
     unique []     = return []
     unique (v:vs) = if v `elem` vs
                       then throwError (pp $
@@ -427,8 +451,8 @@ mkForallTyEx vars ctx ty = do
 
     -- Merges the context and the type expression. The context is represented
     -- as type abstractions.
-    merge :: 
-        [S.TypeVariable] -> [(S.TypeClass, S.TypeVariable)] 
+    merge ::
+        [S.TypeVariable] -> [(S.TypeClass, S.TypeVariable)]
         -> S.TypeExpression -> S.TypeExpression
     merge vs cx t = foldr (\v -> S.TypeAbs v (classes cx v)) t vs
 
@@ -439,14 +463,14 @@ mkForallTyEx vars ctx ty = do
 
 -- | Collects applied types and transforms them into a type expression.
 
-mkAppTyEx :: Type -> [Type] -> ErrorOr S.TypeExpression
+mkAppTyEx :: Type SrcSpanInfo -> [Type SrcSpanInfo] -> ErrorOr S.TypeExpression
 mkAppTyEx ty tys = case ty of
-  TyFun _ _   -> throwError $ pp ("A function type must not be applied to a "
+  TyFun _ _ _ -> throwError $ pp ("A function type must not be applied to a "
                                     ++ "type.")
-  TyTuple _ _ -> throwError (pp "A tuple type must not be applied to a type.")
-  TyVar _     -> throwError (pp "A variable must not be applied to a type.")
-  TyApp t1 t2 -> mkAppTyEx t1 (t2 : tys)
-  TyCon qname -> mapM mkTypeExpression tys >>= mkTypeConstructorApp qname 
+  TyTuple _ _ _ -> throwError (pp "A tuple type must not be applied to a type.")
+  TyVar _ _     -> throwError (pp "A variable must not be applied to a type.")
+  TyApp _ t1 t2 -> mkAppTyEx t1 (t2 : tys)
+  TyCon _ qname -> mapM mkTypeExpression tys >>= mkTypeConstructorApp qname
 
 
 
@@ -455,15 +479,15 @@ mkAppTyEx ty tys = case ty of
 --   The function type constructor is handled specially because it has to have
 --   exactly two arguments.
 
-mkTypeConstructorApp :: 
-    QName 
-    -> [S.TypeExpression] 
+mkTypeConstructorApp ::
+    QName SrcSpanInfo
+    -> [S.TypeExpression]
     -> ErrorOr S.TypeExpression
 
-mkTypeConstructorApp (Special FunCon) [t1,t2] = return $ S.TypeFun t1 t2
-mkTypeConstructorApp (Special FunCon) _       = throwError errorTypeConstructorApp
+mkTypeConstructorApp (Special _ (FunCon _)) [t1,t2] = return $ S.TypeFun t1 t2
+mkTypeConstructorApp (Special _ (FunCon _)) _       = throwError errorTypeConstructorApp
 
-mkTypeConstructorApp qname              ts      = 
+mkTypeConstructorApp qname              ts      =
   liftM (\con -> S.TypeCon con ts) (mkTypeConstructor qname)
 
 errorTypeConstructorApp =
@@ -475,16 +499,16 @@ errorTypeConstructorApp =
 --   Special care is taken for primitive types which could be qualified by
 --   \'Prelude\'.
 
-mkTypeConstructor :: QName -> ErrorOr S.TypeConstructor
-mkTypeConstructor (Qual (ModuleName mod) hsName) = 
+mkTypeConstructor :: QName SrcSpanInfo -> ErrorOr S.TypeConstructor
+mkTypeConstructor (Qual _ (ModuleName _ mod) hsName) =
   if mod == "Prelude"
     then return (asCon hsName)
     else return (S.Con $ hsNameToIdentifier hsName)
-mkTypeConstructor (UnQual hsName)                = return $ asCon hsName
-mkTypeConstructor (Special UnitCon)              = return $ S.ConUnit
-mkTypeConstructor (Special ListCon)              = return $ S.ConList
-mkTypeConstructor (Special (TupleCon Boxed n))   = return $ S.ConTuple n
-mkTypeConstructor (Special (TupleCon Unboxed n)) = throwError $ pp "Unboxed tuples are not allowed."
+mkTypeConstructor (UnQual _ hsName)                = return $ asCon hsName
+mkTypeConstructor (Special _ (UnitCon _))              = return $ S.ConUnit
+mkTypeConstructor (Special _ (ListCon _))              = return $ S.ConList
+mkTypeConstructor (Special _ (TupleCon _ Boxed n))   = return $ S.ConTuple n
+mkTypeConstructor (Special _ (TupleCon _ Unboxed n)) = throwError $ pp "Unboxed tuples are not allowed."
 
 -- missing case '(Special FunCon)' cannot occur,
 -- see function 'mkTypeCOnstructorApp'
@@ -497,20 +521,20 @@ mkTypeConstructor (Special (TupleCon Unboxed n)) = throwError $ pp "Unboxed tupl
 -- | Transforms a name into a type constructor. This functions differentiates
 --   between primitive types and other types.
 
-asCon :: Name -> S.TypeConstructor
+asCon :: Name SrcSpanInfo -> S.TypeConstructor
 asCon name = case name of
-  Ident "Int"     -> S.ConInt
-  Ident "Integer" -> S.ConInteger
-  Ident "Float"   -> S.ConFloat
-  Ident "Double"  -> S.ConDouble
-  Ident "Char"    -> S.ConChar
+  Ident _ "Int"     -> S.ConInt
+  Ident _ "Integer" -> S.ConInteger
+  Ident _ "Float"   -> S.ConFloat
+  Ident _ "Double"  -> S.ConDouble
+  Ident _ "Char"    -> S.ConChar
   otherwise         -> S.Con $ hsNameToIdentifier name
 
 
 
 -- | Transforms a Haskell name into a type variable.
 
-mkTypeVariable :: Name -> ErrorOr S.TypeVariable
+mkTypeVariable :: Name SrcSpanInfo -> ErrorOr S.TypeVariable
 mkTypeVariable = return . S.TV . hsNameToIdentifier
 
 
@@ -521,15 +545,15 @@ mkTypeVariable = return . S.TV . hsNameToIdentifier
 --   special Haskell constructor, i.e. a unit, list, function or tuple
 --   constructor.
 
-mkIdentifierQ :: QName -> ErrorOr S.Identifier
-mkIdentifierQ (UnQual hsName)          = return (hsNameToIdentifier hsName)
-mkIdentifierQ (Qual (ModuleName _) hsName) = return (hsNameToIdentifier hsName)
+mkIdentifierQ :: QName SrcSpanInfo -> ErrorOr S.Identifier
+mkIdentifierQ (UnQual _ hsName)          = return (hsNameToIdentifier hsName)
+mkIdentifierQ (Qual _ (ModuleName _ _) hsName) = return (hsNameToIdentifier hsName)
 
-mkIdentifierQ (Special UnitCon)            = throwErrorIdentifierQ "`()'"
-mkIdentifierQ (Special ListCon)            = throwErrorIdentifierQ "`[]'"
-mkIdentifierQ (Special FunCon)             = throwErrorIdentifierQ "`->'"
-mkIdentifierQ (Special Cons)               = throwErrorIdentifierQ "`:'"
-mkIdentifierQ (Special (TupleCon _ _)) = throwErrorIdentifierQ "for tuples"
+mkIdentifierQ (Special _ (UnitCon _))            = throwErrorIdentifierQ "`()'"
+mkIdentifierQ (Special _ (ListCon _))            = throwErrorIdentifierQ "`[]'"
+mkIdentifierQ (Special _ (FunCon _))             = throwErrorIdentifierQ "`->'"
+mkIdentifierQ (Special _ (Cons _))               = throwErrorIdentifierQ "`:'"
+mkIdentifierQ (Special _ (TupleCon _ _ _)) = throwErrorIdentifierQ "for tuples"
 
 throwErrorIdentifierQ s = throwError $ pp $
   "The constructor " ++ s ++ " must not be used as an identifier."
@@ -539,14 +563,14 @@ throwErrorIdentifierQ s = throwError $ pp $
 -- | Transforms a Haskell name into an identifier.
 --   This function encapsulates 'hsNameToIdentifier' into the 'ErrorOr' monad.
 
-mkIdentifier :: Name -> ErrorOr S.Identifier
+mkIdentifier :: Name SrcSpanInfo -> ErrorOr S.Identifier
 mkIdentifier = return . hsNameToIdentifier
 
 
 
 -- | Transforms a Haskell name into an identifier.
 
-hsNameToIdentifier :: Name -> S.Identifier
+hsNameToIdentifier :: Name SrcSpanInfo -> S.Identifier
 hsNameToIdentifier = S.Ident . hsNameToString
 
 
@@ -554,9 +578,6 @@ hsNameToIdentifier = S.Ident . hsNameToString
 -- | Transforms a Haskell name into a string.
 --   Haskell symbols are surrounded by parentheses.
 
-hsNameToString :: Name -> String
-hsNameToString (Ident s)  = s
-hsNameToString (Symbol s) = "(" ++ s ++ ")"
-
-
-
+hsNameToString :: Name SrcSpanInfo -> String
+hsNameToString (Ident _ s)  = s
+hsNameToString (Symbol _ s) = "(" ++ s ++ ")"

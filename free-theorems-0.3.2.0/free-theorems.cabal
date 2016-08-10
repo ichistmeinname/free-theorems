@@ -11,7 +11,7 @@ description:
     Haskell 98 types except of type constructor classes, and in
     addition it can also handle higher-rank functions. Free theorems
     are generated for three different sublanguages of Haskell, a
-    basic one corresponding to the polymorphic lambda-calculus of 
+    basic one corresponding to the polymorphic lambda-calculus of
     Girard-Reynolds, an extension of that allowing for recursion and
     errors, and finally a sublanguage additionally allowing seq.
     In the last two sublanguages, also inequational free theorems
@@ -38,7 +38,7 @@ library
   build-depends:
       mtl >= 1.0
     , haskell-src >= 1.0
-    , haskell-src-exts >= 1.13.5 
+    , haskell-src-exts >= 1.17.0
     , pretty >= 1.0.0.0
     , containers >= 0.1.0.1
   if impl(ghc >= 6.10)
@@ -77,9 +77,12 @@ library
 
   extensions:
     DeriveDataTypeable,
-    Rank2Types
+    Rank2Types,
+    FlexibleContexts,
+    FlexibleInstances,
+    UndecidableInstances
 
   if impl(ghc >= 6.10)
     extensions: ScopedTypeVariables
-  else 
+  else
     extensions: PatternSignatures

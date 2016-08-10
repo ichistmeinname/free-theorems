@@ -1,6 +1,4 @@
 
-
-
 -- | Provides error handling functions for checking parser output.
 --   The functions and data types of this module are mostly tiny, little
 --   helpers used by all parser modules.

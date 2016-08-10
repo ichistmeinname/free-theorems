@@ -1,7 +1,7 @@
 
 
 
--- | Defines functions to ensure that only valid declarations and type 
+-- | Defines functions to ensure that only valid declarations and type
 --   signatures are fed to the FreeTheorems library. The given functions are
 --   intended as second stage after parsing declarations.
 
@@ -54,16 +54,16 @@ check = checkAgainst []
 --
 --   then also the declaration of \"Bar\" is valid.
 
-checkAgainst :: 
-    [ValidDeclaration] 
-    -> [Declaration] 
+checkAgainst ::
+    [ValidDeclaration]
+    -> [Declaration]
     -> Checked [ValidDeclaration]
 
-checkAgainst vds ds = 
-    
+checkAgainst vds ds =
+
     -- start from 'ds'
   return ds
-   
+
     -- perform local checks:
     --   * free variables of the right-hand side are declared on the left-hand
     --     of declarations
@@ -75,7 +75,7 @@ checkAgainst vds ds =
     --   * classes methods are pairwise distinct, don't use the owning class
     --     and have the class variable as free variable
   >>= checkLocal
-  
+
     -- perform global checks:
     --   * at most one declaration per name
     --   * arity checks of type constructors in all type expressions
@@ -85,7 +85,7 @@ checkAgainst vds ds =
   >>= checkGlobal vds
 
     -- replace all type synonyms, use also the valid type synonyms
-  >>= \ds' -> 
+  >>= \ds' ->
     let getTypeSyn d = case d of { TypeDecl t -> Just t ; otherwise -> Nothing }
         typeSyns = mapMaybe getTypeSyn (map rawDeclaration vds ++ ds')
      in return (replaceAllTypeSynonyms typeSyns ds')
@@ -100,15 +100,15 @@ checkAgainst vds ds =
 
 
 -- | Turns a list of declarations into valid declarations.
---   Additionally, every declaration is checked whether it depends on any 
+--   Additionally, every declaration is checked whether it depends on any
 --   algebraic data type with strictness flags.
 
 makeValid :: [ValidDeclaration] -> [Declaration] -> [ValidDeclaration]
-makeValid vds ds = 
+makeValid vds ds =
   let strict = map rawDeclaration (filter isStrictDeclaration vds)
-      knownStrict = map getDeclarationName 
+      knownStrict = map getDeclarationName
                         (strict ++ filter hasStrictnessFlags ds)
-      
+
       rec ss ds = 
         let (ns, os) = partition (dependsOnStrictTypes ss) ds
          in if null ns
@@ -116,21 +116,16 @@ makeValid vds ds =
               else rec (ss ++ map getDeclarationName ns) os
 
       allStrict = rec knownStrict ds
-   
+
    in map (\d -> ValidDeclaration d (getDeclarationName d `elem` allStrict)) ds
   where
-    hasStrictnessFlags d = 
+    hasStrictnessFlags d =
       let hasBang (Banged _)   = True
           hasBang (Unbanged _) = False
        in everything (||) (False `mkQ` hasBang) d
-    
-    dependsOnStrictTypes ss d = 
+
+    dependsOnStrictTypes ss d =
       let getCons c = case c of { Con n -> [n] ; otherwise -> [] }
           getClasses (TC n) = [n]
           ns = everything (++) ([] `mkQ` getCons `extQ` getClasses) d
        in not (null (ns `intersect` ss))
-
- 
-
-
-
