@@ -89,8 +89,6 @@ parse text = case parseModule text of
 
 ------- Filter declarations ---------------------------------------------------
 
---data SrcSpanInfo = SrcSpanInfo
-
 -- | Filters all declarations of a Haskell module.
 
 filterDeclarations :: Module SrcSpanInfo -> [Decl SrcSpanInfo]
@@ -246,8 +244,7 @@ mkDataConDecl name btys = do
   where
     mkBangTyEx ty = liftM S.Banged   (mkTypeExpression ty)
 --    mkBangTyEx (UnBangedTy ty) = liftM S.Unbanged (mkTypeExpression ty)
--- TODO: removed to make it work, UnBangedTy doesnt exist anymore
--- Seems to work completely different
+-- TODO: removed
 
 
 -- | Transforms the components of a newtype declaration.
@@ -346,7 +343,8 @@ mkContext = mkContext'
    where
     mkContext' (CxSingle _ a) = mapM trans [a]
     mkContext' (CxTuple _ as) = mapM trans as
-    mkContext' (CxEmpty _)    = mapM trans [] -- TODO: this doesnt seem right
+--    mkContext' (CxEmpty _)    = mapM trans []
+    mkContext' (CxEmpty _)    = return [] -- TODO: might be wrong
     trans (ClassA _ qname [TyVar _ var]) = do
       ident <- liftM S.TC (mkIdentifierQ qname)
       tv    <- mkTypeVariable var
@@ -419,6 +417,12 @@ mkTypeExpressionT (TyKind _ ty kd) =
 mkTypeExpressionT (TyTuple _ Unboxed _ ) =
   throwError (pp "Unboxed tuples are not allowed.")
 
+
+-- TODO: changes with new version (thr)
+mkTypeExpressionT (TyBang _ bangType unpackedness t) = do
+--  subt <- mkTypeExpressionT t
+--  return (S.Banged subt)
+  throwError (pp "FIXME: strict type should not produce an error.")
 
 
 -- | Checks type abstractions for unique variables, merges the contexts and
