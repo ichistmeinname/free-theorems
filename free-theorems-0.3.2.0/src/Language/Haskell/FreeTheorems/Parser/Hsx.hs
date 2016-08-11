@@ -137,7 +137,6 @@ noTypeFam   = pp "Type Families are not allowed"
 
 -- | Transforms a declaration.
 
--- TODO: TypeDecl implementation changed
 mkDeclaration :: Decl SrcSpanInfo -> ErrorOr S.Declaration
 mkDeclaration decl = case decl of
   TypeDecl l dh t                  -> do
@@ -149,15 +148,19 @@ mkDeclaration decl = case decl of
   DataDecl l (NewType _)  _ dh [c] _ -> do
                                         ns <- sequence (map unkind (dhToList dh))
                                         addErr (fromSrcInfo l) (dhName dh) (mkNewtype (dhName dh) ns c)
-  ClassDecl l (Just scs) dh _ (Just ds)       -> do
-                                        nv <- unkind (head (dhToList dh))
-                                        addErr (fromSrcInfo l) (dhName dh) (mkClass scs (dhName dh) nv ds)
-                                        -- TODO: OTHER cases (Nothing, ...)
+  ClassDecl l (Just scs) dh _ mbds    -> case mbds of
+                                            (Just []) -> addErr (fromSrcInfo l) (dhName dh) (throwError missingVar)
+                                            (Just (_:_:_)) -> addErr (fromSrcInfo l) (dhName dh) (throwError noMultiParam)
+                                            (Just ds) -> do
+                                               nv <- unkind (head (dhToList dh))
+                                               addErr (fromSrcInfo l) (dhName dh) (mkClass scs (dhName dh) nv ds)
+                                            Nothing -> addErr (fromSrcInfo l) (dhName dh)
+                                               (throwError (pp "FIXME: What happens with Nothing?"))
+
   TypeSig l [n] t                  -> addErr (fromSrcInfo l) n (mkSignature n t)
 
 --  ClassDecl l _ n [] _ _           -> addErr l n (throwError missingVar)
 --  ClassDecl l _ n (_:_:_) _ _      -> addErr l n (throwError noMultiParam)
--- TODO: the last two cases have to be translated into the new implementation
 
   -- no other case con occur, see above function 'filterDeclarations'.
   where
