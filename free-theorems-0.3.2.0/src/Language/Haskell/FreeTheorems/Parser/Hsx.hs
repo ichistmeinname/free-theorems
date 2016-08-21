@@ -245,7 +245,8 @@ mkDataConDecl name btys = do
   bts   <- mapM mkBangTyEx btys
   return (S.DataCon ident bts)
   where
-    mkBangTyEx ty = liftM S.Banged   (mkTypeExpression ty)
+    mkBangTyEx ty = liftM S.Unbanged (mkTypeExpression ty)
+--    mkBangTyEx ty = liftM S.Banged   (mkTypeExpression ty)
 --    mkBangTyEx (UnBangedTy ty) = liftM S.Unbanged (mkTypeExpression ty)
 -- TODO: removed
 
