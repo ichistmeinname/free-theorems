@@ -1,16 +1,18 @@
 import Language.Haskell.FreeTheorems
 import Language.Haskell.FreeTheorems.Parser.Hsx
-import Control.Monad.Writer
+import Control.Monad.Writer(runWriter)
 import Text.PrettyPrint.HughesPJ
 
 teststr :: String
-teststr = "data Test a = ConstTest a\n" ++
+teststr = "class C m where\n" ++
+--          "  meinefunc :: m -> m\n" ++
+          "data Test a = ConstTest a\n" ++
           "test :: [Test a] -> [a]\n" ++
           "test xs = xs"
 
 test :: String -> Doc
 test st = case sigs of
-     (sig1 : _) -> prettyTheorem [] $ theo (interpret s BasicSubset (head sigs))
+     (sig1 : _) -> (hcat sec) $$ (prettyTheorem [] $ theo (interpret s BasicSubset (head sigs)))
      []         -> hcat sec
   where
    s = (fst . runWriter . check) parsed

@@ -139,36 +139,40 @@ noTypeFam   = pp "Type Families are not allowed"
 
 mkDeclaration :: Decl SrcSpanInfo -> ErrorOr S.Declaration
 mkDeclaration decl = case decl of
-  TypeDecl l dh t                  -> do
-                                        ns <- sequence (map unkind (dhToList dh))
-                                        addErr (fromSrcInfo l) (dhName dh) (mkType (dhName dh) ns t)
+  TypeDecl l dh t                       -> do
+                                            ns <- sequence (map unkind (dhToList dh))
+                                            addErr (fromSrcInfo l) (dhName dh) (mkType (dhName dh) ns t)
   DataDecl l (DataType _) _ dh   cs _  -> do
-                                        ns <- sequence (map unkind (dhToList dh))
-                                        addErr (fromSrcInfo l) (dhName dh) (mkData (dhName dh) ns cs)
-  DataDecl l (NewType _)  _ dh [c] _ -> do
-                                        ns <- sequence (map unkind (dhToList dh))
-                                        addErr (fromSrcInfo l) (dhName dh) (mkNewtype (dhName dh) ns c)
-  ClassDecl l (Just scs) dh _ mbds    -> case mbds of
-                                            (Just []) -> addErr (fromSrcInfo l) (dhName dh) (throwError missingVar)
-                                            (Just (_:_:_)) -> addErr (fromSrcInfo l) (dhName dh) (throwError noMultiParam)
-                                            (Just ds) -> do
-                                               nv <- unkind (head (dhToList dh))
-                                               addErr (fromSrcInfo l) (dhName dh) (mkClass scs (dhName dh) nv ds)
-                                            Nothing -> addErr (fromSrcInfo l) (dhName dh)
-                                               (throwError (pp "FIXME: What happens with Nothing?"))
+                                            ns <- sequence (map unkind (dhToList dh))
+                                            addErr (fromSrcInfo l) (dhName dh) (mkData (dhName dh) ns cs)
+  DataDecl l (NewType _)  _ dh [c] _   -> do
+                                            ns <- sequence (map unkind (dhToList dh))
+                                            addErr (fromSrcInfo l) (dhName dh) (mkNewtype (dhName dh) ns c)
+  ClassDecl l mbcontx dh _ mbdecls        -> case (dhToList dh) of
+                                               []      -> addErr loc name (throwError missingVar)
+                                               (_:_:_) -> addErr loc name (throwError noMultiParam)
+                                               ds      -> do
+                                                 nv <- unkind (head ds)
+                                                 addErr loc name
+                                                  (mkClass context name nv decls)
+                                            where
+                                              context = fromMaybe (CxEmpty l) mbcontx
+                                              decls = fromMaybe [] mbdecls
+                                              name = dhName dh
+                                              loc = fromSrcInfo l
 
   TypeSig l [n] t                  -> addErr (fromSrcInfo l) n (mkSignature n t)
 
---  ClassDecl l _ n [] _ _           -> addErr l n (throwError missingVar)
---  ClassDecl l _ n (_:_:_) _ _      -> addErr l n (throwError noMultiParam)
-
   -- no other case con occur, see above function 'filterDeclarations'.
   where
+
+    -- Convert DeclHead data structure to list of type variables
     dhToList (DHead l n)      = []
     dhToList (DHInfix l vb n) = [vb]
     dhToList (DHParen l dh)     = dhToList dh
     dhToList (DHApp l dh vb)    = vb : (dhToList dh)
 
+    -- Retrieve name of the class declaration from DeclHead data structure
     dhName (DHead l n)        = n
     dhName (DHInfix l vb n)   = n
     dhName (DHParen l dh)     = dhName dh
@@ -240,15 +244,18 @@ mkDataConDecl ::
     -> [Type SrcSpanInfo]
     -> ErrorOr S.DataConstructorDeclaration
 
-mkDataConDecl name btys = do
+mkDataConDecl name ts = do
   ident <- mkIdentifier name
-  bts   <- mapM mkBangTyEx btys
-  return (S.DataCon ident bts)
+--  types <- mapM mkBangTyEx ts
+  types <- mapM mkBangTyEx ts
+  return (S.DataCon ident types)
   where
+    mkBangTyEx (TyBang l bt unpckd ty) = case bt of
+                                  (BangedTy _)      -> liftM S.Banged   (mkTypeExpression ty)
+                                  (NoStrictAnnot _) -> liftM S.Unbanged (mkTypeExpression ty)
+                                  (LazyTy _)        -> liftM S.Unbanged (mkTypeExpression ty)
+
     mkBangTyEx ty = liftM S.Unbanged (mkTypeExpression ty)
---    mkBangTyEx ty = liftM S.Banged   (mkTypeExpression ty)
---    mkBangTyEx (UnBangedTy ty) = liftM S.Unbanged (mkTypeExpression ty)
--- TODO: removed
 
 
 -- | Transforms the components of a newtype declaration.
@@ -267,7 +274,7 @@ mkNewtype name vars (QualConDecl _ _ _ con) = do
     fieldTypes [] = []
 
 --    mkNCD c [bty] = liftM2 (,) (mkIdentifier c) (bang bty)
-    mkNCD c [bty] = liftM2 (,) (mkIdentifier c) (mkTypeExpression bty) -- TODO: check for strict types
+    mkNCD c [ty] = liftM2 (,) (mkIdentifier c) (mkTypeExpression ty) -- TODO: check for strict types
     mkNCD c []      = throwError errNewtype
     mkNCD c (_:_:_) = throwError errNewtype
 
@@ -347,8 +354,7 @@ mkContext = mkContext'
    where
     mkContext' (CxSingle _ a) = mapM trans [a]
     mkContext' (CxTuple _ as) = mapM trans as
---    mkContext' (CxEmpty _)    = mapM trans []
-    mkContext' (CxEmpty _)    = return [] -- TODO: might be wrong
+    mkContext' (CxEmpty _)    = return []
     trans (ClassA _ qname [TyVar _ var]) = do
       ident <- liftM S.TC (mkIdentifierQ qname)
       tv    <- mkTypeVariable var
@@ -400,8 +406,8 @@ mkTypeExpressionT (TyTuple _ Boxed tys)   = do
   ts <- mapM mkTypeExpressionT tys
   return (S.TypeCon (S.ConTuple (length ts)) ts)
 
-mkTypeExpressionT (TyForall _ maybeVars (Just ctx) ty) = -- TODO: ctx is Maybe value, can be Nothing! (changed)
-  mkForallTyEx (maybe [] (map unKind) maybeVars) ctx ty
+mkTypeExpressionT (TyForall l maybeVars mbctx ty) =
+  mkForallTyEx (maybe [] (map unKind) maybeVars) (fromMaybe (CxEmpty l) mbctx) ty
   where unKind (KindedVar _ n _) = n
         unKind (UnkindedVar _ n) = n
 
@@ -420,13 +426,6 @@ mkTypeExpressionT (TyKind _ ty kd) =
 
 mkTypeExpressionT (TyTuple _ Unboxed _ ) =
   throwError (pp "Unboxed tuples are not allowed.")
-
-
--- TODO: changes with new version (thr)
-mkTypeExpressionT (TyBang _ bangType unpackedness t) = do
---  subt <- mkTypeExpressionT t
---  return (S.Banged subt)
-  throwError (pp "FIXME: strict type should not produce an error.")
 
 
 -- | Checks type abstractions for unique variables, merges the contexts and

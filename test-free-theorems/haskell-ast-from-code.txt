@@ -1,0 +1,102 @@
+class C m where
+  meinefunc :: m -> m
+data Test a = ConstTest a
+test :: [Test a] -> [a]
+test xs = xs
+
+
+ParseOk
+  (Module
+    Nothing
+    []
+    []
+    [
+      ClassDecl
+        Nothing
+        (DHApp
+          (DHead
+            (Ident "C")
+          )
+          (UnkindedVar
+            (Ident "m")
+          )
+        )
+        []
+        (Just
+          [
+            ClsDecl
+              (TypeSig
+                [
+                  Ident "meinefunc"
+                ]
+                (TyFun
+                  (TyVar
+                    (Ident "m")
+                  )
+                  (TyVar
+                    (Ident "m")
+                  )
+                )
+              )
+          ]
+        ),
+      DataDecl
+        (DataType)
+        Nothing
+        (DHApp
+          (DHead
+            (Ident "Test")
+          )
+          (UnkindedVar
+            (Ident "a")
+          )
+        )
+        [
+          QualConDecl
+            Nothing
+            Nothing
+            (ConDecl
+              (Ident "ConstTest")
+              [
+                TyVar (Ident "a")
+              ]
+            )
+        ]
+        Nothing,
+      TypeSig
+        [
+          Ident "test"
+        ]
+        (TyFun
+          (TyList
+            (TyApp
+              (TyCon
+                (UnQual
+                  (Ident "Test")
+                )
+              )
+              (TyVar (Ident "a"))
+            )
+          )
+          (TyList
+            (TyVar
+              (Ident "a")
+            )
+          )
+        ),
+      FunBind
+        [
+          Match
+            (Ident "test")
+            [
+              PVar (Ident "xs")
+            ]
+            (UnGuardedRhs
+              (Var
+                (UnQual (Ident "xs"))
+              )
+            )
+            Nothing
+        ]
+    ]
+  )

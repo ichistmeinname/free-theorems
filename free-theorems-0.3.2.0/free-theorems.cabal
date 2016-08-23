@@ -38,7 +38,7 @@ library
   build-depends:
       mtl >= 1.0
     , haskell-src >= 1.0
-    , haskell-src-exts >= 1.17.0
+    , haskell-src-exts >= 1.18.2
     , pretty >= 1.0.0.0
     , containers >= 0.1.0.1
   if impl(ghc >= 6.10)
