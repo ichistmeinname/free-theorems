@@ -350,18 +350,19 @@ mkSignature var ty = do
 --   this function fails with an appropriate error message.
 
 mkContext :: Context SrcSpanInfo -> ErrorOr [(S.TypeClass, S.TypeVariable)]
-mkContext = mkContext'
-   where
-    mkContext' (CxSingle _ a) = mapM trans [a]
-    mkContext' (CxTuple _ as) = mapM trans as
-    mkContext' (CxEmpty _)    = return []
-    trans (ClassA _ qname [TyVar _ var]) = do
-      ident <- liftM S.TC (mkIdentifierQ qname)
-      tv    <- mkTypeVariable var
-      return $ (ident, tv)
+mkContext cx = case cx of
+    (CxSingle _ a) -> mapM trans [a]
+    (CxTuple _ as) -> mapM trans as
+    (CxEmpty _)    -> return []
 
-    trans (ClassA _ _ _) = throwError errContext
-    trans (IParam _ _ _) = throwError errImplicit
+    where
+      trans (ClassA _ qname [TyVar _ var]) = do
+        ident <- liftM S.TC (mkIdentifierQ qname)
+        tv    <- mkTypeVariable var
+        return $ (ident, tv)
+
+      trans (ClassA _ _ _) = throwError errContext
+      trans (IParam _ _ _) = throwError errImplicit
 
 errContext =
   pp "Only a type variable may be constrained by a class in a context."
