@@ -246,7 +246,6 @@ mkDataConDecl ::
 
 mkDataConDecl name ts = do
   ident <- mkIdentifier name
---  types <- mapM mkBangTyEx ts
   types <- mapM mkBangTyEx ts
   return (S.DataCon ident types)
   where
@@ -273,18 +272,16 @@ mkNewtype name vars (QualConDecl _ _ _ con) = do
     fieldTypes ((FieldDecl _ _ t) : fs) = t : fieldTypes fs
     fieldTypes [] = []
 
---    mkNCD c [bty] = liftM2 (,) (mkIdentifier c) (bang bty)
-    mkNCD c [ty] = liftM2 (,) (mkIdentifier c) (mkTypeExpression ty) -- TODO: check for strict types
+    mkNCD c [ty] = liftM2 (,) (mkIdentifier c) (bang ty)
     mkNCD c []      = throwError errNewtype
     mkNCD c (_:_:_) = throwError errNewtype
 
     errNewtype =
       pp "A `newtype' declaration must have exactly one type expression."
 
---    bang (UnBangedTy ty) = mkTypeExpression ty
--- TODO: same here, works differently
-    bang (BangedTy ty)   =
+    bang (TyBang _ _ _ _)   =
       throwError (pp "A `newtype' declaration must not use a strictness flag.")
+    bang ty = mkTypeExpression ty
 
 
 
