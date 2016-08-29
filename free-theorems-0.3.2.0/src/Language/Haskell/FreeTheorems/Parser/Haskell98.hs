@@ -1,4 +1,4 @@
-
+{-# LANGUAGE FlexibleContexts #-}
 
 
 -- | Defines a function to parse a string into a list of declarations.
@@ -33,13 +33,13 @@ import Language.Haskell.FreeTheorems.Frontend.Error
 --   This function is based on the Haskell98 parser of the \'haskell-src\'
 --   package, i.e. the module \'Language.Haskell.Parser\'.
 --   That parser supports only Haskell98 and a few extensions. Especially, it
---   does not support explicit quantification of type variables and thus no 
+--   does not support explicit quantification of type variables and thus no
 --   higher-rank functions.
 --
---   The declarations returned by 'parse' include only @type@, @data@, 
+--   The declarations returned by 'parse' include only @type@, @data@,
 --   @newtype@, @class@ and type signature declarations.
 --   All other declarations and syntactical elements in the input are ignored.
---   
+--
 --   Furthermore, the following restrictions apply:
 --
 --   * Multi-parameter type classes are not allowed and therefore ignored. When
@@ -54,7 +54,7 @@ import Language.Haskell.FreeTheorems.Frontend.Error
 --
 --   * The module names are ignored. If any identifier was given qualified, the
 --     module part of a qualified name is ignored.
---   
+--
 --   * Special Haskell constructors (unit, list function) are not allowed as
 --     identifiers.
 --
@@ -76,11 +76,11 @@ parse text = case parseModule text of
                          return []
   where
     collectDeclarations :: [S.Declaration] -> HsDecl -> Parsed [S.Declaration]
-    collectDeclarations ds d = 
+    collectDeclarations ds d =
       case mkDeclaration d of
         Left e   -> tell [e] >> return ds
         Right d' -> return (ds ++ [d'])
-      
+
 
 
 
@@ -138,7 +138,7 @@ mkDeclaration decl = case decl of
   HsClassDecl l _ n [] _      -> addErr l n (throwError missingVar)
   HsClassDecl l _ n (_:_:_) _ -> addErr l n (throwError noMultiParam)
 
-  -- no other case con occur, see above function 'filterDeclarations'. 
+  -- no other case con occur, see above function 'filterDeclarations'.
 
 
 missingVar   = pp "Missing type variable to be constrained by type class."
@@ -153,7 +153,7 @@ addErr :: SrcLoc -> HsName -> ErrorOr S.Declaration-> ErrorOr S.Declaration
 addErr loc name e = case getError e of
   Nothing  -> e
   Just doc -> throwError $
-                pp ("In the declaration of `" ++ hsNameToString name 
+                pp ("In the declaration of `" ++ hsNameToString name
                     ++ "' at (" ++ show (srcLine loc) ++ ":"
                     ++ show (srcColumn loc) ++ "):")
                 $$ nest 2 doc
@@ -179,20 +179,20 @@ mkData name vars cons = do
   tvs   <- mapM mkTypeVariable vars
   ds    <- mapM mkDataConstructorDeclaration cons
   return (S.DataDecl (S.Data ident tvs ds))
-       
+
 
 
 -- | Transforms a data constructor declaration.
 
-mkDataConstructorDeclaration :: 
+mkDataConstructorDeclaration ::
     HsConDecl -> ErrorOr S.DataConstructorDeclaration
 
 mkDataConstructorDeclaration (HsConDecl _ name btys) = mkDataConDecl name btys
 
-mkDataConstructorDeclaration (HsRecDecl _ name rbtys) = 
+mkDataConstructorDeclaration (HsRecDecl _ name rbtys) =
   let btys = concatMap (\(l,ty) -> replicate (length l) ty) rbtys
    in mkDataConDecl name btys
-  
+
 
 
 -- | Transforms the components of a data constructor declaration.
@@ -226,11 +226,11 @@ mkNewtype name vars con = do
     mkNCD c []      = throwError errNewtype
     mkNCD c (_:_:_) = throwError errNewtype
 
-    errNewtype = 
+    errNewtype =
       pp "A `newtype' declaration must have exactly one type expression."
 
     bang (HsUnBangedTy ty) = mkTypeExpression ty
-    bang (HsBangedTy ty)   = 
+    bang (HsBangedTy ty)   =
       throwError (pp "A `newtype' declaration must not use a strictness flag.")
 
 
@@ -265,9 +265,9 @@ mkClass ctx name var decls = do
     -- Checks if only the given type variable occurs in the second parameter.
     -- If not, an error is returned, otherwise, the list of type classes is
     -- extracted.
-    check :: 
-        S.TypeVariable 
-        -> [(S.TypeClass, S.TypeVariable)] 
+    check ::
+        S.TypeVariable
+        -> [(S.TypeClass, S.TypeVariable)]
         -> ErrorOr [S.TypeClass]
     check tv@(S.TV (S.Ident v)) ctx =
       let (tcs, tvs) = unzip ctx
@@ -275,7 +275,7 @@ mkClass ctx name var decls = do
         then return tcs
         else throwError (errClass v)
 
-    errClass v = 
+    errClass v =
       pp $ "Only `" ++ v ++ "' can be constrained by the superclasses."
 
 
@@ -292,9 +292,9 @@ mkSignature ctx var ty = do
   where
     -- Merges the context and the type expression. The context is represented
     -- as type abstractions.
-    merge :: 
-        [(S.TypeClass, S.TypeVariable)] 
-        -> S.TypeExpression 
+    merge ::
+        [(S.TypeClass, S.TypeVariable)]
+        -> S.TypeExpression
         -> S.TypeExpression
     merge ctx t =
       let -- All variables occurring in a context.
@@ -358,7 +358,7 @@ mkAppTyEx ty tys = case ty of
   HsTyTuple _   -> throwError (pp "A tuple type must not be applied to a type.")
   HsTyVar _     -> throwError (pp "A variable must not be applied to a type.")
   HsTyApp t1 t2 -> mkAppTyEx t1 (t2 : tys)
-  HsTyCon qname -> mapM mkTypeExpression tys >>= mkTypeConstructorApp qname 
+  HsTyCon qname -> mapM mkTypeExpression tys >>= mkTypeConstructorApp qname
 
 
 
@@ -367,15 +367,15 @@ mkAppTyEx ty tys = case ty of
 --   The function type constructor is handled specially because it has to have
 --   exactly two arguments.
 
-mkTypeConstructorApp :: 
-    HsQName 
-    -> [S.TypeExpression] 
+mkTypeConstructorApp ::
+    HsQName
+    -> [S.TypeExpression]
     -> ErrorOr S.TypeExpression
 
 mkTypeConstructorApp (Special HsFunCon) [t1,t2] = return $ S.TypeFun t1 t2
 mkTypeConstructorApp (Special HsFunCon) _       = throwError errorTypeConstructorApp
 
-mkTypeConstructorApp qname              ts      = 
+mkTypeConstructorApp qname              ts      =
   liftM (\con -> S.TypeCon con ts) (mkTypeConstructor qname)
 
 errorTypeConstructorApp =
@@ -388,7 +388,7 @@ errorTypeConstructorApp =
 --   \'Prelude\'.
 
 mkTypeConstructor :: HsQName -> ErrorOr S.TypeConstructor
-mkTypeConstructor (Qual (Module mod) hsName) = 
+mkTypeConstructor (Qual (Module mod) hsName) =
   if mod == "Prelude"
     then return (asCon hsName)
     else return (S.Con $ hsNameToIdentifier hsName)
@@ -468,5 +468,3 @@ hsNameToIdentifier = S.Ident . hsNameToString
 hsNameToString :: HsName -> String
 hsNameToString (HsIdent s)  = s
 hsNameToString (HsSymbol s) = "(" ++ s ++ ")"
-
-

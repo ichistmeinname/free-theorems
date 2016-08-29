@@ -108,8 +108,7 @@ makeValid vds ds =
   let strict = map rawDeclaration (filter isStrictDeclaration vds)
       knownStrict = map getDeclarationName
                         (strict ++ filter hasStrictnessFlags ds)
-
-      rec ss ds = 
+      rec ss ds =
         let (ns, os) = partition (dependsOnStrictTypes ss) ds
          in if null ns
               then ss

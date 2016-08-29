@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Language.Haskell.FreeTheorems.Parser.Hsx (parse) where
 
 
@@ -424,6 +426,8 @@ mkTypeExpressionT (TyKind _ ty kd) =
 
 mkTypeExpressionT (TyTuple _ Unboxed _ ) =
   throwError (pp "Unboxed tuples are not allowed.")
+
+mkTypeExpressionT (TyBang _ bt unpck t) = throwError (pp "Problem: banged type")
 
 
 -- | Checks type abstractions for unique variables, merges the contexts and

@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 
 -- | Provides error handling functions for checking parser output.
 --   The functions and data types of this module are mostly tiny, little
@@ -61,7 +62,7 @@ runChecks = runWriter
 foldChecks :: (a -> ErrorOr b) -> [a] -> Checked [a]
 foldChecks check = foldM doCheck []
   where
-    doCheck xs x = 
+    doCheck xs x =
       case getError (check x) of
         Nothing -> return (xs ++ [x])
         Just e  -> tell [e] >> return xs
@@ -75,7 +76,7 @@ isError = either (const True) (const False)
 
 
 
--- | Returns the error message stored in the argument or @Nothing@ if there is 
+-- | Returns the error message stored in the argument or @Nothing@ if there is
 --   no error message in the argument.
 
 getError :: ErrorOr a -> Maybe Doc
@@ -101,20 +102,20 @@ pp = fsep . map text . words
 
 
 -- | Checks a declaration for errors.
---   If the second argument is an error, this function extends the error 
+--   If the second argument is an error, this function extends the error
 --   message to make clear it belongs to a declaration.
 
 inDecl :: Declaration -> ErrorOr a -> ErrorOr a
 inDecl d e = case getError e of
   Nothing  -> e
   Just doc -> throwError $
-                pp ("In the declaration of " 
+                pp ("In the declaration of "
                     ++ unpackIdent (getDeclarationName d) ++ ":")
                 $$ nest 2 doc
-    
 
 
--- | Used to extend error messages by a list of items violating a certain rule. 
+
+-- | Used to extend error messages by a list of items violating a certain rule.
 
 violating :: String -> [String] -> String
 violating name xs =
@@ -122,7 +123,3 @@ violating name xs =
                then " The following " ++ name ++ " violates this rule: "
                else " The following " ++ name ++ "s violate this rule: "
    in text ++ (concat . intersperse ", " $ xs)
-
-
-
-

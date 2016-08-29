@@ -78,7 +78,6 @@ library
   extensions:
     DeriveDataTypeable,
     Rank2Types,
-    FlexibleContexts,
     FlexibleInstances,
     UndecidableInstances
 
