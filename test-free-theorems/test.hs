@@ -4,16 +4,25 @@ import Control.Monad.Writer(runWriter)
 import Text.PrettyPrint.HughesPJ
 
 teststr :: String
-teststr = "class (C9 c, Show c, C10 c) => Num c\n\
-    \f2 :: !a19\n\
-    \f18 :: t3\n\
-    \(||) :: []\n\
-    \uncurry :: e\n\
-    \f10 :: t4\n\
-    \f1 :: a9\n\
-    \maybe :: t5\n\
-    \succ :: t1\n\
-    \f12 :: Either\n"
+teststr = "class (C9 c, Show c, C10 c) => Num c where\n\
+    \  f2 :: !a19\n\
+    \  f18 :: t3\n\
+    \  (||) :: []\n\
+    \  uncurry :: e\n\
+    \  f10 :: t4\n\
+    \  f1 :: a9\n\
+    \  maybe :: t5\n\
+    \  succ :: t1\n\
+    \  f12 :: Either\n"
+
+teststr2 :: String
+teststr2 = "data T14 a19 a10 a13 a6\n\
+    \  = D4 t2\n\
+    \  | D10 !t2 !Int\n\
+    \  | GT !T17\n\
+    \  | D10 !T12\n\
+    \  | D11 !t2 !a12 !t4\n\
+    \  | Nothing !a13 t3 Int"
 
 test :: String -> Doc
 test st = case sigs of

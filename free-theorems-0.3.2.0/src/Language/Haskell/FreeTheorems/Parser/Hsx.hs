@@ -171,8 +171,8 @@ mkDeclaration decl = case decl of
     -- Convert DeclHead data structure to list of type variables
     dhToList (DHead l n)      = []
     dhToList (DHInfix l vb n) = [vb]
-    dhToList (DHParen l dh)     = dhToList dh
-    dhToList (DHApp l dh vb)    = vb : (dhToList dh)
+    dhToList (DHParen l dh)   = dhToList dh
+    dhToList (DHApp l dh vb)  = (dhToList dh) ++ [vb]
 
     -- Retrieve name of the class declaration from DeclHead data structure
     dhName (DHead l n)        = n
@@ -427,7 +427,7 @@ mkTypeExpressionT (TyKind _ ty kd) =
 mkTypeExpressionT (TyTuple _ Unboxed _ ) =
   throwError (pp "Unboxed tuples are not allowed.")
 
-mkTypeExpressionT (TyBang _ bt unpck t) = throwError (pp "Problem: banged type")
+mkTypeExpressionT (TyBang _ bt unpck t) = throwError (pp "Unallowed strictness flag.")
 
 
 -- | Checks type abstractions for unique variables, merges the contexts and
