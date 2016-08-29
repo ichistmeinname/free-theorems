@@ -477,7 +477,9 @@ mkAppTyEx ty tys = case ty of
   TyFun _ _ _ -> throwError $ pp ("A function type must not be applied to a "
                                     ++ "type.")
   TyTuple _ _ _ -> throwError (pp "A tuple type must not be applied to a type.")
-  TyVar _ _     -> throwError (pp "A variable must not be applied to a type.")
+--  TyVar _ _     -> throwError (pp "A variable must not be applied to a type.")  -- this needs to be changed, since
+                                                                                -- type constructor variables are allowed
+  TyVar l n     -> mapM mkTypeExpression tys >>= mkTypeConstructorApp (UnQual l n)
   TyApp _ t1 t2 -> mkAppTyEx t1 (t2 : tys)
   TyCon _ qname -> mapM mkTypeExpression tys >>= mkTypeConstructorApp qname
 

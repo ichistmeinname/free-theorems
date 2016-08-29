@@ -1,9 +1,9 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
 
--- | Declares the basic syntax of a Haskell98 subset enriched with 
+-- | Declares the basic syntax of a Haskell98 subset enriched with
 --   higher-ranked functions. Additionally, it defines small convenience
---   functions. 
+--   functions.
 
 module Language.Haskell.FreeTheorems.BasicSyntax where
 
@@ -20,7 +20,7 @@ import Data.Generics (Typeable, Data)
 --   expressions. Thus, for example, the functions of the @Monad@ class are not
 --   expressible.
 --   However, in extension to Haskell98, higher-rank types can be expressed.
---   
+--
 --   This data type does not reflect all information of a declaration. Only the
 --   aspects needed by the FreeTheorems library are covered.
 
@@ -62,7 +62,7 @@ getDeclarationArity (TypeSig s)     = Nothing
 
 -- | A @type@ declaration for a type synonym.
 
-data TypeDeclaration = Type 
+data TypeDeclaration = Type
   { typeName :: Identifier     -- ^ The type constructor name.
   , typeVars :: [TypeVariable] -- ^ The type variables on the left-hand side.
   , typeRhs  :: TypeExpression -- ^ The type expression on the right-hand side.
@@ -76,7 +76,7 @@ data TypeDeclaration = Type
 --   Note that the context and the deriving parts of a @data@ declaration are
 --   ignored.
 
-data DataDeclaration = Data 
+data DataDeclaration = Data
   { dataName     :: Identifier
         -- ^ The name of the type constructor.
 
@@ -96,19 +96,19 @@ data DataDeclaration = Data
 --   Note that the context and the deriving parts of a @newtype@ declaration are
 --   ignored.
 
-data NewtypeDeclaration = Newtype 
-  { newtypeName     :: Identifier       
+data NewtypeDeclaration = Newtype
+  { newtypeName     :: Identifier
         -- ^ The name of the type constructor.
-  
-  , newtypeVars     :: [TypeVariable]   
+
+  , newtypeVars     :: [TypeVariable]
         -- ^ The type variables of the left-hand side.
-  
+
   , newtypeCon      :: Identifier
         -- ^ The name of the data constructor on the right-hand side.
-  
+
   , newtypeRhs      :: TypeExpression
         -- ^ The type expression on the right-hand side.
-  
+
   }
   deriving (Eq, Typeable, Data)
 
@@ -119,19 +119,19 @@ data NewtypeDeclaration = Newtype
 --   Note that, except of type signatures of class methods, all other
 --   declarations inside the class are ignored.
 
-data ClassDeclaration = Class 
-  { superClasses :: [TypeClass]     
+data ClassDeclaration = Class
+  { superClasses :: [TypeClass]
         -- ^ The superclasses of this class.
-  
-  , className    :: Identifier      
+
+  , className    :: Identifier
         -- ^ The name of this type class.
-  
-  , classVar     :: TypeVariable    
+
+  , classVar     :: TypeVariable
         -- ^ The type variable constrained by this type class.
-  
+
   , classFuns    :: [Signature]
         -- ^ The type signatures of the class methods.
-  
+
   }
   deriving (Eq, Typeable, Data)
 
@@ -140,12 +140,12 @@ data ClassDeclaration = Class
 -- | A type signature.
 
 data Signature = Signature
-  { signatureName :: Identifier     
+  { signatureName :: Identifier
         -- ^ The name of the signature, i.e. the name of a variable or function.
-  
+
   , signatureType :: TypeExpression
         -- ^ The type expression of the type signature.
-  
+
   }
   deriving (Eq, Typeable, Data)
 
@@ -162,13 +162,13 @@ newtype Identifier = Ident { unpackIdent :: String }
 
 -- | A data constructor declaration.
 
-data DataConstructorDeclaration = DataCon 
+data DataConstructorDeclaration = DataCon
   { dataConName  :: Identifier
         -- ^ The name of the data constructor.
-  
+
   , dataConTypes :: [BangTypeExpression]
         -- ^ The type arguments of the data constructor.
-  
+
   }
   deriving (Eq, Typeable, Data)
 
@@ -260,7 +260,3 @@ newtype TypeVariable = TV Identifier
 
 newtype FixedTypeExpression = TF Identifier
   deriving (Eq, Typeable, Data)
-
-
-
-

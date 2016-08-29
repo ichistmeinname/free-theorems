@@ -24,6 +24,10 @@ teststr2 = "data T14 a19 a10 a13 a6\n\
     \  | D11 !t2 !a12 !t4\n\
     \  | Nothing !a13 t3 Int"
 
+teststr3 :: String
+teststr3 = "class Monad m where\n\
+    \  (>>=) :: m a -> (a -> m b) -> m b\n"
+
 test :: String -> Doc
 test st = case sigs of
      (sig1 : _) -> (hcat sec) $$ (prettyTheorem [] $ theo (interpret s BasicSubset (head sigs)))
@@ -36,4 +40,13 @@ test st = case sigs of
    theo Nothing  = error "Nothing"
 
 --test2 :: String -> String
-test2 st = parse st
+test2 st = let (decls, errs) = runWriter $ parse st
+            in decls
+
+main :: IO ()
+main = do
+  putStrLn "Source code:"
+  putStrLn teststr3
+  putStrLn "Pretty printed parsing result:"
+  x <- return $ test2 teststr3
+  putStrLn $ render (hcat (map (text.show) x))
