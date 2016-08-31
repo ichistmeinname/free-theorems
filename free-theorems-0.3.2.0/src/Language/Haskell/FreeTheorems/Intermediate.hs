@@ -138,6 +138,9 @@ interpretM l t = case t of
 
     -- either create a basic relation or a lift relation, depending on the
     -- subtypes
+
+    -- (thr) This function has to be extended to also allow the use of
+    -- type constructor classes
   TypeCon c ts -> do
     rs <- mapM (interpretM l) ts   -- interpret the subtypes
     ri <- mkRelationInfo l t       -- create the relation info

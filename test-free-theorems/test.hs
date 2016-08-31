@@ -1,6 +1,7 @@
 import Language.Haskell.FreeTheorems
+import Language.Haskell.FreeTheorems.Theorems
 import Language.Haskell.FreeTheorems.Parser.Hsx
-import Control.Monad.Writer(runWriter)
+import Control.Monad.Writer(Writer, runWriter, writer)
 import Text.PrettyPrint.HughesPJ
 
 teststr :: String
@@ -28,25 +29,28 @@ teststr3 :: String
 teststr3 = "class Monad m where\n\
     \  (>>=) :: m a -> (a -> m b) -> m b\n"
 
-test :: String -> Doc
-test st = case sigs of
-     (sig1 : _) -> (hcat sec) $$ (prettyTheorem [] $ theo (interpret s BasicSubset (head sigs)))
-     []         -> hcat sec
-  where
-   s = (fst . runWriter . check) parsed
-   (parsed, sec) = (runWriter . parse) st
-   sigs = filterSignatures s
-   theo (Just i) = asTheorem i
-   theo Nothing  = error "Nothing"
+test :: String -> Writer String (Maybe Intermediate)
+test st = writer (interm sigs, errorStr)
+            where
+              (decls, parseErrs) = runWriter $ parse st
+              (valdecls, checkErrs) = runWriter $ check decls
+              errorStr = show $ hcat (parseErrs ++ checkErrs)
+              sigs = filterSignatures valdecls
+              interm []  = Nothing
+              interm sgs = interpret valdecls BasicSubset (head sgs)
 
---test2 :: String -> String
-test2 st = let (decls, errs) = runWriter $ parse st
-            in decls
+showSpecialisedList :: Intermediate -> [RelationVariable] -> IO ()
+showSpecialisedList _ []     = return ()
+showSpecialisedList t (r:rs) = (print (prettyTheorem [] (asTheorem (specialise t r)))) >> (showSpecialisedList t rs)
 
 main :: IO ()
 main = do
-  putStrLn "Source code:"
-  putStrLn teststr3
-  putStrLn "Pretty printed parsing result:"
-  x <- return $ test2 teststr3
-  putStrLn $ render (hcat (map (text.show) x))
+  putStr "Type signature: "
+  x <- getLine
+  let (intm, err) = runWriter $ test x
+  putStrLn err
+  case intm of
+    Just t  -> do
+                print (prettyTheorem [] (asTheorem t))
+                showSpecialisedList t (relationVariables t)
+    Nothing -> return ()
