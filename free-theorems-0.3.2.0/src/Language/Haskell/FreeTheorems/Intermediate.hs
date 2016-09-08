@@ -184,6 +184,8 @@ interpretM l t = case t of
     let res = (filter (/= BottomReflecting) (relRes l)) ++ (if null cs then [] else [RespectsClasses cs])
     return (RelAbs ri rv (t1,t2) res r)
 
+  TypeVarApp v ts -> error "FIXME: Not done yet"
+
   where
     mkRelationInfo l t = do
       env <- ask

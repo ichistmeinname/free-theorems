@@ -28,7 +28,7 @@ module Language.Haskell.FreeTheorems.Syntax (
   , Signature (..)
   , DataConstructorDeclaration (..)
   , BangTypeExpression (..)
-  
+
 
     -- * Type expressions
 
@@ -50,5 +50,3 @@ module Language.Haskell.FreeTheorems.Syntax (
 import Language.Haskell.FreeTheorems.BasicSyntax
 import Language.Haskell.FreeTheorems.ValidSyntax
 import Language.Haskell.FreeTheorems.PrettyTypes
-
-

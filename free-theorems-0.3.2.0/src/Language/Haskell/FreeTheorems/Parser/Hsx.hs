@@ -479,7 +479,9 @@ mkAppTyEx ty tys = case ty of
   TyTuple _ _ _ -> throwError (pp "A tuple type must not be applied to a type.")
 --  TyVar _ _     -> throwError (pp "A variable must not be applied to a type.")  -- this needs to be changed, since
                                                                                 -- type constructor variables are allowed
-  TyVar l n     -> mapM mkTypeExpression tys >>= mkTypeConstructorApp (UnQual l n)
+  TyVar _ (Ident _ name) -> do
+                    xs <- mapM mkTypeExpression tys
+                    return $ S.TypeVarApp (S.TV . S.Ident $ name) xs
   TyApp _ t1 t2 -> mkAppTyEx t1 (t2 : tys)
   TyCon _ qname -> mapM mkTypeExpression tys >>= mkTypeConstructorApp qname
 

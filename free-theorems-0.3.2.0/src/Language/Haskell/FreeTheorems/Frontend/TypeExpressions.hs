@@ -59,6 +59,7 @@ freeTypeVariables = synthesize Set.empty Set.union (id `mkQ` update)
       TypeVar v        -> Set.insert v s
       TypeAbs v _ _    -> Set.delete v s
       TypeAbsLab v _ _ -> Set.delete v s
+      TypeVarApp v _   -> Set.insert v s
       otherwise        -> s
 
 
@@ -67,11 +68,11 @@ freeTypeVariables = synthesize Set.empty Set.union (id `mkQ` update)
 --   with the type expressions they are mapped to.
 
 substituteTypeVariables ::
-    Map.Map TypeVariable TypeExpression 
-    -> TypeExpression 
+    Map.Map TypeVariable TypeExpression
+    -> TypeExpression
     -> TypeExpression
 
-substituteTypeVariables env t = 
+substituteTypeVariables env t =
   everywhereWith (id `mkQ` update) (mkTw substitute) env t
   where
     -- Updates the environment used in the top-down traversal.
@@ -81,7 +82,7 @@ substituteTypeVariables env t =
       TypeAbs v _ _    -> Map.delete v env
       TypeAbsLab v _ _ -> Map.delete v env
       otherwise        -> env
-    
+
     -- Replaces a type variable by a type expression, if the type variable is
     -- contained in the environment.
     substitute env t = case t of
@@ -118,7 +119,7 @@ alphaConversion old t =
     -- The new type variable which will replace 'old' everywhere in the given
     -- type expression.
     new = createNewTypeVariableNotIn (allTypeVariables t)
-    
+
     -- This function replaces any type variable equal to 'old' with 'new' and
     -- keeps all other type variables unchanged.
     rep v = if (v == old) then new else v
@@ -190,10 +191,10 @@ everywhereWith k f u x = (f u) $ gmapT (everywhereWith k f (k x u)) x
 
 
 -- | Replaces all type synonyms in an arbitrary tree.
---   The first argument gives the list of known type synonyms and their 
+--   The first argument gives the list of known type synonyms and their
 --   declarations. Every occurrence of one of those type synonyms in the second
 --   argument is replaced by the according right-hand side of the declaration.
---   
+--
 --   Note that the type synonym declarations given in the first argument may
 --   themselves contain type synonyms. However, type synonym declarations must
 --   not be recursive nor mutually recursive.
@@ -206,7 +207,7 @@ replaceAllTypeSynonyms knownTypes = everywhere (mkT replace)
 
   where
     -- Replacing type synonyms only affects type constructors.
-    -- Check if there is a type synonym declaration for the given type 
+    -- Check if there is a type synonym declaration for the given type
     -- constructor. If not, just return the unchanged type expression.
     -- Otherwise replace the type synonym by its definition.
     replace t = case t of
@@ -218,7 +219,7 @@ replaceAllTypeSynonyms knownTypes = everywhere (mkT replace)
     -- Note that the structure of 'replaceTypeSynonyms' guarantees that there is
     -- no type synonym in any of the type expressions of 'ts'.
     applyTypeSynonym ts (Type _ vs t) =
-      let 
+      let
           -- First, remove all type synonyms from the declaration's right-hand
           -- side. Note that this terminates because type expressions cannot be
           -- declared recursively nor mutually recursively.
@@ -236,7 +237,7 @@ replaceAllTypeSynonyms knownTypes = everywhere (mkT replace)
           -- Finally, apply the declaration's right-hand side to 'ts' and return
           -- the constructed type expression.
        in substituteTypeVariables env t2
-  
+
 
 
 -- | Looks up the declaration for a type synonym constructor.
@@ -246,7 +247,7 @@ replaceAllTypeSynonyms knownTypes = everywhere (mkT replace)
 
 findTypeDecl :: [TypeDeclaration] -> TypeConstructor -> Maybe TypeDeclaration
 findTypeDecl decls con = case con of
-  Con name  -> find (\d -> typeName d == name) decls 
+  Con name  -> find (\d -> typeName d == name) decls
   otherwise -> Nothing
 
 
@@ -278,7 +279,7 @@ closeClassDecl d =
   d { classFuns = map (closureWithout (classVar d)) (classFuns d) }
   where
     -- Close the class method signature while keeping the class variable free.
-    closureWithout v s = 
+    closureWithout v s =
       let t = signatureType s
           freeVars = freeTypeVariables t `Set.difference` Set.singleton v
        in s { signatureType = closureFor freeVars t }
@@ -294,14 +295,8 @@ closeSignature s =
 
 
 
--- | Explicitly binds all type variables of the first argument by a type 
+-- | Explicitly binds all type variables of the first argument by a type
 --   abstraction in the given type expression.
 
 closureFor :: Set.Set TypeVariable -> TypeExpression -> TypeExpression
 closureFor vs t = Set.fold (\v -> TypeAbs v []) t vs
-
-
-
-
-
-

@@ -32,8 +32,8 @@ tests = do
 -- | Property: Parsing a pretty-printed declaration results in the same
 --   declaration. This property is based on the Haskell98 parser.
 
-prop_parsePrettyPrint_Haskell98 decls = 
-  let (pds, es) = runWriter . Haskell98.parse 
+prop_parsePrettyPrint_Haskell98 decls =
+  let (pds, es) = runWriter . Haskell98.parse
                             . show . vcat . map prettyDeclaration $ ds
    in not (null ds) ==> (null es && not (null pds) && pds == ds)
   where
@@ -41,7 +41,7 @@ prop_parsePrettyPrint_Haskell98 decls =
     ds = map modifyTypeExpressions (getDeclarations decls)
 
     -- type expressions have to be modified because arbitrary type expressions
-    -- may contain FixedTypeExpressions, explicit type abstractions and 
+    -- may contain FixedTypeExpressions, explicit type abstractions and
     -- type constructors applied to a wrong number of arguments
     modifyTypeExpressions = everywhere (mkT adjustType)
 
@@ -67,8 +67,8 @@ prop_parsePrettyPrint_Haskell98 decls =
 -- | Property: Parsing a pretty-printed declaration results in the same
 --   declaration. This property is based on the Hsx parser.
 
-prop_parsePrettyPrint_Hsx decls = 
-  let (pds, es) = runWriter . Hsx.parse 
+prop_parsePrettyPrint_Hsx decls =
+  let (pds, es) = runWriter . Hsx.parse
                             . show . vcat . map prettyDeclaration $ ds
    in not (null ds) ==> (null es && not (null pds) && pds == ds)
   where
@@ -76,7 +76,7 @@ prop_parsePrettyPrint_Hsx decls =
     ds = map modifyTypeExpressions (getDeclarations decls)
 
     -- type expressions have to be modified because arbitrary type expressions
-    -- may contain FixedTypeExpressions, explicit type abstractions and 
+    -- may contain FixedTypeExpressions, explicit type abstractions and
     -- type constructors applied to a wrong number of arguments
     modifyTypeExpressions = everywhere (mkT adjustType)
 
@@ -96,5 +96,3 @@ prop_parsePrettyPrint_Hsx decls =
       TypeAbs _ _ t'          -> t'
       TypeExp (TF i)          -> TypeVar (TV i)
       otherwise               -> t
-
-

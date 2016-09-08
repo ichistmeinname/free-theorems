@@ -15,15 +15,15 @@
 --
 --
 --   The intended usage of this library is as follows.
---   
---   (1) Parse a list of declarations using one of two parsers 
---       ('Language.Haskell.FreeTheorems.Parser.Haskell98.parse' or 
+--
+--   (1) Parse a list of declarations using one of two parsers
+--       ('Language.Haskell.FreeTheorems.Parser.Haskell98.parse' or
 --       'Language.Haskell.FreeTheorems.Parser.Hsx.parse') or any other
 --       suitable parser.
 --       Use 'check' to obtain a list of valid declarations.
 --
 --   (2) Optional:
---       Parse more declarations and validate them against the previously 
+--       Parse more declarations and validate them against the previously
 --       loaded list of valid declarations with 'checkAgainst'.
 --
 --   (3) Extract all valid signatures from a list of valid declarations by
@@ -32,7 +32,7 @@
 --   (4) Interpret a signature ('interpret'), transform it to a theorem
 --       ('asTheorem') and pretty-print it ('prettyTheorem').
 --
---   (5) Optional: Specialise relation variables to functions 
+--   (5) Optional: Specialise relation variables to functions
 --       ('relationVariables' and 'specialise').
 --
 --   (6) Optional: Extract lifted relations to show their definition
@@ -56,16 +56,16 @@ module Language.Haskell.FreeTheorems (
   , rawSignature
   , filterSignatures
 
-    
-    -- * Manufacturing valid declarations 
-    
+
+    -- * Manufacturing valid declarations
+
   , Parsed
   , Checked
   , runChecks
   , check
   , checkAgainst
 
-    
+
     -- * Generating free theorems
 
   , LanguageSubset (..)
@@ -89,7 +89,7 @@ module Language.Haskell.FreeTheorems (
   , simplifyUnfoldedLift
 
     -- * Pretty printing
-    
+
     -- | The pretty printer is based on the module \"Text.PrettyPrint\" which
     --   is usually implemented by \"Text.PrettyPrint.HughesPJ\". See there for
     --   information on how to modify documents.
@@ -127,7 +127,7 @@ import Language.Haskell.FreeTheorems.PrettyTheorems
 -- $restrictions
 --
 --   The restrictions on valid declarations and valid type signatures, above
---   what is already ensured by the stucture of declarations (see 
+--   what is already ensured by the stucture of declarations (see
 --   "Language.Haskell.FreeTheorems.Syntax"), are as follows:
 --
 --   For @data@ and @newtype@ declarations:
@@ -138,7 +138,7 @@ import Language.Haskell.FreeTheorems.PrettyTheorems
 --   * The variables occurring on the right-hand side have to be mentioned on
 --     the left-hand side, and the left-hand side variables are pairwise
 --     distinct.
---   
+--
 --   * There is at least one data constructor in the declaration of an
 --     algebraic data type.
 --
@@ -167,30 +167,30 @@ import Language.Haskell.FreeTheorems.PrettyTheorems
 --
 --   * No 'Language.Haskell.FreeTheorems.Syntax.FixedTypeExpression' occurs
 --     in the type expression on the right-hand side.
---   
+--
 --   For @class@ declarations:
 --
 --   * The declared type class does not equal a primitive type.
---   
---   * The names of the class methods are pairwise distinct. 
---   
+--
+--   * The names of the class methods are pairwise distinct.
+--
 --   * The class variable occurs in the type expression of every class method.
---   
+--
 --   * The name of the class does not occur in a type expression of any class
 --     method.
---   
+--
 --   * No 'Language.Haskell.FreeTheorems.Syntax.FixedTypeExpression' occurs
 --     in a type expression of any class method.
 --
 --   * The type class hierarchy is acyclic.
 --
 --   For type signatures:
---   
+--
 --   * No 'Language.Haskell.FreeTheorems.Syntax.FixedTypeExpression' occurs
 --     in the type expression of a signature.
 --
 --   Additionally, the following global restrictions need to hold:
---   
+--
 --   * There may be at most one declaration only for every name.
 --
 --   * Every type class occurring in any type expression is declared.
@@ -204,5 +204,3 @@ import Language.Haskell.FreeTheorems.PrettyTheorems
 --   Every type expression of a valid declaration is closed. A special case are
 --   class methods. Their types have the class variable as the only free type
 --   variable.
-
-

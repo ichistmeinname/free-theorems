@@ -1,6 +1,7 @@
 import Language.Haskell.FreeTheorems
 import Language.Haskell.FreeTheorems.Theorems
 import Language.Haskell.FreeTheorems.Parser.Hsx
+import Language.Haskell.FreeTheorems.BasicSyntax
 import Control.Monad.Writer(Writer, runWriter, writer)
 import Text.PrettyPrint.HughesPJ
 
@@ -17,17 +18,14 @@ teststr = "class (C9 c, Show c, C10 c) => Num c where\n\
     \  f12 :: Either\n"
 
 teststr2 :: String
-teststr2 = "data T14 a19 a10 a13 a6\n\
-    \  = D4 t2\n\
-    \  | D10 !t2 !Int\n\
-    \  | GT !T17\n\
-    \  | D10 !T12\n\
-    \  | D11 !t2 !a12 !t4\n\
-    \  | Nothing !a13 t3 Int"
+teststr2 = "data Test a\n\
+    \  = Test a"
 
 teststr3 :: String
 teststr3 = "class Monad m where\n\
-    \  (>>=) :: m a -> (a -> m b) -> m b\n"
+    \  (>>=) :: m a -> (a -> m b) -> m b\n\
+    \n\
+    \test :: Monad m => m a -> m a"
 
 test :: String -> Writer String (Maybe Intermediate)
 test st = writer (interm sigs, errorStr)
@@ -39,18 +37,24 @@ test st = writer (interm sigs, errorStr)
               interm []  = Nothing
               interm sgs = interpret valdecls BasicSubset (head sgs)
 
-showSpecialisedList :: Intermediate -> [RelationVariable] -> IO ()
-showSpecialisedList _ []     = return ()
-showSpecialisedList t (r:rs) = (print (prettyTheorem [] (asTheorem (specialise t r)))) >> (showSpecialisedList t rs)
+textToAST :: String -> [Declaration]
+textToAST st = let (decls, _) = runWriter $ parse st
+                in decls
 
-main :: IO ()
-main = do
-  putStr "Type signature: "
-  x <- getLine
-  let (intm, err) = runWriter $ test x
-  putStrLn err
-  case intm of
-    Just t  -> do
-                print (prettyTheorem [] (asTheorem t))
-                showSpecialisedList t (relationVariables t)
-    Nothing -> return ()
+
+--showSpecialisedList :: Intermediate -> [RelationVariable] -> IO ()
+--showSpecialisedList _ []     = return ()
+--showSpecialisedList t (r:rs) = (print (prettyTheorem [] (asTheorem (specialise t r)))) >> (showSpecialisedList t rs)
+
+--main :: IO ()
+--main = do
+--  putStr "Type signature: "
+--  x <- getLine
+--  x <- return teststr2
+--  let (intm, err) = runWriter $ test x
+--  putStrLn err
+--  case intm of
+--    Just t  -> do
+--                print (prettyTheorem [] (asTheorem t))
+--                showSpecialisedList t (relationVariables t)
+--    Nothing -> return ()
