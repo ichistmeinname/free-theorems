@@ -24,7 +24,7 @@ teststr2 = "data Test a\n\
 teststr3 :: String
 teststr3 = "class Monad m where\n\
     \  (>>=) :: m a -> (a -> m b) -> m b\n\
-    \n\
+    \\n\
     \test :: Monad m => m a -> m a"
 
 test :: String -> Writer String (Maybe Intermediate)

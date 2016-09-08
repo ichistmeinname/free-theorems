@@ -73,16 +73,30 @@
 
 \section{BasicSyntax}
 
-Das Paket free-theorems ermöglicht das Parsen von Haskellcode in die selbstdefinierte Datenstruktur BasicSyntax. Diese Datenstruktur beinhaltet lediglich die Konstrukte, die für die Generierung von freien Theoremen benötigt werden. Intern nutzt das Paket die Parser aus Language.Haskell.Exts und transformiert den resultierenden Syntaxbaum in die BasicSyntax.
-
-Im Folgenden soll an einem Beispiel gezeigt werden, wie der BasicSyntax-Baum aufgebaut ist.
+Das Paket free-theorems nutzt intern die selbstdefinierte Datenstruktur BasicSyntax als vereinfachte Version eines Syntaxbaumes zu einem Haskellprogramm. Diese Datenstruktur beinhaltet lediglich die Konstrukte, die für die Generierung von freien Theoremen benötigt werden: Von Interesse sind hier hauptsächlich natürlich Funktionssignaturen, daneben aber auch mit \texttt{data} definierte Datentypen und - insbesondere für die Erweiterung - Klassendefinitionen und Klasseneinschränkungen. Intern nutzt das Paket die Parser aus Language.Haskell.Exts und transformiert den resultierenden Syntaxbaum in die BasicSyntax.
 
 \subsection{Funktionssignaturen}
 
+Das wichtigste Element sind Funktionssignaturen. Bei der Überführung in die BasicSyntax werden sämtliche Funktionsimplementationen ignoriert und lediglich die Signaturen übernommen.
+
 \lstinputlisting[language=Haskell]{ast.hs}
 
-\subsection{data}
+\subsection{Eigene Datentypen}
+
+Da auch Datentypen in Funktionssignaturen vorkommen können, müssen die Datentypdeklarationen ebenfalls vorliegen. Zu beachten ist hier, dass die Typen der jeweiligen Datenkonstruktoren in \texttt{BangTypeExpression} verpackt sind: Der Konstruktor \texttt{Banged} wird verwendet, wenn der entsprechende Typ als "strikt" deklariert ist, ansonsten wird \texttt{Unbanged} benutzt.
 
 \lstinputlisting[language=Haskell]{ast2.hs}
+
+\subsection{Eigene Typklassen}
+
+Besonders wichtig für die Erweiteurng von free-theorems sind die Typklassen. Auch diese werden in die Deklarationsliste mit aufgenommen, wobei auch hier die tatsächlichen Implementierungen der Funktionen keine Rolle spielen, lediglich die Signaturen werden verwendet.
+
+\lstinputlisting{ast3.hs}
+
+Zu sehen ist zum einen die Deklaration einer Klasse sowie einer Funktion \texttt{test}, deren Typvariable \texttt{m} auf die Klasse Monad eingeschränkt ist. \texttt{classFuns} enthält eine Liste von Deklarationen in dieser Klasse. Für dieses Beispiel ergibt das die folgende Datenstruktur:
+
+\lstinputlisting{ast4.hs}
+
+\texttt{TypVarApp} wurde hierbei nachträglich in free-theorems eingebaut, da es ursprünglich nicht vorgesehen war, Typkonstruktorvariablen zu benutzen.
 
 \end{document}
