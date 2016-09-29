@@ -44,12 +44,12 @@ type Unfolded a = StateT UnfoldedState (Reader (Bool,Bool)) a
 
 -- | The state used to unfold relations to theorems.
 
-data UnfoldedState = UnfoldedState 
+data UnfoldedState = UnfoldedState
   { newVariableNames :: [String]
         -- ^ An infinite list storing names for variables.
         --   Every element of this list is distinct to the elements of
         --   'newFunctionNames1' and 'newFunctionNames2'.
-  
+
   , newFunctionNames1 :: [String]
         -- ^ An infinite list storing names for functions.
         --   Every element of this list is distinct to the elements of
@@ -60,20 +60,20 @@ data UnfoldedState = UnfoldedState
         --   Every element of this list is distinct to the elements of
         --   'newVariableNames' and 'newFunctionNames1'.
   }
-  
+
 
 
 -- | Create the initial name store which serves for creating new variable names.
 
 initialState :: Intermediate -> UnfoldedState
-initialState ir = 
+initialState ir =
   let fs = intermediateName ir : signatureNames ir
    in UnfoldedState
         { newVariableNames = filter (`notElem` fs) variableNameStore
           -- variable names must not equal the name of the intermediate
           -- variable names don't ever collide with function names or names of
           -- fixed type expressions (see 'NameStores' module)
-  
+
         , newFunctionNames1 = functionVariableNames1 ir
           -- take the name store of functions which was already used during
           -- generation and modification of the intermediate relations
@@ -82,7 +82,7 @@ initialState ir =
           -- take the name store of functions which was already used during
           -- generation and modification of the intermediate relations
         }
-        
+
 
 
 -- | Creates a new term variable. The name is chosen depending on the given
@@ -101,9 +101,9 @@ newVariableFor t = do
                          let ([f], fs) = splitAt 1 (newFunctionNames2 state)
                          put (state { newFunctionNames2 = fs })
                          return (TVar f)
-    
+
     TypeAbs _ _ t' -> newVariableFor t'
-    
+
     otherwise      -> do state <- get
                          let ([x], xs) = splitAt 1 (newVariableNames state)
                          put (state { newVariableNames = xs })
@@ -138,7 +138,7 @@ toggleSimplifications = local (\(p,a) -> (not p, a))
 -- | Unfolds an intermediate structure to a theorem.
 
 asTheorem :: Intermediate -> Theorem
-asTheorem i = 
+asTheorem i =
   let v = TermVar . TVar . intermediateName $ i
       r = intermediateRelation i
       s = initialState i
@@ -148,7 +148,7 @@ asTheorem i =
 -- | Unfolds an intermediate structure to a theorem with _all_ restrictions.
 
 asCompleteTheorem :: Intermediate -> Theorem
-asCompleteTheorem i = 
+asCompleteTheorem i =
   let v = TermVar . TVar . intermediateName $ i
       r = intermediateRelation i
       s = initialState i
@@ -169,12 +169,13 @@ unfoldFormula x y rel = case rel of
   RelFunLab ri r1 r2   -> unfoldFunLab x y ri r1 r2
   RelAbs ri v ts res r -> unfoldAbsRel x y ri v ts res r
   FunAbs ri v ts res r -> unfoldAbsFun x y ri v ts res r
+  -- (thr) Additional cases for type constructor variables
 
 
 
 -- | Unfolding operation for terms, i.e. relations specialised to functions.
 
-unfoldTerm :: 
+unfoldTerm ::
     Term -> Term -> RelationInfo -> Either Term Term -> Unfolded Formula
 unfoldTerm x y ri term = return . Predicate $
   case term of
@@ -192,13 +193,13 @@ unfoldBasic x y ri = return . Predicate $
   case theoremType (relationLanguageSubset ri) of
     EquationalTheorem   -> IsEqual  x y
     InequationalTheorem -> IsLessEq x y
-  
+
 
 
 -- | Unfolding operation for relational actions of type abstractions.
 
-unfoldAbsRel :: 
-    Term -> Term -> RelationInfo 
+unfoldAbsRel ::
+    Term -> Term -> RelationInfo
     -> RelationVariable -> (TypeExpression, TypeExpression)
     -> [Restriction] -> Relation -> Unfolded Formula
 
@@ -211,8 +212,8 @@ unfoldAbsRel x y ri v (t1,t2) res rel = do
 -- | Unfolding operation for relational actions of type abstractions
 --   (for an abstraction of a function).
 
-unfoldAbsFun :: 
-    Term -> Term -> RelationInfo 
+unfoldAbsFun ::
+    Term -> Term -> RelationInfo
     -> Either TermVariable TermVariable -> (TypeExpression, TypeExpression)
     -> [Restriction] -> Relation -> Unfolded Formula
 
@@ -224,12 +225,12 @@ unfoldAbsFun x y ri v (t1,t2) res rel = do
 
 -- | Unfolding operation for relational actions of function type constructors.
 
-unfoldFun :: 
+unfoldFun ::
     Term -> Term -> RelationInfo -> Relation -> Relation -> Unfolded Formula
 unfoldFun x y ri rel1 rel2 =
   case rel1 of
     RelVar _ _          -> unfoldFunPairs x y ri rel1 rel2
-    FunVar _ t          -> 
+    FunVar _ t          ->
       let ta = either (\t -> Left (TermApp t)) (\t -> Right (TermApp t)) t
           one = unfoldFunOneVar x y ri ta rel1 rel2
           two = unfoldFunVars x y ri rel1 rel2
@@ -238,7 +239,7 @@ unfoldFun x y ri rel1 rel2 =
             InequationalTheorem -> do
               simple <- simplificationsAllowed
               if simple then one else two
-    RelBasic _          -> 
+    RelBasic _          ->
       case theoremType (relationLanguageSubset ri) of
         EquationalTheorem   -> unfoldFunOneVar x y ri (Left id) rel1 rel2
         InequationalTheorem -> unfoldFunVars x y ri rel1 rel2
@@ -250,12 +251,12 @@ unfoldFun x y ri rel1 rel2 =
 
 -- | Unfolding operation for relational actions of function type constructors.
 
-unfoldFunLab :: 
+unfoldFunLab ::
     Term -> Term -> RelationInfo -> Relation -> Relation -> Unfolded Formula
 unfoldFunLab x y ri rel1 rel2 =
   case rel1 of
     RelVar _ _          -> unfoldFunLabPairs x y ri rel1 rel2
-    FunVar _ t          -> 
+    FunVar _ t          ->
       let ta = either (\t -> Left (TermApp t)) (\t -> Right (TermApp t)) t
           one = unfoldFunLabOneVar x y ri ta rel1 rel2
           two = unfoldFunLabVars x y ri rel1 rel2
@@ -264,7 +265,7 @@ unfoldFunLab x y ri rel1 rel2 =
             InequationalTheorem -> do
               simple <- simplificationsAllowed
               if simple then one else two
-    RelBasic _          -> 
+    RelBasic _          ->
       case theoremType (relationLanguageSubset ri) of
         EquationalTheorem   -> unfoldFunLabOneVar x y ri (Left id) rel1 rel2
         InequationalTheorem -> unfoldFunLabVars x y ri rel1 rel2
@@ -276,14 +277,14 @@ unfoldFunLab x y ri rel1 rel2 =
 
 
 
-unfoldFunOneVar :: 
-    Term -> Term -> RelationInfo -> Either (Term -> Term) (Term -> Term) 
+unfoldFunOneVar ::
+    Term -> Term -> RelationInfo -> Either (Term -> Term) (Term -> Term)
     -> Relation -> Relation -> Unfolded Formula
 unfoldFunOneVar x y ri termapp rel1 rel2 = do
-  let t = either (const (relationLeftType (relationInfo rel1))) 
+  let t = either (const (relationLeftType (relationInfo rel1)))
                  (const (relationRightType (relationInfo rel1)))
                  termapp
-  
+
   x' <- newVariableFor t
   let tx' = TermVar x'
 
@@ -294,14 +295,14 @@ unfoldFunOneVar x y ri termapp rel1 rel2 = do
   addRestriction x y (relationLanguageSubset ri) (ForallVariables x' t f)
 --  return (ForallVariables x' t f)
 
-unfoldFunLabOneVar :: 
-    Term -> Term -> RelationInfo -> Either (Term -> Term) (Term -> Term) 
+unfoldFunLabOneVar ::
+    Term -> Term -> RelationInfo -> Either (Term -> Term) (Term -> Term)
     -> Relation -> Relation -> Unfolded Formula
 unfoldFunLabOneVar x y ri termapp rel1 rel2 = do
-  let t = either (const (relationLeftType (relationInfo rel1))) 
+  let t = either (const (relationLeftType (relationInfo rel1)))
                  (const (relationRightType (relationInfo rel1)))
                  termapp
-  
+
   x' <- newVariableFor t
   let tx' = TermVar x'
 
@@ -313,30 +314,30 @@ unfoldFunLabOneVar x y ri termapp rel1 rel2 = do
   return (ForallVariables x' t f)
 
 
-unfoldFunPairs :: 
+unfoldFunPairs ::
     Term -> Term -> RelationInfo -> Relation -> Relation -> Unfolded Formula
 unfoldFunPairs x y ri rel1 rel2 = do
   x' <- newVariableFor . relationLeftType  . relationInfo $ rel1
   y' <- newVariableFor . relationRightType . relationInfo $ rel1
 
   f  <- unfoldFormula (TermApp x (TermVar x')) (TermApp y (TermVar y')) rel2
-  
+
   addRestriction x y (relationLanguageSubset ri) (ForallPairs (x', y') rel1 f)
 --  return (ForallPairs (x', y') rel1 f)
 
-unfoldFunLabPairs :: 
+unfoldFunLabPairs ::
     Term -> Term -> RelationInfo -> Relation -> Relation -> Unfolded Formula
 unfoldFunLabPairs x y ri rel1 rel2 = do
   x' <- newVariableFor . relationLeftType  . relationInfo $ rel1
   y' <- newVariableFor . relationRightType . relationInfo $ rel1
 
   f  <- unfoldFormula (TermApp x (TermVar x')) (TermApp y (TermVar y')) rel2
-  
+
 -- addRestriction x y (relationLanguageSubset ri) (ForallPairs (x', y') rel1 f)
   return (ForallPairs (x', y') rel1 f)
 
 
-unfoldFunVars :: 
+unfoldFunVars ::
     Term -> Term -> RelationInfo -> Relation -> Relation -> Unfolded Formula
 unfoldFunVars x y ri rel1 rel2 = do
   let t1 = relationLeftType (relationInfo rel1)
@@ -353,7 +354,7 @@ unfoldFunVars x y ri rel1 rel2 = do
 --  return f
 
 
-unfoldFunLabVars :: 
+unfoldFunLabVars ::
     Term -> Term -> RelationInfo -> Relation -> Relation -> Unfolded Formula
 unfoldFunLabVars x y ri rel1 rel2 = do
   let t1 = relationLeftType (relationInfo rel1)
@@ -373,16 +374,16 @@ addRestriction :: Term -> Term -> LanguageSubset -> Formula -> Unfolded Formula
 addRestriction x y l f = do
   simple <- simplificationsAllowed
   case l of
-    SubsetWithSeq EquationalTheorem -> 
+    SubsetWithSeq EquationalTheorem ->
       if simple
         then return f
         else let botrefl = Equivalence (Predicate (IsNotBot x))
                                        (Predicate (IsNotBot y))
               in return $ Conjunction botrefl f
-    SubsetWithSeq InequationalTheorem -> 
+    SubsetWithSeq InequationalTheorem ->
       if simple
         then return f
-        else return $ Conjunction (Implication (Predicate (IsNotBot x)) 
+        else return $ Conjunction (Implication (Predicate (IsNotBot x))
                                                (Predicate (IsNotBot y))) f
     otherwise -> return f
 
@@ -395,7 +396,7 @@ addRestriction x y l f = do
 
 -- | Extracts all lift relations and returns their definition.
 
-unfoldLifts :: [ValidDeclaration] -> Intermediate -> [UnfoldedLift]  
+unfoldLifts :: [ValidDeclaration] -> Intermediate -> [UnfoldedLift]
 unfoldLifts vds i =
   let decls = map rawDeclaration vds
       rs = collectLifts (intermediateRelation i)
@@ -405,11 +406,11 @@ unfoldLifts vds i =
                            in if null ns
                                 then us
                                 else us ++ recUnfold (done ++ rs) ns
-      
-      unfold r = case r of 
+
+      unfold r = case r of
                    RelLift ri con rs -> let (u,ms) = unfoldDecl decls ri con rs
                                          in (UnfoldedLift r u, ms)
-      
+
       eqLift (UnfoldedLift r1 _) (UnfoldedLift r2 _) = r1 == r2
   in nubBy eqLift $ recUnfold [] rs
 
@@ -424,10 +425,10 @@ collectLifts = nub . listify isLift
 
 
 
-unfoldDecl :: 
-    [Declaration] -> RelationInfo -> TypeConstructor -> [Relation] 
+unfoldDecl ::
+    [Declaration] -> RelationInfo -> TypeConstructor -> [Relation]
     -> ([UnfoldedDataCon], [Relation])
-unfoldDecl decls ri con rs = 
+unfoldDecl decls ri con rs =
   let botPair = case relationLanguageSubset ri of
                   BasicSubset -> []
                   otherwise   -> [BotPair]
@@ -435,15 +436,15 @@ unfoldDecl decls ri con rs =
    in case con of
         ConList    -> (botPair ++ unfoldList ri (head rs), [])
         ConTuple n -> (botPair ++ [unfoldTuple n rs], [])
-        otherwise  -> 
+        otherwise  ->
           let d = fromJust (find (isDeclOf con) decls)
            in case d of
-                DataDecl d'    -> 
+                DataDecl d'    ->
                   let ucs = map (unfoldCon (dataVars d') rs) (dataCons d')
                    in (botPair ++ ucs, collectLifts ucs)
-                NewtypeDecl d' -> 
-                  let uc = unfoldCon (newtypeVars d') rs 
-                                     (DataCon (newtypeCon d') 
+                NewtypeDecl d' ->
+                  let uc = unfoldCon (newtypeVars d') rs
+                                     (DataCon (newtypeCon d')
                                               [Unbanged (newtypeRhs d')])
                    in ([uc], collectLifts uc)
   where
@@ -455,23 +456,23 @@ unfoldDecl decls ri con rs =
 
 
 unfoldList :: RelationInfo -> Relation -> [UnfoldedDataCon]
-unfoldList ri rel = 
+unfoldList ri rel =
   let x  = TVar "x"
       y  = TVar "y"
       xs = TVar "xs"
       ys = TVar "ys"
       vs = listify (\(_::TermVariable) -> True) rel
-      fs = map (\(TVar v) -> v) (x:y:xs:ys:vs) 
+      fs = map (\(TVar v) -> v) (x:y:xs:ys:vs)
    in [ ConPair DConEmptyList
       , ConMore DConConsList [x,xs] [y,ys]
             (Conjunction (unfoldFormulaEx fs (TermVar x, TermVar y, rel))
-                         (Predicate (IsMember (TermVar xs) (TermVar ys) 
+                         (Predicate (IsMember (TermVar xs) (TermVar ys)
                                               (RelLift ri ConList [rel]))))
       ]
 
 
 unfoldTuple :: Int -> [Relation] -> UnfoldedDataCon
-unfoldTuple n rs = 
+unfoldTuple n rs =
   let xs = map (\i -> TVar ('x' : show i)) [1..n]
       ys = map (\i -> TVar ('y' : show i)) [1..n]
       vs = listify (\(_::TermVariable) -> True) rs
@@ -483,8 +484,8 @@ unfoldTuple n rs =
 
 
 
-unfoldCon :: 
-    [TypeVariable] -> [Relation] -> DataConstructorDeclaration 
+unfoldCon ::
+    [TypeVariable] -> [Relation] -> DataConstructorDeclaration
     -> UnfoldedDataCon
 unfoldCon vs rs (DataCon name ts) =
   if null ts
@@ -497,29 +498,29 @@ unfoldCon vs rs (DataCon name ts) =
              fs = map (\(TVar v) -> v) (xs ++ ys ++ os)
              txs = map TermVar xs
              tys = map TermVar ys
-             th = foldl1 Conjunction (map (unfoldFormulaEx fs) 
+             th = foldl1 Conjunction (map (unfoldFormulaEx fs)
                                           (zip3 txs tys is))
           in ConMore (DCon (unpackIdent name)) xs ys th
-                              
 
 
 
 
-unfoldFormulaEx :: 
+
+unfoldFormulaEx ::
     [String] -> (Term, Term, Relation) -> Formula
-unfoldFormulaEx forbidden (x, y, rel) = 
+unfoldFormulaEx forbidden (x, y, rel) =
   let s = UnfoldedState
           { newVariableNames = filter (`notElem` forbidden) variableNameStore
           , newFunctionNames1 = filter (`notElem` forbidden) functionNameStore1
           , newFunctionNames2 = filter (`notElem` forbidden) functionNameStore2
           }
    in runReader (evalStateT (unfoldFormula x y rel) s) (True, False)
-                                                    
 
-interpretEx :: 
-    ([String], [TypeExpression]) -> [TypeVariable] -> [Relation] 
+
+interpretEx ::
+    ([String], [TypeExpression]) -> [TypeVariable] -> [Relation]
     -> TypeExpression -> Relation
-interpretEx ns vs rs t = 
+interpretEx ns vs rs t =
   let e = Map.fromList (zip vs rs)
       l = relationLanguageSubset . relationInfo . head $ rs
    in evalState (runReaderT (interpretM l t) e) ns
@@ -535,16 +536,16 @@ interpretEx ns vs rs t =
 -- | Extracts all class constraints and returns their definition.
 
 unfoldClasses :: [ValidDeclaration] -> Intermediate -> [UnfoldedClass]
-unfoldClasses vds i = 
+unfoldClasses vds i =
   let ds = map rawDeclaration vds
       cs = collectClasses (intermediateRelation i)
       ns = map (\(TVar n) -> n) (listify (\(_::TermVariable) -> True) cs)
       fs = signatureNames i ++ [intermediateName i] ++ ns
       rs = interpretNameStore i
-      
+
       recUnfold done cs =
         let (us, os) = unzip (map (unfoldClass rs ds fs) cs)
-            done' = done ++ cs 
+            done' = done ++ cs
             ns = concat os \\ done'
          in if null ns
               then us
@@ -558,7 +559,7 @@ collectClasses :: Data a => a -> [(Relation, TypeClass)]
 collectClasses = nub . everything (++) ([] `mkQ` getCC)
   where
     getCC rel = case rel of
-      RelAbs ri rv (t1,t2) res _ -> 
+      RelAbs ri rv (t1,t2) res _ ->
         let cs  = concatMap getClasses res
             ri' = ri { relationLeftType = t1
                      , relationRightType = t2 }
@@ -578,21 +579,21 @@ collectClasses = nub . everything (++) ([] `mkQ` getCC)
 
 
 
-unfoldClass :: 
-    ([String], [TypeExpression]) -> [Declaration] -> [String] 
+unfoldClass ::
+    ([String], [TypeExpression]) -> [Declaration] -> [String]
     -> (Relation, TypeClass) -> (UnfoldedClass, [(Relation, TypeClass)])
 unfoldClass istore decls forbiddenNames (r, c@(TC name)) =
   let ClassDecl d = fromJust (find (\d -> getDeclarationName d == name) decls)
       ri = relationInfo r
 
       interpretSig s = interpretEx istore [classVar d] [r] (signatureType s)
-      
+
       methodName = TermVar . TVar . unpackIdent . signatureName
       leftMethod s = TermIns (methodName s) (relationLeftType ri)
       rightMethod s = TermIns (methodName s) (relationRightType ri)
-      
+
       asFormula s = unfoldFormulaEx
-                      forbiddenNames 
+                      forbiddenNames
                       (leftMethod s, rightMethod s, interpretSig s)
 
       fs = map asFormula (classFuns d)
@@ -604,9 +605,5 @@ unfoldClass istore decls forbiddenNames (r, c@(TC name)) =
             RelVar _ rv -> Left rv
             FunVar _ fv -> either (Right . unterm) (Right . unterm) fv
       unterm (TermVar v) = v
-   
+
    in (UnfoldedClass (superClasses d) c v fs, ps ++ ds)
-
-
-
-

@@ -24,6 +24,7 @@
 \usepackage{graphicx} % support the \includegraphics command and options
 
 \usepackage{courier}
+\usepackage{amsmath}
 
 \usepackage{listings}
 \lstset{
@@ -77,33 +78,71 @@
 \section{Einleitung}
 
 An der Typsignatur einer Funktion lassen sich in funktionalen Sprachen bereits viele Eigenschaften ablesen, ohne dass man dazu die
-tatsächliche Implementierung der entsprechenden Funktion kennen muss \cite{bla}.
+tatsächliche Implementierung der entsprechenden Funktion kennen muss \cite{wadler}.
 
 usw.
 
 \section{Grundlagen}
 
-Einführung in die mathematischen Grundlagen und vor allem in das Prinzip der freien Theoreme.
-
-usw.
+In diesem Abschnitt sollen einige Grundlagen eingeführt werden, die in den folgenden Kapiteln von Bedeutung sind. Zunächst werden
+einige Definitionen und Notationen bezüglich Relationen angegeben. Der nächste Abschnitt beschäftigt sich dann mit der
+grundsätzlichen Idee hinter den freien Theoremen, während sich der darauf folgende Abschnitt mit den Besonderheiten beschäftigt,
+die Typkonstruktorklassen mit sich bringen.
 
 \subsection{Relationen}
 
-Eventuell einige Definitionen, Schreibweisen etc. einführen.
+Eventuell Definitionen, Schreibweisen etc. einführen.
+
+usw.
 
 \subsection{Freie Theoreme}
 \label{sec:freie-theoreme}
 
-Typischerweise werden Typen im Allgemeinen als Mengen aufgefasst, die alle für den jeweiligen Typen infrage kommenden Elemente Werte enthalten. Der Typ \texttt{Integer}
-wäre dementsprechend die Menge der ganzen Zahlen $\mathbb{Z}$ \cite{bla}.
-Um freie Theoreme (insbesondere automatisch) zu generieren, fasst man Typen als Relationen auf. Die primitiven Typen werden aufgefasst als die Identitätsrelationen auf der jeweiligen repräsentierten Menge: Die Menge der Wahrheitswerte $\mathbb{B}$ wäre folglich $\mathbb{B} = \{({tt}, {tt}), ({ff}, {ff})\}$, alle anderen Basistypen verhalten sich analog.
-Induktiv werden dann auf diesen Basistypen der Funktionsoperator und die Allquantifizierung von Typvariablen ebenfalls als Relationen definiert:
+Typischerweise würde man, ganz intuitiv, den Typ eines Ausdrucks als Menge auffassen; der Ausdruck selbst ist also ein
+Element dieser Menge. Betrachtet man beispielsweise den Typ \texttt{Integer},
+wäre dementsprechend die zugehörige Menge die Menge der ganzen Zahlen $\mathbb{Z}$ \cite{bla}. Der Typ
+\texttt{Integer -> Integer} wäre die Menge aller Funktionen $f : \mathbb{Z} \rightarrow \mathbb{Z}$ usw.
+Um freie Theoreme (insbesondere automatisch) zu generieren, bedient man sich einer anderen Darstellung für Typen: Man fasst
+sie als Relationen auf. Die primitiven Typen werden aufgefasst als die Identitätsrelationen auf der jeweiligen repräsentierten Menge. Betrachtet man beispielsweise den Typ \texttt{Boolean}, betrachtet man die Relation $\{ (a, a) | a \in \mathbb{B} \}$, also
+$id_{\mathbb{B}} = \{({tt}, {tt}), ({ff}, {ff})\}$.
+
+Auf diesen Basistypen aufbauend kann man nun sämtliche Typen darstellen, indem man aus den Relationen der einzelnen Typen
+induktiv neue Relationen bildet, die dann Funktionen, Allquantifizierung usw. darstellen. Im Folgenden werden die einzelnen
+Konstruktionen beschrieben. \cite{voigtlander}
+
+\begin{align}
+R \rightarrow S & := \{ (f, g) | \forall (a, b) \in R. (f a, f g) \in S \} \\
+\forall R . F R & := \{ (u, v) | \forall t_1, t_2, R : t1 \leftrightarrow t2 . (u_{t_1}, v_{t_2}) \in F R\}
+\end{align}
+
+In der ersten Zeile ist zu sehen, wie Relationen gebildet werden, die Funktionen von R nach S darstellen (wobei R und S in diesem
+Fall natürlich die Relationen sind, die Ursprungs- . Die zweite Definition zeigt, wie Allquantifizierung über eine Typvariable ($R$) als Relation beschrieben wird. In dieser zweiten Zeile liegt auch der Trick, der das Ermitteln von Theoremen erlaubt.
+
+\todo{ziemlich ungenau}
+
+Es gilt nun für jeden Ausdruck $t$, dessen Typ durch die wie oben konstruierte Relation R dargestellt wird,  die Aussage:
+
+\begin{align*}
+   (t, t) \in R
+\end{align*}
+
+Und hier setzt das Vorgehen der freien Theoreme an: Da man weiß, dass der entsprechende Ausdruck in der Relation
+vorkommt, kann man Schritt für Schritt die Definitionen der einzelnen Relationskonstruktionen wieder entfalten.
+
+\todo{Verweis auf Beweis}
 
 usw.
 
-\subsection{Erweiterung um Typklassen und Klassenconstraints}
+Das Vorgehen soll im Folgenden an einem Beispiel verdeutlicht werden. Wir betrachten die Funktionssignatur \texttt{f :: a -> a}.
 
-Der vorangegangene Abschnitt hat noch keine Aussagen gemacht zu Typklassen in Haskell.
+\subsection{Erweiterung um Typkonstruktorklassen}
+
+Im vorangegangenen Abschnitt wurde bereits erwähnt, wie mit vorgegebenen Typkonstruktoren wie z.B. dem Listenkonstruktor
+umgegangen wird. \todo{wurde noch nicht}
+Nun ist es aber möglich, dass der Typkonstruktor kein fester Wert, sondern selbst eine Variable ist. Hier wird ähnlich vorgegangen wie bei
+Allquantifizierungen von Typvariablen: Während letztere als Relationen zwischen beliebig gewählten geschlossenen Typen interpretiert werden, sind Typkonstruktorvariablen Funktionen auf solchen Relationen, die an beliebig gewählte Typkonstruktoren
+gebunden sind.
+\todo {Quelle}
 
 usw.
 
@@ -168,7 +207,33 @@ Unter die globalen Checks fällt z.B., dass zu einem Funktionsnamen nicht mehrer
 Tatsächlich macht die \texttt{interpret}-Funktion nichts, was nicht schon bekannt ist \todo{Das heißt, wenn ich es denn schon geschrieben hätte}: Sie überführt die Funktionssignatur in eine
 Relationsdarstellung, wobei sie Typvariablen neu generierte Relationsvariablen zuordnet. Um es mit der Aufteilung von \cite{freetheorems} auszudrücken, stellt sie den Übergang des Frontends zum Core dar, wo der interessante Arbeitsschritt ausgeführt wird.
 
-usw.
+Der Datentyp, der hier verwendet wird, heißt Immediate. Dieser Datentyp ist letztlich nur ein Container für eine Relation mit
+dem repräsentierten Typausdruck, zusätzlichen (unendlichen) Listen von freien Variablennamen und sonstigen Zusatzinformationen.
+
+\subsubsection{Relation}
+
+Für die Darstellung als Relationen definiert free-theorems den Datentyp \texttt{Theorem}, der folgende Konstruktoren hat:
+
+\todo{unvollständig. und evtl unnötig}
+
+\begin{tabular}{| l | l | l |}
+\hline
+Konstruktor & Parameter & Entsprechung \\
+\hline
+RelVar & RelationVariable & $\alpha$ \\
+FunVar & (Either Term Term) & ? \\
+RelBasic & - & R \\
+RelLift & TypeConstructor [Relation] & [R], etc. \\
+RelFun & Relation Relation & $S \rightarrow T$ \\
+RelFunLab & Relation Relation & $S \rightarrow T$ \\
+RelAbs & RelationVariable (TypeExpression,  & $\forall R . F R$ \\
+& TypeExpression) [Restriction] Relation & \\
+FunAbs & ... & \\
+\hline
+\end{tabular}
+
+Wie man sieht, fehlt noch ein Konstruktor für die neu eingeführte Variante, dass eine Typkonstruktorvariable auf Relationen
+angewandt wird. Darauf wird in Abschnitt \ref{sec:erweiterung-typklassen} eingegangen.
 
 \subsection{asTheorem}
 
@@ -178,14 +243,27 @@ die Theoreme schließen kann.
 
 \todo{Hier eventuell auch ein Beispiel?}
 
+\subsection{Spezialisieren von Relationsvariablen zu Funktionen}
+
+Ist das Theorem generiert, kann man nun die Funktionsrelation spezialisieren, um das Theorem zu vereinfachen. Aus einem
+$A : S \leftrightarrow T$ wird also $\forall a : S \rightarrow T$
+
+usw.
+
+\subsection{simplify}
+
+Schließlich bietet free-theorems noch die Möglichkeit, die generierten Theoreme zu vereinfachen, indem nach einigen typischen
+Mustern gesucht wird, beispielsweise: Entfernen aller unbenutzten allquantifizierten Variablen, $\forall v. f v == g v \rightarrow f == g$ usw.
+
 \section{Erweiterung um Typklassen und -konstruktoren}
+\label{sec:erweiterung-typklassen}
 
 In diesem Abschnitt soll erläutert werden, welche Änderungen an free-theorems vorgenommen werden müssen, um auch Typklassen und Typkonstruktoren miteinzubeziehen. In
 Abschnitt 
 
 usw.
 
-\subsection{Erweiterungen in BasicSyntax}
+\subsection{Erweiterungen der BasicSyntax}
 
 Da Typvariablenapplikation in \cite{freetheorems} nicht vorgesehen ist, musste ein solches Konstrukt in die BasicSyntax-Struktur eingefügt werden. Hierbei ist zu beachten: Die Applikation
 von Standardtypkonstruktoren, beispielsweise \texttt{[a]} für Listen, ist sehr wohl vorgesehen und wird in der BasicSyntax durch \texttt{TypeCon} im Datentyp \texttt{TypeExpression} dargestellt. \todo{Wahrscheinlich viel zu speziell} Diese Standardtypkonstruktoren werden in diesem Zusammenhang aber als Sonderfälle betrachtet \ref{sec:freie-theoreme}, um das System wirklich um eigene Typklassen zu erweitern, muss es auch möglich sein, Typkonstruktorvariablen auf Typen anzuwenden.
@@ -196,6 +274,10 @@ Die Erweiterung der BasicSyntax sieht hier so aus, dass ein neuer Konstruktor \t
 
 Abgesehen vom offensichtlichen Problem, dass dieser Konstruktor bei der Theoremgenerierung zu Fehlern beim Pattern Matching oder zumindest zu unerwünschtem Verhalten führt,
 ist auch zu beachten, dass die in Abschnitt \ref{sec:check} erwähnte \texttt{check}-Funktion entsprechend angepasst wird.
+
+\subsection{Erweiterung von Relation}
+
+Da eine neue Relationskonstruktion eingeführt wird, muss auch der entsprechende Datentyp angepasst werden.
 
 \section{Zusammenfassung}
 
