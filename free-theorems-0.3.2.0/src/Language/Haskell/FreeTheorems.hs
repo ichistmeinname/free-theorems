@@ -118,6 +118,7 @@ import Language.Haskell.FreeTheorems.Theorems.Simplify
 import Language.Haskell.FreeTheorems.Unfold
 import Language.Haskell.FreeTheorems.PrettyTypes
 import Language.Haskell.FreeTheorems.PrettyTheorems
+import Language.Haskell.FreeTheorems.PrettyIntermediate -- (thr) just for testing
 
 
 

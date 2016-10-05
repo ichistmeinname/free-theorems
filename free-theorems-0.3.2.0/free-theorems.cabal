@@ -71,6 +71,7 @@ library
       Language.Haskell.FreeTheorems.PrettyBase
       Language.Haskell.FreeTheorems.PrettyTypes
       Language.Haskell.FreeTheorems.PrettyTheorems
+      Language.Haskell.FreeTheorems.PrettyIntermediate
       Language.Haskell.FreeTheorems.Theorems.Simplify
 
   hs-source-dirs: src

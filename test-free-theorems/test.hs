@@ -27,6 +27,8 @@ teststr3 = "class Monad m where\n\
     \\n\
     \test :: Monad m => m a -> m a"
 
+-- Parse the haskell-string, interpret the first occuring type signature and
+-- return its Intermediate representation
 test :: String -> Writer String (Maybe Intermediate)
 test st = writer (interm sigs, errorStr)
             where
@@ -41,20 +43,22 @@ textToAST :: String -> [Declaration]
 textToAST st = let (decls, _) = runWriter $ parse st
                 in decls
 
+showSpecialisedList :: Intermediate -> [RelationVariable] -> IO ()
+showSpecialisedList _ []     = return ()
+showSpecialisedList t (r:rs) = (print (prettyTheorem [] (asTheorem (specialise t r)))) >> (showSpecialisedList t rs)
 
---showSpecialisedList :: Intermediate -> [RelationVariable] -> IO ()
---showSpecialisedList _ []     = return ()
---showSpecialisedList t (r:rs) = (print (prettyTheorem [] (asTheorem (specialise t r)))) >> (showSpecialisedList t rs)
+-- Problem: Muss Intermediate selbst darstellen, da keine Show-instanz
 
---main :: IO ()
---main = do
---  putStr "Type signature: "
+main :: IO ()
+main = do
+  putStr "Type signature: "
 --  x <- getLine
---  x <- return teststr2
---  let (intm, err) = runWriter $ test x
---  putStrLn err
---  case intm of
---    Just t  -> do
+  x <- return teststr3
+  let (intm, err) = runWriter $ test x
+  putStrLn err
+  case intm of
+    Just t  -> do
+                  print t
 --                print (prettyTheorem [] (asTheorem t))
 --                showSpecialisedList t (relationVariables t)
---    Nothing -> return ()
+    Nothing -> return ()
