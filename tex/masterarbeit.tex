@@ -154,6 +154,38 @@ Sie erlaubt das Parsen von Haskell-Code, das Herausfiltern der entsprechenden De
 Interpretation, um schließlich die freien Theoreme zu erzeugen.
 Beigefügte Pretty printing Funktionen für Haskell-Syntax und Theoreme vereinfachen schließlich deren Darstellung.
 
+\subsection{Language-Subsets}
+
+free-theorems definiert verschiedene Untermengen der Programmiersprache Haskell, zu denen sich unterschiedlich komplexe
+Theoreme generieren lassen. Ein Faktor, der nämlich Probleme bereiten kann, ist der Fixpunktoperator - und damit auch rekursive
+Funktionenen im Allgemeinen.
+Die Bilbiothek definiert drei Untermengen:
+
+\begin{itemize}
+   \item BasicSubset
+   \item SubsetWithFix
+   \item SubsetWithSeq
+\end{itemize}
+
+Die erste Untermenge, BasicSubset, entspricht dem Girard-Reynoldschen Lambda-Kalkül \cite{bla}, erweitert um Datentypen und
+Typklassen \cite{freetheorems}. Insbesondere sind aber keine undefinierten Werte erlaubt, die zum Beispiel durch Nichtterminierung,
+Division durch Null oder Pattern Matching Fehler auftreten.
+Das ändert sich in SubsetWithFix. Hier ist zusätzlich der Fixpunktoperator \textit{fix} verfügbar, und es müssen folglich undefinierte
+Werte erlaubt werden. Was noch fehlt, ist die \textit{seq}-Funktion sowie Striktheits-Flags. Letztere können bei selbstdefinierten
+Datentypen an die einzelnen Untertypen \todo{Richtige Bezeichnung für einzelne "Parameter" eines Datentyps?} annotiert werden,
+um eine strikte Auswertung zu erzwingen.
+Die Untermenge SubsetWithSeq ermöglicht schließlich die zuletzt genannten Aspekte: Es wird Striktheit durch \textit{seq}
+eingeführt, dadurch sind dann auch Striktheitsannotationen in Datentypen möglich.
+
+Es wird noch eine weitere Unterscheidung eingeführt: Zu SubsetWithFix und SubsetWithSeq kann noch unterschieden werden,
+ob Gleichungs- oder Ungleichungsresultate gewünscht sind. \todo{equational and inequational results - bessere Übersetzung?}
+Daraus ergeben sich insgesamt fünf Varianten, für die \cite{freetheorems} die folgende Schreibweise einführt, wobei $M$ die Menge
+der verfügbaren \textit{Modelle} ist:
+
+\begin{align}
+M = \{(basic, =), (fix, =), (fix, \sqsubseteq), (seq, =), (seq, \sqsubseteq)\}
+\end{align}
+
 \subsection{Aufbau}
 
 \cite{freetheorems} gliedert die Bibliothek in drei grundsätzliche Teile: \todo{S. 53 Arbeit} Frontend, Core und Pretty printer. \todo{Abbildung zur Veranschaulichung?}
