@@ -139,8 +139,6 @@ interpretM l t = case t of
     -- either create a basic relation or a lift relation, depending on the
     -- subtypes
 
-    -- (thr) This function has to be extended to also allow the use of
-    -- type constructor classes
   TypeCon c ts -> do
     rs <- mapM (interpretM l) ts   -- interpret the subtypes
     ri <- mkRelationInfo l t       -- create the relation info
@@ -184,7 +182,13 @@ interpretM l t = case t of
     let res = (filter (/= BottomReflecting) (relRes l)) ++ (if null cs then [] else [RespectsClasses cs])
     return (RelAbs ri rv (t1,t2) res r)
 
-  TypeVarApp v ts -> error "FIXME: Not done yet"
+    -- create a relation for type constructor variable application
+  TypeVarApp v ts -> do
+    rs <- mapM (interpretM l) ts   -- interpret the subtypes
+    ri <- mkRelationInfo l t       -- create the relation info
+    (rv, t1, t2) <- lift newRelationVariable    -- create a new variable
+
+    return (RelTypeConsApp ri rv (t1,t2) rs)
 
   where
     mkRelationInfo l t = do
