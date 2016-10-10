@@ -160,7 +160,7 @@ data Relation
   | RelTypeConsAbs RelationInfo RelationVariable (TypeExpression, TypeExpression) [Restriction] Relation
         -- ^ (thr) A relation corresponding to a type constructor abstraction.
         --   This isn't really a difference in haskell syntax, but the
-        --   semantics are different.
+        --   resulting relational structures are different.
 
   | RelTypeConsApp RelationInfo RelationVariable (TypeExpression, TypeExpression) [Relation]
         -- ^ (thr) Relation corresponding type constructor application

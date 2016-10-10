@@ -165,6 +165,8 @@ interpretM l t = case t of
 
     -- create a relation for type abstractions
   TypeAbs v cs t' -> do
+    -- (thr) TODO: check if variable is used as type constructor. When this is
+    --             the case, use RelTypeConsAbs instead of RelAbs.
     ri <- mkRelationInfo l t                    -- create the relation info
     (rv, t1, t2) <- lift newRelationVariable    -- create a new variable
     let rvar = RelVar (RelationInfo l t1 t2) rv
@@ -259,7 +261,6 @@ newRelationVariable = do
   let ([t1, t2], ts') = splitAt 2 ts
   put (rvs', ts')
   return (RVar rv, t1, t2)
-
 
 
 
