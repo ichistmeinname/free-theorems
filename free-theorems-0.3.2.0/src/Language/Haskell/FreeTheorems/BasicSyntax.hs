@@ -30,7 +30,7 @@ data Declaration
   | NewtypeDecl NewtypeDeclaration      -- ^ A @newtype@ declaration.
   | ClassDecl ClassDeclaration          -- ^ A @class@ declaration.
   | TypeSig Signature                   -- ^ A type signature.
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
@@ -67,7 +67,7 @@ data TypeDeclaration = Type
   , typeVars :: [TypeVariable] -- ^ The type variables on the left-hand side.
   , typeRhs  :: TypeExpression -- ^ The type expression on the right-hand side.
   }
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
@@ -87,7 +87,7 @@ data DataDeclaration = Data
         -- ^ The declarations of the data constructors on the right-hand side.
 
   }
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
@@ -110,7 +110,7 @@ data NewtypeDeclaration = Newtype
         -- ^ The type expression on the right-hand side.
 
   }
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
@@ -133,7 +133,7 @@ data ClassDeclaration = Class
         -- ^ The type signatures of the class methods.
 
   }
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
@@ -147,7 +147,7 @@ data Signature = Signature
         -- ^ The type expression of the type signature.
 
   }
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
@@ -156,7 +156,7 @@ data Signature = Signature
 --   expression.
 
 newtype Identifier = Ident { unpackIdent :: String }
-  deriving (Eq, Ord, Typeable, Data, Show)
+  deriving (Eq, Ord, Typeable, Data)
 
 
 
@@ -170,7 +170,7 @@ data DataConstructorDeclaration = DataCon
         -- ^ The type arguments of the data constructor.
 
   }
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
@@ -184,7 +184,7 @@ data BangTypeExpression
   | Unbanged { withoutBang :: TypeExpression }
       -- ^ A type expression without a strictness flag.
 
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
@@ -223,7 +223,7 @@ data TypeExpression
   | TypeVarApp TypeVariable [TypeExpression]
       -- ^ A type constructor variable applied to type expressions.
 
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
@@ -239,21 +239,21 @@ data TypeConstructor
   | ConDouble      -- ^ The Haskell type @Double@.
   | ConChar        -- ^ The Haskell type @Char@.
   | Con Identifier -- ^ Any other type constructor with a given name.
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
 -- | Identifies a Haskell type class.
 
 newtype TypeClass = TC Identifier
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)
 
 
 
 -- | Identifies a Haskell type variable
 
 newtype TypeVariable = TV Identifier
-  deriving (Eq, Ord, Typeable, Data, Show)
+  deriving (Eq, Ord, Typeable, Data)
 
 
 
@@ -262,4 +262,4 @@ newtype TypeVariable = TV Identifier
 --   theorems.
 
 newtype FixedTypeExpression = TF Identifier
-  deriving (Eq, Typeable, Data, Show)
+  deriving (Eq, Typeable, Data)

@@ -172,7 +172,11 @@ interpretM l t = case t of
     let rvar = RelVar (RelationInfo l t1 t2) rv
     r  <- local (Map.insert v rvar) $ interpretM l t'  -- subrelations
     let res = relRes l ++ (if null cs then [] else [RespectsClasses cs])
-    return (RelAbs ri rv (t1,t2) res r)
+    let (TV i) = v -- TODO: probably pretty ugly
+    return $ if (isTypeConstructor i t') then (RelTypeConsAbs ri rv (t1,t2) res r)
+                                         else (RelAbs ri rv (t1,t2) res r)
+    -- TODO: throw error if type constructor variable is applied to
+    --       differing numbers of arguments?
 
     -- create a second relation for type abstractions (used only for language
     -- subset with seq and the equational setting
@@ -250,6 +254,22 @@ initialState ns =
          $ typeExpressionNameStore )
 
 
+-- | (thr) Checks if the given type variable is applied to arguments, which
+--   makes it a type constructor variable.
+
+isTypeConstructor :: Identifier -> TypeExpression -> Bool
+isTypeConstructor i t = case t of
+    (TypeVarApp (TV i') ts) -> (i == i') || isListTypeCons ts
+    (TypeVar (TV i')) -> (i /= i')
+    (TypeCon _ ts) -> isListTypeCons ts
+    (TypeFun t1 t2) -> (isTypeConstructor i t1) || (isTypeConstructor i t2)
+    (TypeFunLab t1 t2) -> (isTypeConstructor i t1) || (isTypeConstructor i t2)
+    (TypeAbs (TV i') _ t) -> (i /= i') && isTypeConstructor i t
+    (TypeAbsLab (TV i') _ t) -> (i /= i') && isTypeConstructor i t
+    (TypeExp _) -> False
+    where
+      isListTypeCons ts = (foldr (||) False
+                            (map (isTypeConstructor i) ts))
 
 -- | Creates a new relation variable using the name store.
 

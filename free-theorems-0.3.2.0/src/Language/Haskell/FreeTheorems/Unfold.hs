@@ -170,6 +170,7 @@ unfoldFormula x y rel = case rel of
   RelAbs ri v ts res r -> unfoldAbsRel x y ri v ts res r
   FunAbs ri v ts res r -> unfoldAbsFun x y ri v ts res r
   -- (thr) Additional cases for type constructor variables
+  RelTypeConsAbs ri v ts res r -> unfoldTypeConsAbs x y ri v ts res r
   RelTypeConsApp ri v ts rs -> unfoldTypeConsApp x y ri v ts rs
 
 
@@ -227,8 +228,20 @@ unfoldTypeConsApp ::
     Term -> Term -> RelationInfo ->
     RelationVariable -> (TypeExpression, TypeExpression) -> [Relation] -> Unfolded Formula
 
-unfoldTypeConsApp x y ri v (t1, t2) rs = return $ ForallFunctions (Left (TVar "fixme")) (t1, t2) [] (Predicate IsTrue)
+unfoldTypeConsApp x y ri v (t1, t2) rs = return  (Predicate IsTrue)
 -- (thr) Just for testing,this has to be replaced by the actual implementation
+
+
+-- | (thr) Unfolding operation for type constructor abstraction.
+-- TODO: right now this is just a copy of the type abstraction unfold.
+unfoldTypeConsAbs ::
+  Term -> Term -> RelationInfo
+  -> RelationVariable -> (TypeExpression, TypeExpression)
+  -> [Restriction] -> Relation -> Unfolded Formula
+
+unfoldTypeConsAbs x y ri v (t1,t2) res rel = do
+  rightSide <- unfoldFormula (TermIns x t1) (TermIns y t2) rel
+  return $ ForallFunctions (Left (TVar "fixme")) (t1, t2) [] rightSide
 
 
 -- | Unfolding operation for relational actions of function type constructors.
@@ -257,7 +270,9 @@ unfoldFun x y ri rel1 rel2 =
     RelAbs _ _ _ r _    -> unfoldFunVars x y ri rel1 rel2
     FunAbs _ _ _ _ _    -> unfoldFunVars x y ri rel1 rel2
     -- (thr) Special constructors for type constructor variables
-    RelTypeConsApp _ _ _ _ -> error "FIXME: RelTypeConsApp in unfoldFun"
+    -- TODO: what has to be done here?
+    RelTypeConsApp _ _ _ _ -> unfoldFunVars x y ri rel1 rel2
+    RelTypeConsAbs _ _ _ _ _ -> unfoldFunVars x y ri rel1 rel2
 
 -- | Unfolding operation for relational actions of function type constructors.
 

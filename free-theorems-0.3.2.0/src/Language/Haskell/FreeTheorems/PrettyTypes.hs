@@ -32,9 +32,9 @@ prettyDeclaration (ClassDecl decl)   = prettyClassDeclaration decl
 prettyDeclaration (TypeSig decl)     = prettySignature decl
 
 
---instance Show Declaration where
---  show = show . prettyDeclaration
---  showList ds = (++) (show . vcat . map prettyDeclaration $ ds)
+instance Show Declaration where
+  show = show . prettyDeclaration
+  showList ds = (++) (show . vcat . map prettyDeclaration $ ds)
 
 
 
@@ -47,8 +47,8 @@ prettyTypeDeclaration (Type ident vs t) =
     ++ map prettyTypeVariable vs
     ++ [text "=", prettyTypeExpression NoParens t])
 
---instance Show TypeDeclaration where
---  show = show . prettyTypeDeclaration
+instance Show TypeDeclaration where
+  show = show . prettyTypeDeclaration
 
 
 
@@ -62,8 +62,8 @@ prettyDataDeclaration (Data ident vs ds) =
          , vcat (zipWith (<+>) (char '=' : repeat (char '|'))
                                (map prettyDataConstructorDeclaration ds))]
 
---instance Show DataDeclaration where
---  show = show . prettyDataDeclaration
+instance Show DataDeclaration where
+  show = show . prettyDataDeclaration
 
 
 
@@ -73,8 +73,8 @@ prettyDataConstructorDeclaration :: DataConstructorDeclaration -> Doc
 prettyDataConstructorDeclaration (DataCon ident bs) =
   isep 2 $ [prettyIdentifier ident] ++ map prettyBangTypeExpression bs
 
---instance Show DataConstructorDeclaration where
---  show = show . prettyDataConstructorDeclaration
+instance Show DataConstructorDeclaration where
+  show = show . prettyDataConstructorDeclaration
 
 
 
@@ -85,8 +85,8 @@ prettyBangTypeExpression (Banged t)   = char '!'
                                         <> prettyTypeExpression ParensFunOrCon t
 prettyBangTypeExpression (Unbanged t) = prettyTypeExpression ParensFunOrCon t
 
---instance Show BangTypeExpression where
---  show = show . prettyBangTypeExpression
+instance Show BangTypeExpression where
+  show = show . prettyBangTypeExpression
 
 
 
@@ -99,8 +99,8 @@ prettyNewtypeDeclaration (Newtype ident vs con t) =
     ++ map prettyTypeVariable vs
     ++ [char '=', prettyIdentifier con, prettyTypeExpression ParensFunOrCon t])
 
---instance Show NewtypeDeclaration where
---  show = show . prettyNewtypeDeclaration
+instance Show NewtypeDeclaration where
+  show = show . prettyNewtypeDeclaration
 
 
 
@@ -114,8 +114,8 @@ prettyClassDeclaration (Class scs ident tv sigs) =
               if null sigs then empty else text "where"]
       $$ nest 4 (vcat (map prettySignature sigs))
 
---instance Show ClassDeclaration where
---  show = show . prettyClassDeclaration
+instance Show ClassDeclaration where
+  show = show . prettyClassDeclaration
 
 
 
@@ -125,8 +125,8 @@ prettySignature :: Signature -> Doc
 prettySignature (Signature ident t) =
   isep 2 [prettyIdentifier ident, text "::", prettyTypeExpression NoParens t]
 
---instance Show Signature where
---  show = show . prettySignature
+instance Show Signature where
+  show = show . prettySignature
 
 
 
@@ -146,13 +146,13 @@ prettyContext ctx =
 ------- Type expressions ------------------------------------------------------
 
 
---instance Show TypeExpression where
---  showsPrec d t =
---    let p = case d of
---              0         -> NoParens
---              1         -> ParensFun
---              otherwise -> ParensFunOrCon
---     in (++) (show (prettyTypeExpression p t))
+instance Show TypeExpression where
+  showsPrec d t =
+    let p = case d of
+              0         -> NoParens
+              1         -> ParensFun
+              otherwise -> ParensFunOrCon
+     in (++) (show (prettyTypeExpression p t))
 
 
 
@@ -270,8 +270,8 @@ prettyTypeConstructor (Con c)      = prettyIdentifier c
 prettyTypeVariable :: TypeVariable -> Doc
 prettyTypeVariable (TV ident) = prettyIdentifier ident
 
---instance Show TypeVariable where
---  show = show . prettyTypeVariable
+instance Show TypeVariable where
+  show = show . prettyTypeVariable
 
 
 
@@ -280,8 +280,8 @@ prettyTypeVariable (TV ident) = prettyIdentifier ident
 prettyTypeClass :: TypeClass -> Doc
 prettyTypeClass (TC ident) = prettyIdentifier ident
 
---instance Show TypeClass where
---  show = show . prettyTypeClass
+instance Show TypeClass where
+  show = show . prettyTypeClass
 
 
 
@@ -290,8 +290,8 @@ prettyTypeClass (TC ident) = prettyIdentifier ident
 prettyFixedTypeExpression :: FixedTypeExpression -> Doc
 prettyFixedTypeExpression (TF ident) = prettyIdentifier ident
 
---instance Show FixedTypeExpression where
---  show = show . prettyFixedTypeExpression
+instance Show FixedTypeExpression where
+  show = show . prettyFixedTypeExpression
 
 
 
@@ -300,5 +300,5 @@ prettyFixedTypeExpression (TF ident) = prettyIdentifier ident
 prettyIdentifier :: Identifier -> Doc
 prettyIdentifier (Ident i) = text i
 
---instance Show Identifier where
---  show = show . prettyIdentifier
+instance Show Identifier where
+  show = show . prettyIdentifier

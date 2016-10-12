@@ -185,6 +185,7 @@ relationInfo rel = case rel of
   RelFunLab ri _ _          -> ri
   RelAbs ri _ _ _ _         -> ri
   RelTypeConsAbs ri _ _ _ _ -> ri
+  RelTypeConsApp ri _ _ _   -> ri
   FunAbs ri _ _ _ _         -> ri
 
 

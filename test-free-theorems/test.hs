@@ -2,6 +2,7 @@ import Language.Haskell.FreeTheorems
 import Language.Haskell.FreeTheorems.Theorems
 import Language.Haskell.FreeTheorems.Parser.Hsx
 import Language.Haskell.FreeTheorems.BasicSyntax
+import Control.Monad(when)
 import Control.Monad.Writer(Writer, runWriter, writer)
 import Text.PrettyPrint.HughesPJ
 
@@ -43,10 +44,12 @@ main = do
   x <- getLine
 --  x <- return teststr
   let (intm, err) = runWriter $ test x
-  putStrLn err
-  case intm of
-    Just t  -> do
-                print t
-                print (prettyTheorem [] (asTheorem t))
---                showSpecialisedList t (relationVariables t)
-    Nothing -> return ()
+  when (x /= "exit")
+    ((putStrLn err) >>
+    case intm of
+      Just t  -> do
+                  print t
+                  print (prettyTheorem [] (asTheorem t))
+--                    showSpecialisedList t (relationVariables t)
+      Nothing -> return ()
+    >> putStrLn "" >> main)
