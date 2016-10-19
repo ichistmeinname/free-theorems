@@ -141,6 +141,26 @@ prettyFormula pc (ForallRelations v (t1,t2) res f) =
               ++ prettyRestrictionList rv res
           , nest 1 (prettyFormula (noParens pc) f) ]
 
+-- (thr) PrettyPrinter for type constructor variable abstraction
+prettyFormula pc (ForallTypeConstructors v (t1,t2) res f) =
+  let rv = prettyRelationVariable v
+      cs = getTypeClasses res
+      ds = if null cs
+             then empty
+             else parens . fsep . punctuate comma . map prettyTypeClass $ cs
+      ts = prettyTypeExpression NoParens t1 <> comma
+           <> prettyTypeExpression NoParens t2
+   in parensIf (withParens pc) $
+        sep
+          [ fsep $
+              [ text "forall"
+              , ts, text "in", text "FUNCCONS (FIXME!)" <> comma
+              , rv, text "in"
+              , text "REL" <> parens ts
+                <> if null res then char '.' else comma ]
+                ++ prettyRestrictionList rv res
+          , nest 1 (prettyFormula (noParens pc) f) ]
+
 prettyFormula pc (ForallFunctions v (t1,t2) res f) =
   let ts = prettyTypeExpression NoParens t1 <> comma
            <> prettyTypeExpression NoParens t2

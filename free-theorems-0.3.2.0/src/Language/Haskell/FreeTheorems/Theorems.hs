@@ -31,6 +31,10 @@ data Formula
                     (TypeExpression, TypeExpression) [Restriction] Formula
         -- ^ Quantifies a function variable and two type expressions.
 
+  | ForallTypeConstructors RelationVariable (TypeExpression, TypeExpression)
+                    [Restriction] Formula
+        -- ^ Quantifies a type constructor relation.
+
   | ForallPairs (TermVariable, TermVariable) Relation Formula
         -- ^ Quantifies two term variables taken from a relation.
 
@@ -162,7 +166,7 @@ data Relation
         --   This isn't really a difference in haskell syntax, but the
         --   resulting relational structures are different.
 
-  | RelTypeConsApp RelationInfo RelationVariable (TypeExpression, TypeExpression) [Relation]
+  | RelTypeConsApp RelationInfo RelationVariable [Relation]
         -- ^ (thr) Relation corresponding type constructor application
 
   | FunAbs RelationInfo (Either TermVariable TermVariable)
@@ -185,7 +189,7 @@ relationInfo rel = case rel of
   RelFunLab ri _ _          -> ri
   RelAbs ri _ _ _ _         -> ri
   RelTypeConsAbs ri _ _ _ _ -> ri
-  RelTypeConsApp ri _ _ _   -> ri
+  RelTypeConsApp ri _ _   -> ri
   FunAbs ri _ _ _ _         -> ri
 
 

@@ -41,8 +41,10 @@ showSpecialisedList t (r:rs) = (print (prettyTheorem [] (asTheorem (specialise t
 main :: IO ()
 main = do
   putStr "Type signature: "
-  x <- getLine
+  x' <- getLine
 --  x <- return teststr
+  x <- return (if x' == "teststr" then teststr else x')
+  putStr ("\n" ++ x ++ "\n")
   let (intm, err) = runWriter $ test x
   when (x /= "exit")
     ((putStrLn err) >>

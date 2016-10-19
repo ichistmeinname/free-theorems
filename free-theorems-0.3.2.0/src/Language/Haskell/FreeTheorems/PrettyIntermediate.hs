@@ -29,5 +29,5 @@ instance Show Intermediate where
       getRelStr (RelFunLab _ r1 r2) = "(RelFunLab " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
       getRelStr (RelAbs _ (RVar rv) (t1, t2) _ rel) = "(RelAbs \"" ++ rv ++ "\" (" ++ (show t1) ++ ", " ++ (show t2) ++ ") " ++ (getRelStr rel) ++ ")"
       getRelStr (RelTypeConsAbs _ _ _ _ _) = "RelTypeConsAbs"
-      getRelStr (RelTypeConsApp _ (RVar rv) _ _) = "(RelTypeConsApp \"" ++ rv ++ "\")"
+      getRelStr (RelTypeConsApp _ (RVar rv) _) = "(RelTypeConsApp \"" ++ rv ++ "\")"
       getRelStr FunAbs{} = "FunAbs"

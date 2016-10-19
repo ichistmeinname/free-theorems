@@ -165,8 +165,8 @@ interpretM l t = case t of
 
     -- create a relation for type abstractions
   TypeAbs v cs t' -> do
-    -- (thr) TODO: check if variable is used as type constructor. When this is
-    --             the case, use RelTypeConsAbs instead of RelAbs.
+    -- (thr) check if variable is used as type constructor. When this is
+    --       the case, use RelTypeConsAbs instead of RelAbs.
     ri <- mkRelationInfo l t                    -- create the relation info
     (rv, t1, t2) <- lift newRelationVariable    -- create a new variable
     let rvar = RelVar (RelationInfo l t1 t2) rv
@@ -188,13 +188,17 @@ interpretM l t = case t of
     let res = (filter (/= BottomReflecting) (relRes l)) ++ (if null cs then [] else [RespectsClasses cs])
     return (RelAbs ri rv (t1,t2) res r)
 
-    -- create a relation for type constructor variable application
+    -- (thr) create a relation for type constructor variable application
   TypeVarApp v ts -> do
+    env <- ask
+    (RelVar _ rv) <- maybeToMonad (Map.lookup v env)
     rs <- mapM (interpretM l) ts   -- interpret the subtypes
     ri <- mkRelationInfo l t       -- create the relation info
-    (rv, t1, t2) <- lift newRelationVariable    -- create a new variable
+--    (rv, t1, t2) <- lift newRelationVariable    -- create a new variable
 
-    return (RelTypeConsApp ri rv (t1,t2) rs)
+--    return (RelTypeConsApp ri rv rs)
+    let (RVar i) = rv
+    return (RelLift ri (Con (Ident i)) rs)
 
   where
     mkRelationInfo l t = do

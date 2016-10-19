@@ -171,7 +171,7 @@ unfoldFormula x y rel = case rel of
   FunAbs ri v ts res r -> unfoldAbsFun x y ri v ts res r
   -- (thr) Additional cases for type constructor variables
   RelTypeConsAbs ri v ts res r -> unfoldTypeConsAbs x y ri v ts res r
-  RelTypeConsApp ri v ts rs -> unfoldTypeConsApp x y ri v ts rs
+  RelTypeConsApp ri v rs -> unfoldTypeConsApp x y ri v rs
 
 
 
@@ -226,22 +226,25 @@ unfoldAbsFun x y ri v (t1,t2) res rel = do
 
 unfoldTypeConsApp ::
     Term -> Term -> RelationInfo ->
-    RelationVariable -> (TypeExpression, TypeExpression) -> [Relation] -> Unfolded Formula
+    RelationVariable -> [Relation] -> Unfolded Formula
 
-unfoldTypeConsApp x y ri v (t1, t2) rs = return  (Predicate IsTrue)
+unfoldTypeConsApp x y ri v rs = do
+  rightSides <- mapM (unfoldFormula x y) rs
+  return (head rightSides) -- TODO: this is just for the first prameter!
 -- (thr) Just for testing,this has to be replaced by the actual implementation
+-- TODO: Application
 
 
 -- | (thr) Unfolding operation for type constructor abstraction.
--- TODO: right now this is just a copy of the type abstraction unfold.
 unfoldTypeConsAbs ::
   Term -> Term -> RelationInfo
   -> RelationVariable -> (TypeExpression, TypeExpression)
   -> [Restriction] -> Relation -> Unfolded Formula
 
 unfoldTypeConsAbs x y ri v (t1,t2) res rel = do
+--  v <- gets
   rightSide <- unfoldFormula (TermIns x t1) (TermIns y t2) rel
-  return $ ForallFunctions (Left (TVar "fixme")) (t1, t2) [] rightSide
+  return $ ForallTypeConstructors v (t1, t2) res rightSide
 
 
 -- | Unfolding operation for relational actions of function type constructors.
@@ -271,7 +274,7 @@ unfoldFun x y ri rel1 rel2 =
     FunAbs _ _ _ _ _    -> unfoldFunVars x y ri rel1 rel2
     -- (thr) Special constructors for type constructor variables
     -- TODO: what has to be done here?
-    RelTypeConsApp _ _ _ _ -> unfoldFunVars x y ri rel1 rel2
+    RelTypeConsApp _ _ _ -> unfoldFunVars x y ri rel1 rel2
     RelTypeConsAbs _ _ _ _ _ -> unfoldFunVars x y ri rel1 rel2
 
 -- | Unfolding operation for relational actions of function type constructors.
