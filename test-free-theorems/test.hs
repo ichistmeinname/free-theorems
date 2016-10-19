@@ -44,13 +44,16 @@ main = do
   x' <- getLine
 --  x <- return teststr
   x <- return (if x' == "teststr" then teststr else x')
+  putStrLn "Input:"
   putStr ("\n" ++ x ++ "\n")
   let (intm, err) = runWriter $ test x
   when (x /= "exit")
     ((putStrLn err) >>
     case intm of
       Just t  -> do
+                  putStrLn "Intermediate representation:"
                   print t
+                  putStrLn "\nasTheorem:"
                   print (prettyTheorem [] (asTheorem t))
 --                    showSpecialisedList t (relationVariables t)
       Nothing -> return ()

@@ -264,7 +264,7 @@ initialState ns =
 isTypeConstructor :: Identifier -> TypeExpression -> Bool
 isTypeConstructor i t = case t of
     (TypeVarApp (TV i') ts) -> (i == i') || isListTypeCons ts
-    (TypeVar (TV i')) -> (i /= i')
+    (TypeVar (TV i')) -> False
     (TypeCon _ ts) -> isListTypeCons ts
     (TypeFun t1 t2) -> (isTypeConstructor i t1) || (isTypeConstructor i t2)
     (TypeFunLab t1 t2) -> (isTypeConstructor i t1) || (isTypeConstructor i t2)

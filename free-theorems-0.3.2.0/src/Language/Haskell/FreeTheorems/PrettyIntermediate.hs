@@ -28,6 +28,6 @@ instance Show Intermediate where
       getRelStr (RelFun _ r1 r2) = "(RelFun " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
       getRelStr (RelFunLab _ r1 r2) = "(RelFunLab " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
       getRelStr (RelAbs _ (RVar rv) (t1, t2) _ rel) = "(RelAbs \"" ++ rv ++ "\" (" ++ (show t1) ++ ", " ++ (show t2) ++ ") " ++ (getRelStr rel) ++ ")"
-      getRelStr (RelTypeConsAbs _ _ _ _ _) = "RelTypeConsAbs"
+      getRelStr (RelTypeConsAbs _ _ _ _ rel) = "(RelTypeConsAbs " ++ (getRelStr rel) ++ ")"
       getRelStr (RelTypeConsApp _ (RVar rv) _) = "(RelTypeConsApp \"" ++ rv ++ "\")"
       getRelStr FunAbs{} = "FunAbs"
