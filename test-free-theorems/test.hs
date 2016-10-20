@@ -10,12 +10,6 @@ teststr :: String
 teststr = "class Monad m where\n\
     \  (>>=) :: m a -> (a -> m b) -> m b\n\
     \\n\
-    \test :: Monad m => m a"
-
-teststr3 :: String
-teststr3 = "class Monad m where\n\
-    \  (>>=) :: m a -> (a -> m b) -> m b\n\
-    \\n\
     \test :: Monad m => m a -> m a"
 
 -- Parse the haskell-string, interpret the first occuring type signature and

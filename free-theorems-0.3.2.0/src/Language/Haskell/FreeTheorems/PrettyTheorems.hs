@@ -150,13 +150,15 @@ prettyFormula pc (ForallTypeConstructors v (t1,t2) res f) =
              else parens . fsep . punctuate comma . map prettyTypeClass $ cs
       ts = prettyTypeExpression NoParens t1 <> comma
            <> prettyTypeExpression NoParens t2
+      ts' = prettyTypeExpression NoParens t1 <> text " <=> "
+           <> prettyTypeExpression NoParens t2
    in parensIf (withParens pc) $
         sep
           [ fsep $
               [ text "forall"
-              , ts, text "in", text "FUNCCONS (FIXME!)" <> comma
-              , rv, text "in"
-              , text "REL" <> parens ts
+              , ts, text "in", text "TYPECONS" <> comma
+              , rv, text ":"
+              , ts'
                 <> if null res then char '.' else comma ]
                 ++ prettyRestrictionList rv res
           , nest 1 (prettyFormula (noParens pc) f) ]
