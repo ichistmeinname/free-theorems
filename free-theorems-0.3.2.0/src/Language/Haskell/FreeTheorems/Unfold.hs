@@ -171,7 +171,7 @@ unfoldFormula x y rel = case rel of
   FunAbs ri v ts res r -> unfoldAbsFun x y ri v ts res r
   -- (thr) Additional cases for type constructor variables
   RelTypeConsAbs ri v ts res r -> unfoldTypeConsAbs x y ri v ts res r
-  RelTypeConsApp ri v rs -> unfoldTypeConsApp x y ri v rs
+  RelTypeConsApp ri v rs -> return . Predicate . IsMember x y $ rel
 
 
 

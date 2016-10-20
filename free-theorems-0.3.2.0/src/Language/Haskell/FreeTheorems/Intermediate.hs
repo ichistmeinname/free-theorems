@@ -198,7 +198,8 @@ interpretM l t = case t of
 
 --    return (RelTypeConsApp ri rv rs)
     let (RVar i) = rv
-    return (RelLift ri (Con (Ident i)) rs)
+--    return (RelLift ri (Con (Ident i)) rs)
+    return (RelTypeConsApp ri rv rs)
 
   where
     mkRelationInfo l t = do

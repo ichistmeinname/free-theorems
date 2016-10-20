@@ -341,6 +341,10 @@ prettyRelation _ _ (RelBasic ri) =
     EquationalTheorem   -> text "id"
     InequationalTheorem -> text "[="
 
+-- (thr) Pretty print type constructor variable application
+prettyRelation pc _ (RelTypeConsApp _ (RVar i) rels) =
+  text i <+> (fsep (map (prettyRelation pc False) rels))
+
 prettyRelation pc omitOrder (RelLift ri con rs) =
   let pl = case relationLanguageSubset ri of
              BasicSubset -> text "lift"
