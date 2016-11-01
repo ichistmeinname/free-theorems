@@ -318,9 +318,78 @@ An diesen Gesetzen ist interessant, dass tatsächlich nur das erste Gesetz gelte
 aus dem freien Theorem von $fmap$, wird uns also abermals ``geschenkt''. Um das zu zeigen, folgen wir wieder der typischen Vorgehensweise:
 
 \begin{align*}
+&(fmap, fmap) \in \forall \mathcal{F} . \forall \mathcal{R} . \forall \mathcal{S} . (\mathcal{R} \rightarrow \mathcal{S})
+\rightarrow \mathcal{F} \mathcal{R} \rightarrow \mathcal{F} \mathcal{S} \\
+&\\
+\Leftrightarrow &
+\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+&(fmap_{k1}, fmap_{k2}) \in \forall \mathcal{R} . \forall \mathcal{S} . (\mathcal{R} \rightarrow \mathcal{S}) \rightarrow
+\mathcal{K} \mathcal{R} \rightarrow \mathcal{K} \mathcal{S} \\
+&\\
+\Leftrightarrow &
+\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+&\forall A, A' \in Types, \mathcal{A} : A \Leftrightarrow A' \\
+&\forall B, B' \in Types, \mathcal{B} : B \Leftrightarrow B' \\
+&(fmap_{k1 A B}, fmap_{k2 A' B'}) \in (\mathcal{A} \rightarrow \mathcal{B}) \rightarrow
+\mathcal{K} \mathcal{A} \rightarrow \mathcal{K} \mathcal{B} \\
+&\\
+\Leftrightarrow &
+\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+&\forall A, A' \in Types, \mathcal{A} : A \Leftrightarrow A' \\
+&\forall B, B' \in Types, \mathcal{B} : B \Leftrightarrow B' \\
+&\forall (g, g') \in (\mathcal{A} \rightarrow \mathcal{B}) \\
+&(fmap_{k1 A B}\ g, fmap_{k2 A' B'}\ g') \in \mathcal{K} \mathcal{A} \rightarrow \mathcal{K} \mathcal{B} \\
 \end{align*}
 
-% HIER WEITER - Zettel ``Freies Theorem von fmap''
+Da der erste Parameter von $fmap$ eine Funktion ist, werden auch Elemente aus dieser Funktionstyprelation allquantifiziert, d.h.
+$\forall (g, g') \in (\mathcal{A} \rightarrow \mathcal{B})$. Diese Allquantifizierung ist äquivalent zu
+$\forall (g, g'): (g, g') \in (\mathcal{A} \rightarrow \mathcal{B})$ und somit auch zu $\forall (g, g') \in
+(\mathcal{A} \rightarrow \mathcal{B}): (\forall (x, x') \in \mathcal{A}: (g x, g' x') \in \mathcal{B})$, wenn man die Definition für
+$\mathcal{A} \rightarrow \mathcal{B}$ anwendet. Man kommt also auf:
+
+\begin{align*}
+&\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+&\forall A, A' \in Types, \mathcal{A} : A \Leftrightarrow A' \\
+&\forall B, B' \in Types, \mathcal{B} : B \Leftrightarrow B' \\
+&\forall (g, g') \in (\mathcal{A} \rightarrow \mathcal{B}) \\
+&(\forall (x, x') \in \mathcal{A}: (g\ x, g'\ x') \in \mathcal{B})\\
+&\Rightarrow (fmap_{k1 A B}\ g, fmap_{k2 A' B'}\ g') \in \mathcal{K} \mathcal{A} \rightarrow \mathcal{K} \mathcal{B} \\
+&\\
+\Leftrightarrow &\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+&\forall A, A' \in Types, \mathcal{A} : A \Leftrightarrow A' \\
+&\forall B, B' \in Types, \mathcal{B} : B \Leftrightarrow B' \\
+&\forall (g, g') \in (\mathcal{A} \rightarrow \mathcal{B}) \\
+&(\forall (x, x') \in \mathcal{A}: (g\ x, g'\ x') \in \mathcal{B})\\
+&\Rightarrow (\forall (y, y') \in \mathcal{K} \mathcal{A} \\
+&\ \ \ \ \ \ fmap_{k1 A B}\ g\ y, fmap_{k2 A' B'}\ g'\ y') \in \mathcal{K} \mathcal{B}\\
+% FIXME: Da gibt es doch sicherlich eine ordentliche Loesung, um die zweite Zeile einzuruecken.
+\end{align*}
+
+Nun spezialisieren wir das Ganze auf den Fall, dass $\mathcal{A}$ und $\mathcal{B}$ Funktionen sind, und wir bekommen das
+folgende Theorem:
+
+\begin{align*}
+&\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+&\forall a : A \rightarrow A' \\
+&\forall b : B \rightarrow B' \\
+&\forall g_1 : A \rightarrow B\\
+&\forall g_2 : A' \rightarrow B' \\
+&(\forall x \in A : b\ (g_1\ x) = g_2 (a x))\\
+&\Rightarrow \forall y \in k_1\ A\\
+&\ \ \ \ \ \ map'\ b\ (fmap_{k1 A B}\ g_1\ y) = fmap_{k2 A' B'}\ g_2\ (map'\ a\ y)
+\end{align*}
+
+$map'$ ist hierbei die natürliche map-Funktion, die zu Beginn des Abschnitts bereits erwähnt wurde.
+Anders ausgedrückt sagt dieses Theorem also, für beliebige Funktionen $a, b, g_1, g_2$ gilt, falls $b . g_1 = g_2 . a$, die folgende Aussage
+(die Typinstanzierungen werden hier der Übersichtlichkeit halber weggelassen):
+
+\begin{align*}
+(map'\ b)\ .\ (fmap\ g_1\ y) = (fmap\ g_2)\ .\ (map'\ a\ y)
+\end{align*}
+
+Der Punktoperator ist hierbei die Funktionsverkettung. Nun muss man noch zeigen dass
+
+% HIER WEITER %
 
 \newpage
 
