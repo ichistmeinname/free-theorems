@@ -7,7 +7,10 @@ import Control.Monad.Writer(Writer, runWriter, writer)
 import Text.PrettyPrint.HughesPJ
 
 teststr :: String
-teststr = "class Monad m where\n\
+teststr = "class Functor f where\n\n\
+          \fmap :: Functor f => (a -> b) -> f a -> f b"
+teststr2 :: String
+teststr2 = "class Monad m where\n\
     \  (>>=) :: m a -> (a -> m b) -> m b\n\
     \\n\
     \test :: Monad m => m a -> m a"
@@ -32,6 +35,12 @@ showSpecialisedList :: Intermediate -> [RelationVariable] -> IO ()
 showSpecialisedList _ []     = return ()
 showSpecialisedList t (r:rs) = (print (prettyTheorem [] (asTheorem (specialise t r)))) >> (showSpecialisedList t rs)
 
+spezializeIntermediate :: Intermediate -> Intermediate
+spezializeIntermediate i = spec i (relationVariables i)
+  where
+    spec i [] = i
+    spec i (v:vs) = spec (specialise i v) vs
+
 main :: IO ()
 main = do
   putStr "Type signature: "
@@ -49,6 +58,8 @@ main = do
                   print t
                   putStrLn "\nasTheorem:"
                   print (prettyTheorem [] (asTheorem t))
+                  putStrLn "\nspecialized:"
+                  print (prettyTheorem [] (asTheorem (spezializeIntermediate t)))
 --                    showSpecialisedList t (relationVariables t)
       Nothing -> return ()
     >> putStrLn "" >> main)

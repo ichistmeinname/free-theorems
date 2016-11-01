@@ -358,6 +358,25 @@ replaceRelVar ir (RVar rv) leftOrRight =
          in if rv == r
               then FunAbs ri fv ts (res' ++ (classConstraints res)) rel'
               else rel
+      -- TODO: call reduceLifts (or new function for this matter?) for RelTypeConsAbs and RelTypeConsApp,
+      --       similar to RelAbs and RelVar
+
+      RelTypeConsAbs ri (RVar r) ts res rel' ->
+        -- TODO: just copied from RelAbs
+        let res'' = either (const funResL) (const funResR) fv
+            -- hack! should be somehow better implemented
+      -- if BottomReflecting is not present, we had
+            -- TypeAbsLab quantification in (SubsetWithSeq Equational)
+            res'  = if elem BottomReflecting res || elem Total res then res'' else filter (/= Total) res''
+         in if rv == r
+              then FunAbs ri fv ts (res' ++ (classConstraints res)) rel'
+              else rel
+
+      RelTypeConsApp ri (RVar r) _ ->
+        -- TODO: just copied from RelVar
+        let tv = either (Left . TermVar) (Right . TermVar) fv
+         in if rv == r then FunVar ri tv else rel
+
       otherwise -> rel
 
     -- the restrictions for functions in the equational setting and for
@@ -384,6 +403,12 @@ replaceRelVar ir (RVar rv) leftOrRight =
 --   If the argument is a function then lifted lists are replaced by map and
 --   lifted Maybes are replaced by fmap.
 
+-- (thr) TODO:  extend to type constructor variables: replace type constructor
+--              variable applications by the respective functions (depending
+--              on type)
+--              Problem: how do we know at this point, which types are
+--              represented by the variable?
+
 reduceLifts :: Intermediate -> Intermediate
 reduceLifts ir =
 --  ir { intermediateRelation = reduceEverywhere (intermediateRelation ir) }
@@ -403,6 +428,12 @@ reduceLifts ir =
                                             (re (mk ok ri r2) r2)
       RelAbs ri rv ts res r -> RelAbs ri rv ts res (re ok r)
       FunAbs ri fv ts res r -> FunAbs ri fv ts res (re ok r)
+      RelTypeConsApp ri rv res -> if ok
+                                    then error "FIXME: specialise RelTypeConsApp"
+                                         -- TODO: problem: we don't know what
+                                         --       the variable represents at
+                                         --       this point
+                                    else rel
       otherwise             -> rel
 
     mk' ok ri r = case theoremType (relationLanguageSubset ri) of
