@@ -103,7 +103,7 @@ usw.
 
 Die funktionale Programmiersprache Haskell bietet ein umfassendes Typsystem, das unter anderem parametrischen Polymorphismus
 unterstützt. Nicht nur verringert ein solches Typsystem die Fehleranfälligkeit von produziertem Code, es vereinfacht es auch,
-Rückschlüsse auf die Funktionsweise zu ziehen und mathematische Beweise zu führen.
+Rückschlüsse auf die Funktionsweise zu ziehen und Korrektheitsbeweise zu führen.
 Zudem ermöglicht es, bestimmte Theoreme für beliebige Typen herzuleiten, ohne überhaupt die konkrete Implementierung
 in Betracht ziehen zu müssen. Dieses sind die sogenannten ``freien Theoreme'', weil man sie gewissermaßen ``geschenkt''
 bekommt. Wie genau man diese Theoreme herleitet, soll in diesem Abschnitt genauer erläutert werden.
@@ -126,18 +126,19 @@ Die Funktion ist also für jeden beliebigen Typen a definiert. Das schränkt die
 Doch auch für eine Neusortierung der Liste hat die Funktion wenig Anhaltspunkte. Sie kennt die Länge der Liste, doch ohne Kenntnis des Typen kann sie keine weiteren Aussagen über den Inhalt der einzelnen Listenelemente treffen (und da die Klasse Eq nicht
 gegeben ist, nicht mal über deren Gleichheit). Sie wird also für zwei Listen gleicher Länge $l$ und $l'$ exakt das Gleiche tun.
 Die Haskell-Funktion \texttt{$map :: (a \rightarrow b) \rightarrow [a] \rightarrow [b]$} wendet eine Funktion auf jedes Element einer Liste an und gibt die resultierende Liste zurück. Oder man interpretiert die Funktion so, dass sie eine Funktion in den Listen-Kontext ``liftet'' und
-eine Funktion zurückgibt, die sich auf Listen anwenden lässt. Betrachten wir nun eine beliebige Funktion $g :: a \rightarrow a$. Es lassen sich jetzt Aussagen über $map g$, angewandt auf Listen, treffen. Zum einen wird jede Liste, auf die man $map g$ anwendet, die gleiche Länge haben wie vorher - das liegt einfach in der Natur von $map$.
+eine Funktion zurückgibt, die sich auf Listen anwenden lässt. Betrachten wir nun eine beliebige Funktion $g :: a \rightarrow a$. Es lassen sich jetzt Aussagen über $map g$, angewandt auf Listen, treffen. Zum einen wird jede Liste, auf die man $map\ g$ anwendet, die gleiche Länge haben wie vorher - das liegt einfach in der Natur von $map$.
+
 Darüber hinaus müssen jeweils zwei Elemente, die an der gleichen Position stehen, auf die gleiche Weise entstanden sein, nämlich
 durch Anwenden von $g$ auf das entsprechende Listenelement.
 Es ist nun logisch, dass es egal ist, ob man zuerst die Funktion f auf eine Liste anwendet und dann die Funktion g auf die
 resultierende Liste mappt, oder ob man in umgekehrter Reihenfolge vorgeht. In Zeichen:
 
 \begin{align}
-f (map g l) = map g (f l)
+f (map\ g\ l) = map\ g\ (f\ l)
 \end{align}
 
 Diese Aussage ist ein Theorem, das für beliebige Funktionen g und beliebige Listen l gilt. Doch nicht nur das: Wir haben für
-die Herleitung kein Wissen über die konkrete Implementierung der Funktion f, alles was bekannt war, war die Typsignatur.
+die Herleitung kein Wissen über die konkrete Implementierung der Funktion f benötigt, alles was bekannt war, war die Typsignatur.
 Das Theorem gilt also insbesondere für alle Funktionen mit der Typsignatur $[a] \rightarrow [a]$. Da man dieses Theorem
 aus der Typsignatur ``geschenkt'' bekommt, wird es auch ``freies Theorem'' genannt.
 Natürlich war die vorangegangene Herleitung sehr unkonkret und nicht wirklich mathematischer Natur. Daher soll im Folgenden
@@ -173,10 +174,10 @@ Relation umsetzen. Man kann beispielsweise für Typrelation $\mathcal{R} : T_1 \
 [\mathcal{R}] = \{ ([], []) \} \cup \{ (a : as, b : bs) | (a, b) \in \mathcal{R}, (as, bs) \in [\mathcal{R}] \}
 \end{align}
 
-Andere Standardtypkonstruktoren kann man auf ähnliche Weise definieren. Nun haben wir die Mittel, zu jeder vorhandenen
+Andere Standardtypkonstruktoren lassen sich auf ähnliche Weise beschreiben. Nun haben wir die Mittel, zu jeder vorhandenen
 Typsignatur eine Relation zu konstruieren. Eine entscheidende Erkenntnis von \cite{wadler}, aufbauend auf
 \cite{reynolds}, ist nun folgende: Ist t ein geschlossener Term von Typ T und $\mathcal{T}$ die zugehörige konstruierte
-Typrelation, dann gilt $(t, t) \in \mathcal{T}$ (\textit{Parametricity}).
+Typrelation, dann gilt $(t, t) \in \mathcal{T}$ (dieser Satz wird von \cite{wadler} auch Parametrizität, \textit{Parametricity}, genannt).
 
 Damit ist alles gegeben, was man zur Herleitung des freine Theorems benötigt. Wir untersuchen wieder das Beispiel
 $f :: [a] \rightarrow [a]$. Durch Parametrizität ist gegeben:
@@ -216,20 +217,20 @@ Wir wissen, dass für alle Parameter $l, l' \in lift_{[]}(\mathcal{A})$ die Auss
 gilt. Als Funktion geschrieben heißt das, es gilt:
 
 \begin{align}
-lift_{[]}(g) (f_{A_1} l) = f_{A_2} l'
+lift_{[]}(g) (f_{A_1}\ l) = f_{A_2}\ l'
 \end{align}
 
 Das Lifting von Funktionen in den Listenkontext ist ganz einfach das Mapping dieser Funktion auf Listen, sprich: die Haskell-Funktion
 $map$, angewandt auf die entsprechende Funktion:
 
 \begin{align}
-map g (f_{A_1} l) = f_{A_2} l'
+map\ g\ (f_{A_1}\ l) = f_{A_2}\ l'
 \end{align}
 
 Da $(l, l') \in [A]$, können wir $l'$ auch anders ausdrücken als $map g l = l'$. Man erhält also:
 
 \begin{align}
-map g (f_{A_1} l) = f_{A_2} (map g l)
+map\ g\ (f_{A_1} l) = f_{A_2} (map\ g\ l)
 \end{align}
 
 Und man erkennt: Es handelt sich um die gleiche Aussage, die wir vorher intuitiv konstruiert haben. Jetzt haben wir bewiesen,
@@ -238,9 +239,9 @@ Typsignatur herleiten.
 
 \subsubsection{Typkonstruktorklassen und -variablen}
 
-Eine Sache, die bisher nur kurz angerissen wurde, ist die Interpretation von Typkonstruktoren. Für den Listentypkonstruktor
+Eine Sache, die bisher nur kurz angerissen wurde, ist die relationale Interpretation von Typkonstruktoren. Für den Listentypkonstruktor
 wurde eine Formel gegeben, mit der eine Relation in den Listenkontext geliftet wird. Ähnlich kann man auch bei anderen Typen
-vorgehen, beispielsweise Maybe.
+vorgehen, beispielsweise $Maybe$.
 
 Was aber völlig ignoriert wurde ist die Tatsache, dass man in Haskell auch über Typvariablen allquantifizieren kann, die ihrerseits
 nicht Platzhalter für speziellele Typen, sondern nur für Typkonstruktoren sind. Hier ein Beispiel:
@@ -274,8 +275,8 @@ muss man die Allquantifizierung über Typkonstruktoren weiter einschränken.
 Sei $\mathcal{F}(\mathcal{X})$ wieder eine Typrelation, die von Typrelation $\mathcal{X}$ abhängt, und sei C eine Typklasse. Wir definieren Allquantifizierung über Typkonstruktorvariablen als:
 
 \begin{align*}
-\forall \mathcal{K} . \mathcal{F}(\mathcal{X}) = \{ 
-(x_{k1}, x'_{k2}) | k_1, k_2 \in \text{Typkonstruktoren für C, die C einhalten},\\
+\forall^{\{C\}} \mathcal{K} . \mathcal{F}(\mathcal{K}) = \{ 
+(x_{k1}, x'_{k2}) | k_1, k_2 \text{Typkonstruktoren für C, die C einhalten},\\
 \mathcal{A} : k_1 \Leftrightarrow k_2, (x, x') \in \mathcal{F}(\mathcal{A})
 \}
 \end{align*}
@@ -295,7 +296,7 @@ Eine Frage, die sich nun stellt, ist: Inwiefern kann man dann überhaupt mit die
 bekannt, dass sie Typrelationen auf andere Typrelationen abbilden. Mit der Klassenbeschränkung ist aber zumindest ein
 Anhaltspunkt gegeben. So kann man im Fall der $Functor$ Klasse beispielsweise davon ausgehen, dass es in irgendeiner
 Art und Weise möglich sein muss, den ``Inhalt'' des Functors zu manipulieren - eine Art ``natürliches'' $map$ 
-todo{Quelle? Beweis?}, das im folgenden $map_F$ genannt wird.
+\todo{Quelle? Beweis?}, das im folgenden $map_F$ genannt wird.
 
 In Haskell gibt es einige Typklassen, für die spezielle Gesetze formuliert werden. Diese Gesetze sind nicht in Haskell
 verankert, und theoretisch hindert einen nichts daran, diese Gesetze zu missachten. Ein prominentes Beispiel ist die
@@ -314,8 +315,8 @@ fmap id      = id
 fmap (p . q) = (fmap p) . (fmap q)
 \end{lstlisting}
 
-An diesen Gesetzen ist interessant, dass tatsächlich nur das erste Gesetz gelten muss - das zweite folgt dann automatisch
-aus dem freien Theorem von $fmap$, wird uns also abermals ``geschenkt''. Um das zu zeigen, folgen wir wieder der typischen Vorgehensweise:
+An diesen Functor-Gesetzen ist interessant, dass tatsächlich nur das erste Gesetz gelten muss - das zweite folgt dann automatisch
+aus dem freien Theorem von $fmap$, wird uns also abermals ``geschenkt''. Um das zu zeigen, folgen wir wieder der bereits bekannten Vorgehensweise, dieses Mal erweitert um Typkonstruktorvariablen:
 
 \begin{align*}
 &(fmap, fmap) \in \forall \mathcal{F} . \forall \mathcal{R} . \forall \mathcal{S} . (\mathcal{R} \rightarrow \mathcal{S})
@@ -328,15 +329,15 @@ aus dem freien Theorem von $fmap$, wird uns also abermals ``geschenkt''. Um das 
 &\\
 \Leftrightarrow &
 \forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
-&\forall A, A' \in Types, \mathcal{A} : A \Leftrightarrow A' \\
-&\forall B, B' \in Types, \mathcal{B} : B \Leftrightarrow B' \\
+&\forall A, A' \in Typen, \mathcal{A} : A \Leftrightarrow A' \\
+&\forall B, B' \in Typen, \mathcal{B} : B \Leftrightarrow B' \\
 &(fmap_{k1 A B}, fmap_{k2 A' B'}) \in (\mathcal{A} \rightarrow \mathcal{B}) \rightarrow
 \mathcal{K} \mathcal{A} \rightarrow \mathcal{K} \mathcal{B} \\
 &\\
 \Leftrightarrow &
 \forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
-&\forall A, A' \in Types, \mathcal{A} : A \Leftrightarrow A' \\
-&\forall B, B' \in Types, \mathcal{B} : B \Leftrightarrow B' \\
+&\forall A, A' \in Typen, \mathcal{A} : A \Leftrightarrow A' \\
+&\forall B, B' \in Typen, \mathcal{B} : B \Leftrightarrow B' \\
 &\forall (g, g') \in (\mathcal{A} \rightarrow \mathcal{B}) \\
 &(fmap_{k1 A B}\ g, fmap_{k2 A' B'}\ g') \in \mathcal{K} \mathcal{A} \rightarrow \mathcal{K} \mathcal{B} \\
 \end{align*}
@@ -345,19 +346,19 @@ Da der erste Parameter von $fmap$ eine Funktion ist, werden auch Elemente aus di
 $\forall (g, g') \in (\mathcal{A} \rightarrow \mathcal{B})$. Diese Allquantifizierung ist äquivalent zu
 $\forall (g, g'): (g, g') \in (\mathcal{A} \rightarrow \mathcal{B})$ und somit auch zu $\forall (g, g') \in
 (\mathcal{A} \rightarrow \mathcal{B}): (\forall (x, x') \in \mathcal{A}: (g x, g' x') \in \mathcal{B})$, wenn man die Definition für
-$\mathcal{A} \rightarrow \mathcal{B}$ anwendet. Man kommt also auf:
+$\mathcal{A} \rightarrow \mathcal{B}$ anwendet. \todo{Hier stimmt was nicht, nochmal korrigieren}Man kommt also auf:
 
 \begin{align*}
 &\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
-&\forall A, A' \in Types, \mathcal{A} : A \Leftrightarrow A' \\
-&\forall B, B' \in Types, \mathcal{B} : B \Leftrightarrow B' \\
+&\forall A, A' \in Typen, \mathcal{A} : A \Leftrightarrow A' \\
+&\forall B, B' \in Typen, \mathcal{B} : B \Leftrightarrow B' \\
 &\forall (g, g') \in (\mathcal{A} \rightarrow \mathcal{B}) \\
 &(\forall (x, x') \in \mathcal{A}: (g\ x, g'\ x') \in \mathcal{B})\\
 &\Rightarrow (fmap_{k1 A B}\ g, fmap_{k2 A' B'}\ g') \in \mathcal{K} \mathcal{A} \rightarrow \mathcal{K} \mathcal{B} \\
 &\\
 \Leftrightarrow &\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
-&\forall A, A' \in Types, \mathcal{A} : A \Leftrightarrow A' \\
-&\forall B, B' \in Types, \mathcal{B} : B \Leftrightarrow B' \\
+&\forall A, A' \in Typen, \mathcal{A} : A \Leftrightarrow A' \\
+&\forall B, B' \in Typen, \mathcal{B} : B \Leftrightarrow B' \\
 &\forall (g, g') \in (\mathcal{A} \rightarrow \mathcal{B}) \\
 &(\forall (x, x') \in \mathcal{A}: (g\ x, g'\ x') \in \mathcal{B})\\
 &\Rightarrow (\forall (y, y') \in \mathcal{K} \mathcal{A} \\
@@ -376,10 +377,10 @@ folgende Theorem:
 &\forall g_2 : A' \rightarrow B' \\
 &(\forall x \in A : b\ (g_1\ x) = g_2 (a x))\\
 &\Rightarrow \forall y \in k_1\ A\\
-&\ \ \ \ \ \ map'\ b\ (fmap_{k1 A B}\ g_1\ y) = fmap_{k2 A' B'}\ g_2\ (map'\ a\ y)
+&\ \ \ \ \ \ map_F\ b\ (fmap_{k1 A B}\ g_1\ y) = fmap_{k2 A' B'}\ g_2\ (map_F\ a\ y)
 \end{align*}
 
-$map'$ ist hierbei die natürliche map-Funktion, die zu Beginn des Abschnitts bereits erwähnt wurde.
+$map_F$ ist hierbei die natürliche map-Funktion, die zu Beginn des Abschnitts bereits erwähnt wurde.
 Anders ausgedrückt sagt dieses Theorem also, für beliebige Funktionen $a, b, g_1, g_2$ gilt, falls $b . g_1 = g_2 . a$, die folgende Aussage
 (die Typinstanzierungen werden hier der Übersichtlichkeit halber weggelassen):
 
