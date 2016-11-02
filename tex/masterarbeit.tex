@@ -10,6 +10,7 @@
 
 \usepackage{todonotes}
 \usepackage{mathrsfs}
+\usepackage{graphicx}
 
 %%% Examples of Article customizations
 % These packages are optional, depending whether you want the features they provide.
@@ -260,7 +261,7 @@ Typvariablen. Statt beliebigen Relationen über beliebig gewählten Typen interp
 Funktionen über Relationen mit beliebig gewählten Typkonstruktoren \cite{voigtlander}.
 
 Dazu kommt noch die Beschränkung auf bestimmte Klassen. In einer Klassendefinition legt man Typparameter sowie
-Klassenfunktionen fest. Als Beispiel bietet sich die Klassendefinition, hier beschränkt auf die interessante Funktion
+Klassenfunktionen fest. Als Beispiel bietet sich die Klassendefinition von Functor an, hier beschränkt auf die interessante Funktion
 $fmap$:
 
 \begin{lstlisting}[language=Haskell]
@@ -388,9 +389,55 @@ Anders ausgedrückt sagt dieses Theorem also, für beliebige Funktionen $a, b, g
 (map'\ b)\ .\ (fmap\ g_1\ y) = (fmap\ g_2)\ .\ (map'\ a\ y)
 \end{align*}
 
-Der Punktoperator ist hierbei die Funktionsverkettung. Nun muss man noch zeigen dass
+Der Punktoperator ist hierbei die Funktionsverkettung. Nun muss man noch zeigen dass $fmap\ f = map_F\ f$, was aus $fmap\ id = id$ (also dem ersten geforderten Gesetz) folgt. \todo{hier noch zeigen?}
 
-% HIER WEITER %
+Es reicht also aus zu fordern, dass für Funktoren $fmap\ id = id$ gilt. Wie bereits erwähnt, werden diese Gesetze nicht
+erzwungen, auch die Monadengesetze können theoretisch missachtet werden. Mathematisch gesehen haben sie den
+Namen zwar erst verdient, wenn diese Gesetze gelten, doch sprachtechnisch gelten keine Einschränkungen.
+Geht man davon aus, dass sie erfüllt sind, lassen sich jedoch noch zusätzliche Aussagen treffen, die ohne diese Gesetze
+nicht möglich wären. Im Folgenden sollen einige Überlegungen speziell zu Monaden angestellt werden, wie sie in \cite{voigtlander}
+eingeführt werden.
+
+Ein monadischer Wert heißt \textit{rein} \todo{rein? pur? pure?}, wenn er mit keinerlei monadischem Effekt versehen ist. Man
+kann einen reinen Wert auch ansehen als den Wert, der von der \texttt{return}-Funktion geliefert wird. Betrachten wir die
+folgende Funktion:
+
+\begin{lstlisting}[language=Haskell]
+f :: Monad m => [m Int] -> m Int
+\end{lstlisting}
+
+Eine Erkenntnis von \cite{voigtlander} ist nun, dass man im Fall, dass die Eingabeliste nur reine Werte beinhaltet, davon ausgehen
+kann, dass das Ergebnis auch rein ist, sofern die Monade das erste Monadengesetz erfüllt: $return_k\ a\ {>>=}_k\ k = k\ a$. Man argumentiert hier genauso wie bei polymorphen Funktionen: Da die Funktion über
+beliebige Monaden $m$ definiert ist, hat die Funktion keine Kenntnis über die jeweilige Monade, die genutzt wird.
+Sie kann dementsprechend keine monadenspezifischen Effekte einführen; nur bereits vorhandene
+Effekte können gegebenenfalls beibehalten werden.
+
+\includegraphics[height=100px]{purity-preservation}
+
+Ist nicht sichergestellt, dass sämtliche Elemente der Eingabeliste rein sind, kann man sich weiter überlegen, dass eine
+Möglichkeit zur Verfügung steht, mit der man den reinen Inhalt des monadischen Werts extrahieren kann - ähnlich wie
+die unsichere Funktion \texttt{unsafePerformIO}, die den reinen Wert aus einer IO-Monade extrahiert, nur eben für
+andere Monaden und sicher.
+Es ist ja vorstellbar, dass man nur am reinen Ergebnis einer Funktion $f$ interessiert ist, unabhängig von eventuellen anhaftenden
+monadischen Effekten. Tatsächlich kann man unter bestimmten Voraussetzungen zeigen, dass man beliebige Effekte in der 
+Eingabeliste ignorieren kann, wenn man nur am reinen Ergebnis interessiert ist.
+
+Sei $f :: Monad\ m \Rightarrow [m\ Int] \rightarrow m\ Int$, sei $\kappa$ eine Monadeninstanz und sei $p :: \kappa\ a \rightarrow a$, d.h. $p$ ist die erwähnte Funktion, die den reinen Wert aus dem monadischen Kontext extrahiert.
+Wenn folgende Aussagen gelten:
+
+\begin{itemize}
+\item $p \circ return_{\kappa} = id$
+\item Für beliebige Typen $t, t'$ und beliebige $m :: k\ t, k :: t \rightarrow k t'$ gilt\\
+$p (m\ {>>=}_{\kappa}\ k) = p\ (k\ (p\ m))$
+\end{itemize}
+
+dann liefert $p \circ f_{\kappa}$ das gleiche Eregbnis für beliebige Listen gleicher Länge, deren Elemente an jeweils gleicher Position
+die gleichen p-Bilder haben, sprich: den gleichen reinen Anteil. Man kann $p \circ f_{\kappa}$ kann also auch erhalten durch
+$g \circ (map\ p)$ für eine passende Funktion $g :: [Int] \rightarrow Int$ \cite{voigtlander}.
+
+\includegraphics[height=100px]{safe-value-extraction}
+
+Für diese Aussage werden keine Monadengesetze benötigt.
 
 \newpage
 

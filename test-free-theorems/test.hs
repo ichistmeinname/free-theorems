@@ -6,6 +6,8 @@ import Control.Monad(when)
 import Control.Monad.Writer(Writer, runWriter, writer)
 import Text.PrettyPrint.HughesPJ
 
+import KnownDeclarations
+
 teststr :: String
 teststr = "class Functor f where\n\n\
           \fmap :: Functor f => (a -> b) -> f a -> f b"
@@ -21,7 +23,7 @@ test :: String -> Writer String (Maybe Intermediate)
 test st = writer (interm sigs, errorStr)
             where
               (decls, parseErrs) = runWriter $ parse st
-              (valdecls, checkErrs) = runWriter $ check decls
+              (valdecls, checkErrs) = runWriter $ checkAgainst knownDeclarations decls
               errorStr = show $ hcat (parseErrs ++ checkErrs)
               sigs = filterSignatures valdecls
               interm []  = Nothing
