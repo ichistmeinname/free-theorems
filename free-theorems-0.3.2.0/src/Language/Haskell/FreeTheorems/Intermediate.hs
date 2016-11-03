@@ -361,7 +361,7 @@ replaceRelVar ir (RVar rv) leftOrRight =
       -- TODO: call reduceLifts (or new function for this matter?) for RelTypeConsAbs and RelTypeConsApp,
       --       similar to RelAbs and RelVar
 
-      RelTypeConsAbs ri (RVar r) ts res rel' ->
+{-      RelTypeConsAbs ri (RVar r) ts res rel' ->
         -- TODO: just copied from RelAbs
         let res'' = either (const funResL) (const funResR) fv
             -- hack! should be somehow better implemented
@@ -375,7 +375,7 @@ replaceRelVar ir (RVar rv) leftOrRight =
       RelTypeConsApp ri (RVar r) _ ->
         -- TODO: just copied from RelVar
         let tv = either (Left . TermVar) (Right . TermVar) fv
-         in if rv == r then FunVar ri tv else rel
+         in if rv == r then FunVar ri tv else rel-}
 
       otherwise -> rel
 

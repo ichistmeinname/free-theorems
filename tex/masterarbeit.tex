@@ -118,16 +118,21 @@ f :: [a] \rightarrow [a]
 \end{align}
 
 Gegeben ist also eine Funktion f, die von einer Liste auf eine Liste abbildet. Das Besondere an dieser Funktion ist, dass sie
-nicht für einen konkreten definiert ist, sondern für einen beliebigen Typen, dargestellt durch die Typvariable a. Es handelt sich
-also um eine polymorphe Funktion.
-Bei Polymorphismus ist zwischen Ad-Hoc Polymorphismus und parametrischem Polymorphismus zu unterscheiden. Hier handelt es sich um parametrischen Polymorphismus, was bedeutet, dass die Funktion für sämtliche Typen ähnlich arbeitet. Anders beim Ad-Hoc-Polymorphismus: Hier kann für jeden Typen eine ganz eigene Implementierung existieren, was es unmöglich macht, allgemeine
-Aussagen zu treffen.
-Die Funktion ist also für jeden beliebigen Typen a definiert. Das schränkt die Implementierung aber arg ein. Man muss sich an dieser Stelle Fragen: Wie kann die Funktion die Ergebnisliste erzeugen? Sie kennt den konkreten Typen nicht, sie kann lediglich auf die Elemente der Eingabeliste zurückgreifen. Die einzige Möglichkeit, die Liste zu ändern, besteht für die Funktion in einer Neusortierung der Liste.
+nicht für einen konkreten Typen definiert ist, sondern für jeden beliebigen Typen, der für die Typvariable a eingesetzt werden
+kann. Es handelt sich also um eine polymorphe Funktion.
+Bei Polymorphismus ist zwischen Ad-Hoc Polymorphismus und parametrischem Polymorphismus zu unterscheiden. In diesem Fall handelt es sich um parametrischen Polymorphismus, d.h. die Funktion arbeitet für sämtliche Typen nach dem gleichen Prinzip.
+Anders beim Ad-Hoc-Polymorphismus: Hier kann für jeden Typen eine ganz eigene Implementierung existieren, was es unmöglich macht, allgemeine Aussagen zu treffen.
 
-Doch auch für eine Neusortierung der Liste hat die Funktion wenig Anhaltspunkte. Sie kennt die Länge der Liste, doch ohne Kenntnis des Typen kann sie keine weiteren Aussagen über den Inhalt der einzelnen Listenelemente treffen (und da die Klasse Eq nicht
+Die vorliegende Funktion ist also für jeden beliebigen Typen $a$ definiert. Das hat aber gravierende Konsequenzen für
+deren Funktionsweise. Man muss sich an dieser Stelle fragen: Wie kann die Funktion die Ergebnisliste erzeugen? Sie kennt den konkreten Typen nicht, sie kann lediglich auf die Elemente der Eingabeliste zurückgreifen. Die einzige Möglichkeit für die Funktion,
+die Liste zu ändern, besteht in einer Umsortierung der Listenelemente.
+
+Doch auch für eine Neusortierung der Liste hat die Funktion wenig Anhaltspunkte. Sie kennt zwar die Länge der Liste, doch ohne Kenntnis des Typen kann sie keine weiteren Aussagen über den Inhalt der einzelnen Listenelemente treffen (und da die Klasse Eq nicht
 gegeben ist, nicht mal über deren Gleichheit). Sie wird also für zwei Listen gleicher Länge $l$ und $l'$ exakt das Gleiche tun.
-Die Haskell-Funktion \texttt{$map :: (a \rightarrow b) \rightarrow [a] \rightarrow [b]$} wendet eine Funktion auf jedes Element einer Liste an und gibt die resultierende Liste zurück. Oder man interpretiert die Funktion so, dass sie eine Funktion in den Listen-Kontext ``liftet'' und
-eine Funktion zurückgibt, die sich auf Listen anwenden lässt. Betrachten wir nun eine beliebige Funktion $g :: a \rightarrow a$. Es lassen sich jetzt Aussagen über $map g$, angewandt auf Listen, treffen. Zum einen wird jede Liste, auf die man $map\ g$ anwendet, die gleiche Länge haben wie vorher - das liegt einfach in der Natur von $map$.
+
+Die Haskell-Funktion \texttt{$map :: (a \rightarrow b) \rightarrow [a] \rightarrow [b]$} wendet eine Funktion auf jedes Element einer Liste an und gibt die resultierende Liste zurück. Da Haskell Currying für Funktionsapplikation verwendet, kann man
+diese Funktion auch auf eine andere Weise interpretieren: $map$, angewandt auf eine Funktion, liftet diese in den Listen-Kontext,
+gibt also eine Funktion zurück, die dieselbe Funktionalität für Listen bietet. Betrachten wir nun eine beliebige Funktion $g :: a \rightarrow a$. Es lassen sich jetzt Aussagen über $map\ g$, angewandt auf Listen, treffen. Zum einen wird jede Liste, auf die man $map\ g$ anwendet, die gleiche Länge haben wie vorher - das liegt einfach in der Natur von $map$.
 
 Darüber hinaus müssen jeweils zwei Elemente, die an der gleichen Position stehen, auf die gleiche Weise entstanden sein, nämlich
 durch Anwenden von $g$ auf das entsprechende Listenelement.
@@ -147,9 +152,9 @@ erklärt werden, wie man freie Theoreme im Allgemeinen und vor allem mathematisc
 
 Der Schlüssel zur Herleitung von freien Theoremen liegt in der Betrachtung von Typen. Ein intuitiver Ansatz, Typen zu verstehen,
 ist die Interpretation von einem Typen als Menge. So würde man den Typen \texttt{Bool} beispielsweise als Menge $\mathbb{B}$
-der booleschen Werte auffassen, mit $\mathbb{B} = \{ tt, ff \}$, der Typ \texttt{Int} wäre die Menge der ganzen Zahlen
+der booleschen Werte auffassen, mit $\mathbb{B} = \{ tt, ff \}$, der Typ \texttt{Integer} wäre die Menge der ganzen Zahlen
 $\mathbb{Z}$ usw. Komplexere Typen ergeben sich dann durch Zusammensetzung aus einzelnen Basistypen, beispielsweise
-würde man den Typen \texttt{$Int \rightarrow Int$} auffassen als die Menge $(\mathbb{Z} \rightarrow \mathbb{Z})$ aller Funktionen von den ganzen Zahlen in die ganzen Zahlen.
+würde man den Typen \texttt{$Integer \rightarrow Integer$} auffassen als die Menge $(\mathbb{Z} \rightarrow \mathbb{Z})$ aller Funktionen von den ganzen Zahlen in die ganzen Zahlen.
 
 Für die Herleitung von freien Theoremen ist diese Repräsentation nicht ganz ausreichend, da sie spätestens bei polymorphen
 Typen auf beweistechnische Probleme stößt. Daher greift man auf eine etwas andere Repräsentation zurück: Man betrachtet
@@ -228,15 +233,14 @@ $map$, angewandt auf die entsprechende Funktion:
 map\ g\ (f_{A_1}\ l) = f_{A_2}\ l'
 \end{align}
 
-Da $(l, l') \in [A]$, können wir $l'$ auch anders ausdrücken als $map g l = l'$. Man erhält also:
+Da $(l, l') \in [A]$, können wir $l'$ auch anders ausdrücken als $map\ g\ l = l'$. Man erhält also:
 
 \begin{align}
 map\ g\ (f_{A_1} l) = f_{A_2} (map\ g\ l)
 \end{align}
 
 Und man erkennt: Es handelt sich um die gleiche Aussage, die wir vorher intuitiv konstruiert haben. Jetzt haben wir bewiesen,
-dass sie gültig ist, da Parametrizität gilt. Doch das ist nicht alles, wir können ein entsprechendes Theorem für jede beliebige
-Typsignatur herleiten.
+dass sie gültig ist, da Parametrizität gilt. Und ein Theorem dieser Art lässt sich für jede beliebige Typsignatur herleiten.
 
 \subsubsection{Typkonstruktorklassen und -variablen}
 
