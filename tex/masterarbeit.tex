@@ -11,6 +11,7 @@
 \usepackage{todonotes}
 \usepackage{mathrsfs}
 \usepackage{graphicx}
+\usepackage{minted}
 
 %%% Examples of Article customizations
 % These packages are optional, depending whether you want the features they provide.
@@ -27,13 +28,6 @@
 
 \usepackage{courier}
 \usepackage{amsmath}
-
-\usepackage{listings}
-\lstset{
-  tabsize=2,
-  frame=single,
-  basicstyle=\footnotesize\ttfamily
-}
 
 % \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
 
@@ -255,9 +249,9 @@ nicht Platzhalter für speziellele Typen, sondern nur für Typkonstruktoren sind
 fmap :: Functor f \Rightarrow (a \rightarrow b) \rightarrow f a \rightarrow f b
 \end{align*}
 
-Es wird angegeben, dass $f$ eine Variable der Typklasse Funktor ist. Functor ist vom \textit{kind} $* \rightarrow *$, das heißt es
-ist ein Typ höherer Ordnung, der einen Typ auf einen neuen Typ abbildet. Daher kann $f$ in der Typsignatur in $f a$ und $f b$ auf
-Parameter angewandt werden.
+Es wird angegeben, dass $f$ eine Variable der Typklasse Funktor ist. Functor ist von der \textit{Art} $* \rightarrow *$, das heißt es
+handelt sich um einen Typkonstruktor, der einen Typ auf einen neuen Typ abbildet. Daher kann $f$ in der Typsignatur in $f a$
+und $f b$ auf Parameter angewandt werden.
 Zwei Dinge müssen zum bisherigen Ansatz hinzugefügt werden: Allquantifizierung über Typkonstruktorvariablen muss separat betrachtet werden, und Klasseneinschränkungen müssen beachtet werden, im obigen Beispiel $Functor f$.
 
 Die Allquantifizierung über Typkonstruktorvariablen funktioniert an sich ähnlich wie die Allquantifizierung über gewöhnliche
@@ -268,10 +262,10 @@ Dazu kommt noch die Beschränkung auf bestimmte Klassen. In einer Klassendefinit
 Klassenfunktionen fest. Als Beispiel bietet sich die Klassendefinition von Functor an, hier beschränkt auf die interessante Funktion
 $fmap$:
 
-\begin{lstlisting}[language=Haskell]
+\begin{minted}{haskell}
 class Functor f where
   fmap :: (a -> b) -> f a -> f b
-\end{lstlisting}
+\end{minted}
 
 Wie man sieht, hat die Klasse Functor einen Typparameter $f$ und definiert die Typsignatur zu $fmap$. Stößt man jetzt in
 einer Typsignatur auf eine Klassenbeschränkung wie $Functor f$ (ohne die Typkonstruktorvariablen wenig Sinn machen),
@@ -307,18 +301,18 @@ In Haskell gibt es einige Typklassen, für die spezielle Gesetze formuliert werd
 verankert, und theoretisch hindert einen nichts daran, diese Gesetze zu missachten. Ein prominentes Beispiel ist die
 Monadenklasse, die die Funktionen $return$ und $(>>=)$ angibt. Für jede Monadeninstanz sollte (!) gelten:
 
-\begin{lstlisting}
+\begin{minted}{haskell}
 return a >>= k  =  k a
 m >>= return  =  m
 m >>= (\x -> k x >>= h)  =  (m >>= k) >>= h
-\end{lstlisting}
+\end{minted}
 
 Auch für die Functor-Klasse sind solche Gesetze definiert:
 
-\begin{lstlisting}
+\begin{minted}{haskell}
 fmap id      = id
 fmap (p . q) = (fmap p) . (fmap q)
-\end{lstlisting}
+\end{minted}
 
 An diesen Functor-Gesetzen ist interessant, dass tatsächlich nur das erste Gesetz gelten muss - das zweite folgt dann automatisch
 aus dem freien Theorem von $fmap$, wird uns also abermals ``geschenkt''. Um das zu zeigen, folgen wir wieder der bereits bekannten Vorgehensweise, dieses Mal erweitert um Typkonstruktorvariablen:
@@ -406,9 +400,9 @@ Ein monadischer Wert heißt \textit{rein} \todo{rein? pur? pure?}, wenn er mit k
 kann einen reinen Wert auch ansehen als den Wert, der von der \texttt{return}-Funktion geliefert wird. Betrachten wir die
 folgende Funktion:
 
-\begin{lstlisting}[language=Haskell]
+\begin{minted}{haskell}
 f :: Monad m => [m Int] -> m Int
-\end{lstlisting}
+\end{minted}
 
 Eine Erkenntnis von \cite{voigtlander} ist nun, dass man im Fall, dass die Eingabeliste nur reine Werte beinhaltet, davon ausgehen
 kann, dass das Ergebnis auch rein ist, sofern die Monade das erste Monadengesetz erfüllt: $return_k\ a\ {>>=}_k\ k = k\ a$. Man argumentiert hier genauso wie bei polymorphen Funktionen: Da die Funktion über
@@ -559,7 +553,7 @@ werden lediglich Typsignaturen festgehalten, Implementierungen werden vollkommen
 
 Es soll hier zunächst an einigen Beispielen verdeutlicht werden, wie die BasicSyntax-Struktur definiert ist.
 
-\lstinputlisting[language=Haskell]{ast.hs}
+\inputminted[tabsize=2]{haskell}{ast.hs}
 
 Listing \ref{lst:ast} zeigt die Datenstruktur am Beispiel der in der ersten Zeile angegebenen Definition. Die \texttt{parse}-Funktion des Parser-Moduls gibt eine Liste von Definitionen zurück, in diesem Beispiel nur ein Element mit dem Konstruktor \texttt{TypeSig}.
 
@@ -567,7 +561,7 @@ Natürlich ist man hauptsächlich an den Funktionssignaturen interessiert, da ma
 selbst definierte Datentypen oder auch Klasseneinschränkungen enthalten. Man kommt also nicht umhin, auch diese mit einzubeziehen und ebenfalls in der BasicSyntax vorzusehen.
 Das Beispiel in Listing \ref{lst:ast-data} zeigt eine data-Deklaration.
 
-\lstinputlisting[language=Haskell]{ast2.hs}
+\inputminted[tabsize=2]{haskell}{ast2.hs}
 
 \subsection{check}
 \label{sec:check}
@@ -621,7 +615,7 @@ angewandt wird. Darauf wird in Abschnitt \ref{sec:erweiterung-typklassen} eingeg
 \subsection{asTheorem}
 
 Die \texttt{asTheorem}-Funktion stellt eine Datenstruktur des Typs \texttt{Intermediate} als Theorem dar. Tatsächlich passiert hier aber eine ganze Menge mehr als der Name
-vermitteln mag. Das schrittweise Entfalten \todo{Würde man wirklich ``entfalten'' sagen?} der Relationen stellt schließlich den entscheidenden Schritt dar, durch den man überhaupt auf
+vermitteln mag. Das schrittweise Abrollen der Relationen stellt schließlich den entscheidenden Schritt dar, durch den man überhaupt auf
 die Theoreme schließen kann.
 
 \todo{Hier eventuell auch ein Beispiel?}
@@ -653,7 +647,7 @@ von Standardtypkonstruktoren, beispielsweise \texttt{[a]} für Listen, ist sehr 
 
 Die Erweiterung der BasicSyntax sieht hier so aus, dass ein neuer Konstruktor \texttt{TypeVarApp} zum Datentypen \texttt{TypeExpression} hinzugefügt wird. In Listing \ref{lst:typevarapp} ist ein Beispiel zu sehen.
 
-\lstinputlisting[language=Haskell]{typevarapp.hs}
+\inputminted[tabsize=2]{haskell}{typevarapp.hs}
 
 Abgesehen vom offensichtlichen Problem, dass dieser Konstruktor bei der Theoremgenerierung zu Fehlern beim Pattern Matching oder zumindest zu unerwünschtem Verhalten führt,
 ist auch zu beachten, dass die in Abschnitt \ref{sec:check} erwähnte \texttt{check}-Funktion entsprechend angepasst wird.
