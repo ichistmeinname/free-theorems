@@ -26,12 +26,12 @@ instance Show Intermediate where
       getRelStr (RelVar _ (RVar s)) = "(RelVar " ++ s ++ ")"
       getRelStr (FunVar _ term) = "(FunVar " ++ (prettyTerm . fromEither $ term) ++ ")"
       getRelStr (RelBasic _) = "RelBasic"
-      getRelStr (RelLift _ tc rels) = "(RelLift TC " ++ (unwords $ map getRelStr rels) ++ ")"
+      getRelStr (RelLift ri tc rels) = "(RelLift {" ++ (show $ relationLeftType ri) ++ "," ++ (show $ relationRightType ri) ++ "} TC " ++ (unwords $ map getRelStr rels) ++ ")"
       getRelStr (RelFun _ r1 r2) = "(RelFun " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
       getRelStr (RelFunLab _ r1 r2) = "(RelFunLab " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
       getRelStr (RelAbs _ (RVar rv) (t1, t2) _ rel) = "(RelAbs \"" ++ rv ++ "\" (" ++ (show t1) ++ ", " ++ (show t2) ++ ") " ++ (getRelStr rel) ++ ")"
       getRelStr (RelTypeConsAbs _ _ (t1, t2) _ rel) = "(RelTypeConsAbs (" ++ (show t1) ++ ", " ++ (show t2) ++ ") " ++ (getRelStr rel) ++ ")"
-      getRelStr (RelTypeConsApp _ (RVar rv) rel) = "(RelTypeConsApp \"" ++ rv ++ "\" " ++ (getRelStr rel) ++ ")"
+      getRelStr (RelTypeConsApp ri (RVar rv) rel) = "(RelTypeConsApp {" ++ (show $ relationLeftType ri) ++ "," ++ (show $ relationRightType ri) ++ "} \"" ++ rv ++ "\" " ++ (getRelStr rel) ++ ")"
       getRelStr (FunAbs _ _ (t1, t2) res rel) = "(FunAbs (" ++ (show t1) ++ ", " ++ (show t2) ++ ") " ++ (getRelStr rel) ++ ")"
 
       fromEither :: Either a a -> a

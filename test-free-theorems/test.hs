@@ -10,8 +10,8 @@ import KnownDeclarations
 
 teststr :: String
 teststr = "class Functor f where\n\n\
-          \test :: Functor f => f a -> f a"
---          \fmap :: Functor f => (a -> b) -> f a -> f b"
+          \fmap :: Functor f => (a -> b) -> f a -> f b"
+--          \test :: Functor f => f a -> f a"
 
 -- Parse the haskell-string, interpret the first occuring type signature and
 -- return its Intermediate representation

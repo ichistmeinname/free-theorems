@@ -190,7 +190,8 @@ interpretM l t = case t of
   TypeVarApp v ts -> do
     env <- ask
     (RelVar (RelationInfo l (TypeExp (TF (Ident t1))) (TypeExp (TF (Ident t2)))) rv) <- maybeToMonad (Map.lookup v env)
-    -- TODO: only one subtype!
+    -- (thr) TODO: The following lines are pretty much testing code. It works, but now this has to
+    --             be made presentable
     (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
     let (RelationInfo _ (TypeExp (TF (Ident t1'))) (TypeExp (TF (Ident t2')))) = relationInfo r
     let newreli = (RelationInfo l (TypeExp (TF (Ident (t1 ++ " " ++ t1'))))) (TypeExp (TF (Ident (t2 ++ " " ++ t2'))))
@@ -428,9 +429,10 @@ reduceLifts ir =
       RelAbs ri rv ts res r -> RelAbs ri rv ts res (re ok r)
       FunAbs ri fv ts res r -> FunAbs ri fv ts res (re ok r)
       RelTypeConsAbs ri rv ts res rel -> RelTypeConsAbs ri rv ts res (re ok rel)
---      RelTypeConsApp ri rv rels -> if ok
---                                    then error "FIXME: not implemented"
---                                    else rel
+      RelTypeConsApp ri rv rel' -> if ok
+--                                    then reduceTypeConApp ri (re ok rel')
+                                    then reduce (RelLift ri (ConVar (Ident"?")) [(re ok rel')])
+                                    else rel
       otherwise             -> rel
 
     mk' ok ri r = case theoremType (relationLanguageSubset ri) of
@@ -444,6 +446,13 @@ reduceLifts ir =
     mk ok ri r = case theoremType (relationLanguageSubset ri) of
                    EquationalTheorem   -> True
                    InequationalTheorem -> ok
+
+    -- (thr) TODO: doesn't really work yet, instead using reduce
+    reduceTypeConApp ri rel = case rel of
+      FunVar ri (Left f) -> FunVar ri . Left $ TermApp (TermVar (TVar "$map")) f
+      FunVar ri (Right f) -> FunVar ri . Right $ TermApp (TermVar (TVar "$map")) f
+      otherwise          -> rel
+      -- TODO: extend to inequational theorems
 
     -- Transforms a lifted constructor to a function, if possible.
     -- This function is applied in a bottom-up manner, therefore the
