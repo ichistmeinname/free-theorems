@@ -166,7 +166,7 @@ data Relation
         --   This isn't really a difference in haskell syntax, but the
         --   resulting relational structures are different.
 
-  | RelTypeConsApp RelationInfo RelationVariable [Relation]
+  | RelTypeConsApp RelationInfo RelationVariable Relation
         -- ^ (thr) Relation corresponding type constructor application
 
   | FunAbs RelationInfo (Either TermVariable TermVariable)

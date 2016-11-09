@@ -239,6 +239,7 @@ data TypeConstructor
   | ConDouble      -- ^ The Haskell type @Double@.
   | ConChar        -- ^ The Haskell type @Char@.
   | Con Identifier -- ^ Any other type constructor with a given name.
+  | ConVar Identifier -- ^ Type constructor variable
   deriving (Eq, Typeable, Data)
 
 

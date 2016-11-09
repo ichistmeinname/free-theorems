@@ -262,6 +262,7 @@ prettyTypeConstructor ConFloat     = text "Float"
 prettyTypeConstructor ConDouble    = text "Double"
 prettyTypeConstructor ConChar      = text "Char"
 prettyTypeConstructor (Con c)      = prettyIdentifier c
+prettyTypeConstructor (ConVar v)   = prettyIdentifier v
 
 
 

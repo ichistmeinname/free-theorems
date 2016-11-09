@@ -343,7 +343,7 @@ prettyRelation _ _ (RelBasic ri) =
 
 -- (thr) Pretty print type constructor variable application
 prettyRelation pc _ (RelTypeConsApp _ (RVar i) rels) =
-  text i <+> (fsep (map (prettyRelation pc False) rels))
+  text i <+> (prettyRelation pc False) rels
 
 prettyRelation pc omitOrder (RelLift ri con rs) =
   let pl = case relationLanguageSubset ri of

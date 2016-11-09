@@ -175,8 +175,6 @@ interpretM l t = case t of
     let (TV i) = v -- TODO: probably pretty ugly
     return $ if (isTypeConstructor i t') then (RelTypeConsAbs ri rv (t1,t2) res r)
                                          else (RelAbs ri rv (t1,t2) res r)
-    -- TODO: throw error if type constructor variable is applied to
-    --       differing numbers of arguments?
 
     -- create a second relation for type abstractions (used only for language
     -- subset with seq and the equational setting
@@ -191,15 +189,18 @@ interpretM l t = case t of
     -- (thr) create a relation for type constructor variable application
   TypeVarApp v ts -> do
     env <- ask
-    (RelVar _ rv) <- maybeToMonad (Map.lookup v env)
-    rs <- mapM (interpretM l) ts   -- interpret the subtypes
-    ri <- mkRelationInfo l t       -- create the relation info
+    (RelVar (RelationInfo l (TypeExp (TF (Ident t1))) (TypeExp (TF (Ident t2)))) rv) <- maybeToMonad (Map.lookup v env)
+    -- TODO: only one subtype!
+    (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
+    let (RelationInfo _ (TypeExp (TF (Ident t1'))) (TypeExp (TF (Ident t2')))) = relationInfo r
+    let newreli = (RelationInfo l (TypeExp (TF (Ident (t1 ++ " " ++ t1'))))) (TypeExp (TF (Ident (t2 ++ " " ++ t2'))))
+--    ri <- mkRelationInfo l t       -- create the relation info
 --    (rv, t1, t2) <- lift newRelationVariable    -- create a new variable
 
 --    return (RelTypeConsApp ri rv rs)
     let (RVar i) = rv
---    return (RelLift ri (Con (Ident i)) rs)
-    return (RelTypeConsApp ri rv rs)
+--    return (RelLift ri (ConVar (Ident i)) [rs])
+    return (RelTypeConsApp newreli rv r)
 
   where
     mkRelationInfo l t = do
@@ -427,9 +428,9 @@ reduceLifts ir =
       RelAbs ri rv ts res r -> RelAbs ri rv ts res (re ok r)
       FunAbs ri fv ts res r -> FunAbs ri fv ts res (re ok r)
       RelTypeConsAbs ri rv ts res rel -> RelTypeConsAbs ri rv ts res (re ok rel)
-      RelTypeConsApp ri rv rels -> if ok
-                                    then error "FIXME: not implemented"
-                                    else rel
+--      RelTypeConsApp ri rv rels -> if ok
+--                                    then error "FIXME: not implemented"
+--                                    else rel
       otherwise             -> rel
 
     mk' ok ri r = case theoremType (relationLanguageSubset ri) of
@@ -467,6 +468,7 @@ reduceLifts ir =
     funSymbol con = case con of
       ConList             -> Just . TVar $ "map"
       Con (Ident "Maybe") -> Just . TVar $ "fmap"
+      ConVar (Ident v)    -> Just . TVar $ "fmap" -- TODO: check the variable type
       otherwise           -> Nothing
 
     -- Checks if 'rel' is a 'left' function. If so, its term and type is
