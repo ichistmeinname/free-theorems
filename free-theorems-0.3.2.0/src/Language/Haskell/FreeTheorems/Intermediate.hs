@@ -358,8 +358,6 @@ replaceRelVar ir (RVar rv) leftOrRight =
          in if rv == r
               then FunAbs ri fv ts (res' ++ (classConstraints res)) rel'
               else rel
-      -- TODO: call reduceLifts (or new function for this matter?) for RelTypeConsAbs and RelTypeConsApp,
-      --       similar to RelAbs and RelVar
 
 {-      RelTypeConsAbs ri (RVar r) ts res rel' ->
         -- TODO: just copied from RelAbs
@@ -375,7 +373,7 @@ replaceRelVar ir (RVar rv) leftOrRight =
       RelTypeConsApp ri (RVar r) _ ->
         -- TODO: just copied from RelVar
         let tv = either (Left . TermVar) (Right . TermVar) fv
-         in if rv == r then FunVar ri tv else rel-}
+         in if rv == r then FunVar ri tv else rel -}
 
       otherwise -> rel
 
@@ -428,11 +426,9 @@ reduceLifts ir =
                                             (re (mk ok ri r2) r2)
       RelAbs ri rv ts res r -> RelAbs ri rv ts res (re ok r)
       FunAbs ri fv ts res r -> FunAbs ri fv ts res (re ok r)
-      RelTypeConsApp ri rv res -> if ok
-                                    then error "FIXME: specialise RelTypeConsApp"
-                                         -- TODO: problem: we don't know what
-                                         --       the variable represents at
-                                         --       this point
+      RelTypeConsAbs ri rv ts res rel -> RelTypeConsAbs ri rv ts res (re ok rel)
+      RelTypeConsApp ri rv rels -> if ok
+                                    then error "FIXME: not implemented"
                                     else rel
       otherwise             -> rel
 
@@ -447,7 +443,6 @@ reduceLifts ir =
     mk ok ri r = case theoremType (relationLanguageSubset ri) of
                    EquationalTheorem   -> True
                    InequationalTheorem -> ok
-
 
     -- Transforms a lifted constructor to a function, if possible.
     -- This function is applied in a bottom-up manner, therefore the

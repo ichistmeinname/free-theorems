@@ -60,6 +60,8 @@ main = do
                   print t
                   putStrLn "\nasTheorem:"
                   print (prettyTheorem [] (asTheorem t))
+                  putStrLn "\nspecialized Intermediate representation:"
+                  print (spezializeIntermediate t)
                   putStrLn "\nspecialized:"
                   print (prettyTheorem [] (asTheorem (spezializeIntermediate t)))
 --                    showSpecialisedList t (relationVariables t)
