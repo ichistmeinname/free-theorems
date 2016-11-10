@@ -1,0 +1,51 @@
+class Functor f where
+
+fmap :: Functor f => (a -> b) -> f a -> f b
+
+Intermediate representation:
+(Intermediate "fmap" BasicSubset
+(RelAbs "R" (t1, t2)
+    (RelAbs "S" (t3, t4)
+        (RelTypeConsAbs (t5, t6)
+            (RelFun
+                (RelFun
+                    (RelVar R)
+                    (RelVar S)
+                )
+                (RelFun
+                    (RelTypeConsApp {t5 t1,t6 t2} "R1"
+                        (RelVar R)
+                    )
+                    (RelTypeConsApp {t5 t3,t6 t4} "R1"
+                        (RelVar S)
+                    )
+                )
+            )
+        )
+    )
+)
+...)
+
+specialized Intermediate representation: [ohne reduceLifts]
+(Intermediate "fmap" BasicSubset
+(FunAbs (t1, t2)
+    (FunAbs (t3, t4)
+        (RelTypeConsAbs (t5, t6)
+            (RelFun
+                (RelFun
+                    (FunVar f)
+                    (FunVar g)
+                )
+                (RelFun
+                    (RelTypeConsApp {t5 t1,t6 t2} "R1"
+                        (FunVar f)
+                    )
+                    (RelTypeConsApp {t5 t3,t6 t4} "R1"
+                        (FunVar g)
+                    )
+                )
+            )
+        )
+    )
+)
+...)

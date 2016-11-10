@@ -13,33 +13,60 @@ teststr = "class Functor f where\n\n\
           \fmap :: Functor f => (a -> b) -> f a -> f b"
 --          \test :: Functor f => f a -> f a"
 
--- Parse the haskell-string, interpret the first occuring type signature and
--- return its Intermediate representation
-test :: String -> Writer String (Maybe Intermediate)
-test st = writer (interm sigs, errorStr)
-            where
-              (decls, parseErrs) = runWriter $ parse st
-              (valdecls, checkErrs) = runWriter $ checkAgainst knownDeclarations decls
-              errorStr = show $ hcat (parseErrs ++ checkErrs)
-              sigs = filterSignatures valdecls
-              interm []  = Nothing
-              interm sgs = interpret valdecls BasicSubset (head sgs)
-
-textToAST :: String -> [Declaration]
-textToAST st = let (decls, _) = runWriter $ parse st
-                in decls
-
-showSpecialisedList :: Intermediate -> [RelationVariable] -> IO ()
-showSpecialisedList _ []     = return ()
-showSpecialisedList t (r:rs) = (print (prettyTheorem [] (asTheorem (specialise t r)))) >> (showSpecialisedList t rs)
-
-spezializeIntermediate :: Intermediate -> Intermediate
-spezializeIntermediate i = spec i (relationVariables i)
+specializeIntermediate :: Intermediate -> Intermediate
+specializeIntermediate i = spec i (relationVariables i)
   where
     spec i [] = i
     spec i (v:vs) = spec (specialise i v) vs
 
 main :: IO ()
+main = do
+  putStrLn ""
+  let s = "free theorems generator"
+  putStrLn s
+  putStrLn $ replicate (length s)  '*'
+
+  mainLoop
+
+mainLoop :: IO ()
+mainLoop = do
+  putStrLn "\nInput:"
+  inp <- getLine
+  let s = case inp of
+           "teststr" -> teststr
+           otherwise -> inp
+
+  if (s /= "exit")
+    then do
+          let (decls, parseErrs) = runWriter $ parse s
+          let (valdecls, checkErrs) = runWriter $ checkAgainst knownDeclarations decls
+
+          putStrLn (if (null (parseErrs ++ checkErrs)) then "Everything ok."
+                                        else (show . hcat $ parseErrs ++ checkErrs))
+
+          let sigs = filterSignatures valdecls
+          if (null sigs) then putStrLn "No valid signature found."
+                         else case interpret valdecls BasicSubset (head sigs) of
+                           Nothing     -> return ()
+                           (Just intm) -> do
+                             putStrLn "\nInput:"
+                             putStrLn s
+                             putStrLn "\nIntermediate representation:"
+                             putStrLn (show intm)
+                             putStrLn "\nTheorem:"
+                             putStrLn $ show (prettyTheorem [] $ asTheorem intm)
+                             putStrLn "\nSpecialized:"
+                             let specIntm = specializeIntermediate intm
+                             putStrLn $ show (prettyTheorem [] $ asTheorem specIntm)
+                             putStrLn "\nUnfolded lifts:"
+                             let unflifts = unfoldLifts valdecls intm
+                             putStrLn $ (show . hcat) $ map (prettyUnfoldedLift []) unflifts
+                             putStrLn "\nUnfolded classes:"
+                             let unfclasses = unfoldClasses valdecls intm
+                             putStrLn $ (show . hcat) $ map (prettyUnfoldedClass []) unfclasses
+          mainLoop
+    else return ()
+{-main :: IO ()
 main = do
   putStr "Type signature: "
   x' <- getLine
@@ -60,6 +87,8 @@ main = do
                   print (spezializeIntermediate t)
                   putStrLn "\nspecialized:"
                   print (prettyTheorem [] (asTheorem (spezializeIntermediate t)))
+                  x <- unfoldLifts
 --                    showSpecialisedList t (relationVariables t)
       Nothing -> return ()
     >> putStrLn "" >> main)
+-}
