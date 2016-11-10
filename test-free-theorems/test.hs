@@ -25,7 +25,6 @@ main = do
   let s = "free theorems generator"
   putStrLn s
   putStrLn $ replicate (length s)  '*'
-
   mainLoop
 
 mainLoop :: IO ()
@@ -66,29 +65,3 @@ mainLoop = do
                              putStrLn $ (show . hcat) $ map (prettyUnfoldedClass []) unfclasses
           mainLoop
     else return ()
-{-main :: IO ()
-main = do
-  putStr "Type signature: "
-  x' <- getLine
---  x <- return teststr
-  x <- return (if x' == "teststr" then teststr else x')
-  putStrLn "Input:"
-  putStr ("\n" ++ x ++ "\n")
-  let (intm, err) = runWriter $ test x
-  when (x /= "exit")
-    ((putStrLn err) >>
-    case intm of
-      Just t  -> do
-                  putStrLn "Intermediate representation:"
-                  print t
-                  putStrLn "\nasTheorem:"
-                  print (prettyTheorem [] (asTheorem t))
-                  putStrLn "\nspecialized Intermediate representation:"
-                  print (spezializeIntermediate t)
-                  putStrLn "\nspecialized:"
-                  print (prettyTheorem [] (asTheorem (spezializeIntermediate t)))
-                  x <- unfoldLifts
---                    showSpecialisedList t (relationVariables t)
-      Nothing -> return ()
-    >> putStrLn "" >> main)
--}
