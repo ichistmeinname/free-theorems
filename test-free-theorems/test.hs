@@ -9,9 +9,9 @@ import Text.PrettyPrint.HughesPJ
 import KnownDeclarations
 
 teststr :: String
-teststr = "class Functor f where\n\n\
-          \fmap :: Functor f => (a -> b) -> f a -> f b"
---          \test :: Functor f => f a -> f a"
+teststr = "class Functor f where\n\
+          \  fmap :: (a -> b) -> f a -> f b\n\n\
+          \test :: Functor f => f a -> f a"
 
 specializeIntermediate :: Intermediate -> Intermediate
 specializeIntermediate i = spec i (relationVariables i)
@@ -39,6 +39,7 @@ mainLoop = do
     then do
           let (decls, parseErrs) = runWriter $ parse s
           let (valdecls, checkErrs) = runWriter $ checkAgainst knownDeclarations decls
+          let allDecls = valdecls ++ knownDeclarations
 
           putStrLn (if (null (parseErrs ++ checkErrs)) then "Everything ok."
                                         else (show . hcat $ parseErrs ++ checkErrs))
@@ -58,10 +59,10 @@ mainLoop = do
                              let specIntm = specializeIntermediate intm
                              putStrLn $ show (prettyTheorem [] $ asTheorem specIntm)
                              putStrLn "\nUnfolded lifts:"
-                             let unflifts = unfoldLifts valdecls intm
+                             let unflifts = unfoldLifts allDecls intm
                              putStrLn $ (show . hcat) $ map (prettyUnfoldedLift []) unflifts
                              putStrLn "\nUnfolded classes:"
-                             let unfclasses = unfoldClasses valdecls intm
+                             let unfclasses = unfoldClasses allDecls intm
                              putStrLn $ (show . hcat) $ map (prettyUnfoldedClass []) unfclasses
           mainLoop
     else return ()

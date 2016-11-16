@@ -18,6 +18,9 @@
   \end{frame}
 }
 
+\beamertemplatenavigationsymbolsempty
+\setbeamertemplate{footline}{\hfill\makebox[24pt]{\scriptsize\insertframenumber/\inserttotalframenumber}}
+
 \begin{document}
 \maketitle
 \frame{\tableofcontents}
@@ -30,6 +33,34 @@
 \end{frame}
 
 \begin{frame}
+\frametitle{Gib mir eine Signatur...}
+\texttt{f :: [a] $\rightarrow$ [a]}
+
+\includegraphics[width=200px]{list-order}
+\end{frame}
+
+\begin{frame}
+\frametitle{Gib mir eine Signatur...}
+\texttt{f :: [a] $\rightarrow$ [a]}
+
+\includegraphics[width=150px]{g-function}
+\end{frame}
+
+\begin{frame}
+\frametitle{Gib mir eine Signatur...}
+\texttt{f :: [a] $\rightarrow$ [a]}
+
+\includegraphics[width=250px]{mapgf}
+\end{frame}
+
+\begin{frame}
+\frametitle{Gib mir eine Signatur...}
+\texttt{f :: [a] $\rightarrow$ [a]}
+
+\includegraphics[width=250px]{fmapg}
+\end{frame}
+
+\begin{frame}
 \frametitle{...und ich schenke dir ein Theorem}
 \texttt{f :: [a] $\rightarrow$ [a]}
 
@@ -37,7 +68,7 @@
 f\ (map\ g\ l) = map\ g\ (f\ l)
 \end{align*}
 
-Für alle Listen \texttt{l :: [a]} und alle Funktionen \texttt{g :: [a]}.
+Für alle Listen \texttt{l} und alle Funktionen \texttt{g}.
 
 \end{frame}
 
@@ -74,6 +105,17 @@ $(e, e) \in \mathcal{R}$.
 \end{frame}
 
 \begin{frame}
+\frametitle{Die Theorie dahinter}
+
+\texttt{f :: [a] $\rightarrow$ [a]}
+
+\begin{align*}
+(f, f) \in \forall \mathcal{R} . [\mathcal{R}] \rightarrow [\mathcal{R}]
+\end{align*}
+
+\end{frame}
+
+\begin{frame}
 \frametitle{Typkonstruktorvariablen}
 \texttt{fmap :: Functor f => (a $\rightarrow$ b) $\rightarrow$ f\ a $\rightarrow$ f\ b}
 \end{frame}
@@ -101,36 +143,13 @@ $(e, e) \in \mathcal{R}$.
 \end{frame}
 
 \begin{frame}
-\frametitle{Änderungen}
-\includegraphics[height=200px]{overview-free-theorems-pfeil1}
-\end{frame}
+\frametitle{Die harte Realität}
 
+\begin{itemize}
+\item Nichtterminierung, Exceptions etc.
+\item Striktheit
+\end{itemize}
 
-\begin{frame}
-\frametitle{Änderungen}
-\includegraphics[height=200px]{overview-free-theorems-pfeil2}
-\end{frame}
-
-\begin{frame}
-\frametitle{Änderungen}
-\includegraphics[height=200px]{overview-free-theorems-pfeil3}
-\end{frame}
-
-\begin{frame}
-\frametitle{Änderungen}
-\includegraphics[height=200px]{overview-free-theorems-pfeil4}
-\end{frame}
-
-
-\begin{frame}
-\frametitle{Änderungen}
-\includegraphics[height=200px]{overview-free-theorems-pfeil5}
-\end{frame}
-
-
-\begin{frame}
-\frametitle{Änderungen}
-\includegraphics[height=200px]{overview-free-theorems-pfeil6}
 \end{frame}
 
   \begin{frame}

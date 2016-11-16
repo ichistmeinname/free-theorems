@@ -448,8 +448,8 @@ collectLifts :: Data a => a -> [Relation]
 collectLifts = nub . listify isLift
   where
     isLift rel = case rel of
-      RelLift _ _ _ -> True
-      otherwise     -> False
+      RelLift _ _ _    -> True
+      otherwise        -> False
 
 
 
@@ -591,6 +591,13 @@ collectClasses = nub . everything (++) ([] `mkQ` getCC)
         let cs  = concatMap getClasses res
             ri' = ri { relationLeftType = t1
                      , relationRightType = t2 }
+            r   = RelVar ri' rv
+         in map (\c -> (r, c)) cs
+      -- (thr) TODO: insert declaration for RelTypeConsAbs
+      RelTypeConsAbs ri rv (t1, t2) res _ ->
+        let cs  = concatMap getClasses res
+            ri' = ri { relationLeftType = t1,
+                       relationRightType = t2 }
             r   = RelVar ri' rv
          in map (\c -> (r, c)) cs
       FunAbs ri fv (t1, t2) res _ ->
