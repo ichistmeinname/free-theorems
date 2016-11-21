@@ -29,39 +29,85 @@
 
 \begin{frame}
 \frametitle{Gib mir eine Signatur...}
+\begin{center}
 \texttt{f :: [a] $\rightarrow$ [a]}
+\end{center}
 \end{frame}
 
 \begin{frame}
+\frametitle{Gib mir eine Signatur...}
+\begin{center}
+\texttt{f :: [a] $\rightarrow$ [a]}
+
+\includegraphics[width=200px]{list-order-blank}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Gib mir eine Signatur...}
+\begin{center}
+\texttt{f :: [a] $\rightarrow$ [a]}
+
+\includegraphics[width=200px]{list-order-onlyleft}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
 \frametitle{Gib mir eine Signatur...}
 \texttt{f :: [a] $\rightarrow$ [a]}
 
 \includegraphics[width=200px]{list-order}
+\end{center}
 \end{frame}
 
 \begin{frame}
 \frametitle{Gib mir eine Signatur...}
-\texttt{f :: [a] $\rightarrow$ [a]}
+\begin{center}
+\texttt{g :: Int $\rightarrow$ Int}
+
+\includegraphics[width=150px]{g-function-blank}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Gib mir eine Signatur...}
+\begin{center}
+\texttt{g :: Int $\rightarrow$ Int}
 
 \includegraphics[width=150px]{g-function}
+\end{center}
 \end{frame}
 
 \begin{frame}
 \frametitle{Gib mir eine Signatur...}
-\texttt{f :: [a] $\rightarrow$ [a]}
+%\texttt{f :: [a] $\rightarrow$ [a]}
 
+\begin{center}
+\includegraphics[width=250px]{mapg}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Gib mir eine Signatur...}
+%\texttt{f :: [a] $\rightarrow$ [a]}
+\begin{center}
 \includegraphics[width=250px]{mapgf}
+\end{center}
 \end{frame}
 
 \begin{frame}
 \frametitle{Gib mir eine Signatur...}
-\texttt{f :: [a] $\rightarrow$ [a]}
+%\texttt{f :: [a] $\rightarrow$ [a]}
 
+\begin{center}
 \includegraphics[width=250px]{fmapg}
+\end{center}
 \end{frame}
 
 \begin{frame}
 \frametitle{...und ich schenke dir ein Theorem}
+\begin{center}
 \texttt{f :: [a] $\rightarrow$ [a]}
 
 \begin{align*}
@@ -70,6 +116,7 @@ f\ (map\ g\ l) = map\ g\ (f\ l)
 
 Für alle Listen \texttt{l} und alle Funktionen \texttt{g}.
 
+\end{center}
 \end{frame}
 
 \section{Die Theorie dahinter}
@@ -81,6 +128,50 @@ Für alle Listen \texttt{l} und alle Funktionen \texttt{g}.
 \item Basistypen: Identitätsrelationen
 \item Komplexe Typen: Konstruktion aus Relationen
 \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Die Theorie dahinter}
+
+Beispiel: Bool (Basistyp)
+
+\begin{align*}
+&\mathcal{R} : Bool \Leftrightarrow Bool\\
+&\mathcal{R} = \{ (True, True), (False, False) \}
+\end{align*}
+
+\end{frame}
+
+%\begin{frame}
+%\frametitle{Die Theorie dahinter}
+%
+%Beispiel: $\mathcal{R} \rightarrow \mathcal{S}$ (Funktionskonstruktor)
+%
+%\begin{align*}
+%&(f, g) \in \mathcal{R} \rightarrow \mathcal{S}\\
+%&\\
+%:\Leftrightarrow &
+%\forall (x, y) \in \mathcal{R}:\\
+%&(f\ x, g\ y) \in \mathcal{S}
+%\end{align*}
+%
+%
+%\end{frame}
+
+\begin{frame}
+\frametitle{Die Theorie dahinter}
+
+Beispiel: $\forall \mathcal{X} . \mathcal{F}(\mathcal{X})$ (Allquantifizierung)
+
+\begin{align*}
+&(f, g) \in \forall \mathcal{X} . \mathcal{F}(\mathcal{X})\\
+&\\
+:\Leftrightarrow &
+\forall T_1, T_2 \in Types, \mathcal{A} : T_1 \Leftrightarrow T_2:\\
+&(f_{T_1}, g_{T_2}) \in \mathcal{F}(\mathcal{A})
+\end{align*}
+
 
 \end{frame}
 
@@ -118,6 +209,23 @@ $(e, e) \in \mathcal{R}$.
 \begin{frame}
 \frametitle{Typkonstruktorvariablen}
 \texttt{fmap :: Functor f => (a $\rightarrow$ b) $\rightarrow$ f\ a $\rightarrow$ f\ b}
+
+\begin{itemize}
+\item \texttt{f} ist von der Sorte $* \rightarrow *$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Typkonstruktorvariablen}
+\begin{align*}
+&\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+&\forall A, A' \in Typen, \mathcal{A} : A \Leftrightarrow A' \\
+&\forall B, B' \in Typen, \mathcal{B} : B \Leftrightarrow B' \\
+&\forall (g, g') \in (\mathcal{A} \rightarrow \mathcal{B}) \\
+&(\forall (x, x') \in \mathcal{A}: (g\ x, g'\ x') \in \mathcal{B})\\
+&\Rightarrow (\forall (y, y') \in \mathcal{K} \mathcal{A} \\
+&\ \ \ \ \ \ fmap_{k1 A B}\ g\ y, fmap_{k2 A' B'}\ g'\ y') \in \mathcal{K} \mathcal{B}\\
+\end{align*}
 \end{frame}
 
 \begin{frame}
@@ -125,21 +233,43 @@ $(e, e) \in \mathcal{R}$.
 \begin{itemize}
 \item Ähnlich wie Allquantifizierung über Typvariablen
 \item Funktionen auf Relationen
+\item Algorithmische Implementierung möglich
 \end{itemize}
 \end{frame}
 
 \section{Die Bibliothek free-theorems}
 
 \begin{frame}
-\frametitle{free-theorems}
-\begin{itemize}
-\item Bibliothek zum automatischen Generieren freier Theoreme
-\end{itemize}
+\frametitle{Überblick}
+\begin{columns}
+\begin{column}{0.4\textwidth}
+    \begin{center}
+	\includegraphics[height=200px]{overview-free-theorems}
+     \end{center}
+\end{column}
+\begin{column}{0.6\textwidth}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}
 \frametitle{Überblick}
-\includegraphics[height=200px]{overview-free-theorems}
+\begin{columns}
+\begin{column}{0.4\textwidth}
+    \begin{center}
+	\includegraphics[height=200px]{overview-free-theorems}
+     \end{center}
+\end{column}
+\begin{column}{0.6\textwidth}
+  \begin{itemize}[<+->]
+    \item parse: Erlaube Applikation von Typ(konstruktor)variablen
+    \item check: Zusätzliche Checks benötigt
+    \item interpret: Überführe Typvariablen-Applikation in entsprechende Relation
+    \item asTheorem: Zusätzliche Abroll-Aktionen
+    \item Erweiterung des Pretty Printers
+  \end{itemize}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}
@@ -148,6 +278,20 @@ $(e, e) \in \mathcal{R}$.
 \begin{itemize}
 \item Nichtterminierung, Exceptions etc.
 \item Striktheit
+\end{itemize}
+
+\end{frame}
+
+\section{Zu tun}
+
+\begin{frame}
+\frametitle{Zu tun}
+
+\begin{itemize}
+\item Anpassen der Bibliothek an aktuelle GHC Versionen
+\item Erweiterung der Bibliothek um Typkonstruktorvariablen
+\item Zusätzliche Aussagen zu speziellen Typklassen?
+\item Erweiterung um Nichtterminierung, Striktheit
 \end{itemize}
 
 \end{frame}
