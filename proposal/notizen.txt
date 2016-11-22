@@ -1,3 +1,10 @@
+##########################################
+# Noch zu ändern:                        #
+# In der Übersicht von free-theorems die #
+# Listen zu einfachen Elementen abändern #
+# (Vereinfachung).                       #
+##########################################
+
 FOLIE 1: Titelfolie
 Begrüßung
 Praktisches Mittel formale Beweise

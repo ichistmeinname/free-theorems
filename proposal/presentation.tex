@@ -3,7 +3,7 @@
 
 \title{Freie Theoreme}
 \author{Thomas Rossow}
-\date{\today}
+\date{23. November 2016}
 
 \usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
 
@@ -217,8 +217,11 @@ $(e, e) \in \mathcal{R}$.
 
 \begin{frame}
 \frametitle{Typkonstruktorvariablen}
+
+\texttt{fmap :: Functor f => (a $\rightarrow$ b) $\rightarrow$ f\ a $\rightarrow$ f\ b}
+
 \begin{align*}
-&\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+&\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2, \mathcal{K}\ respects\ Functor \\
 &\forall A, A' \in Typen, \mathcal{A} : A \Leftrightarrow A' \\
 &\forall B, B' \in Typen, \mathcal{B} : B \Leftrightarrow B' \\
 &\forall (g, g') \in (\mathcal{A} \rightarrow \mathcal{B}) \\
@@ -233,8 +236,22 @@ $(e, e) \in \mathcal{R}$.
 \begin{itemize}
 \item Ähnlich wie Allquantifizierung über Typvariablen
 \item Funktionen auf Relationen
-\item Algorithmische Implementierung möglich
+\item Implementierung möglich
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Anwendungsbeispiel: Funktorgesetze}
+
+\begin{texttt}
+1. fmap id      = id\\
+2. fmap (p . q) = (fmap p) . (fmap q)
+\end{texttt}
+
+\begin{itemize}
+\item Tatsächlich folgt 2. aus 1. und Parametrizität
+\end{itemize}
+
 \end{frame}
 
 \section{Die Bibliothek free-theorems}
@@ -278,6 +295,7 @@ $(e, e) \in \mathcal{R}$.
 \begin{itemize}
 \item Nichtterminierung, Exceptions etc.
 \item Striktheit
+\item In free-theorem durch ``Language Subsets'' aufgeteilt
 \end{itemize}
 
 \end{frame}
@@ -289,9 +307,13 @@ $(e, e) \in \mathcal{R}$.
 
 \begin{itemize}
 \item Anpassen der Bibliothek an aktuelle GHC Versionen
-\item Erweiterung der Bibliothek um Typkonstruktorvariablen
+\item Erweiterung der Datenstrukturen
+\item Erweiterung der Bibliotheksfunktionen
+\item Zusätzliche Local- und Global-Checks
 \item Zusätzliche Aussagen zu speziellen Typklassen?
-\item Erweiterung um Nichtterminierung, Striktheit
+\item Zusätzliche Vereinfachungen?
+\item Language Subsets beachten
+\item Fehlerprüfung (Quickchecks erweitern)
 \end{itemize}
 
 \end{frame}
