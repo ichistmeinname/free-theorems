@@ -29,8 +29,8 @@ teststr = "class Functor f where\n\
 specializeIntermediate :: Intermediate -> Intermediate
 specializeIntermediate i = spec i (relationVariables i)
   where
-    spec i [] = i
-    spec i (v:vs) = spec (specialise i v) vs
+    spec i' [] = i'
+    spec i' (v:vs) = spec (specialise i' v) vs
 
 main :: IO ()
 main = do
