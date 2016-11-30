@@ -30,7 +30,7 @@ data LanguageSubset
         -- ^ Additionally to the fix subset, this subset allows terms to
         --   be defined using @seq@.
 
-  deriving (Typeable, Data, Eq, Show)
+  deriving (Typeable, Data, Eq)
 
 
 
@@ -53,4 +53,4 @@ data TheoremType
   | InequationalTheorem
         -- ^ Two inequational free theorems should be generated.
 
-  deriving (Typeable, Data, Eq, Show)
+  deriving (Typeable, Data, Eq)

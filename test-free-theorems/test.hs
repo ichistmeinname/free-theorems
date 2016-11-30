@@ -8,7 +8,20 @@ import Text.PrettyPrint.HughesPJ
 
 import KnownDeclarations
 
+data Gluku a = Gluku a
+
+class Serializable a where
+  serialize :: a b -> String
+
+instance Serializable Gluku where
+  serialize (Gluku x) = "hello"
+
 teststr :: String
+
+--teststr = "class Serializable a where\n\
+--  \serialize :: a -> String\n\n\
+--  \test :: Serializable s => s -> s"
+
 teststr = "class Functor f where\n\
           \  fmap :: (a -> b) -> f a -> f b\n\n\
           \test :: Functor f => f a -> f a"
@@ -35,7 +48,7 @@ mainLoop = do
            "teststr" -> teststr
            otherwise -> inp
 
-  if (s /= "exit")
+  if (s /= ":q")
     then do
           let (decls, parseErrs) = runWriter $ parse s
           let (valdecls, checkErrs) = runWriter $ checkAgainst knownDeclarations decls
