@@ -1,0 +1,59 @@
+body { padding: 0px; margin: 0px; }
+
+#header {
+   margin: 0px; padding: 10px; margin-bottom: 20px;
+   background-color: #efefef;
+   border-bottom: 1px solid black;
+}
+
+h1 {
+   display: inline;
+   font-size: xx-large;
+   font-weight: bold;
+}
+h2 {
+   display: inline;
+   font-size: large;
+   font-weight: normal;
+   padding-left:30px;
+}
+
+#help {
+   position: absolute;
+   top:   0em;
+   right: 1em;
+}
+
+#content > div {
+   border: 1px dotted black;
+   padding: 10px; margin: 10px;
+}
+
+input.type, textarea { font-family: monospace; }
+
+input[type="radio"], input[type="checkbox"] {
+   margin-left: 5px;
+}
+
+pre {
+   margin: 10px; margin-left: 20px; padding:10px;
+	border: 1px solid black;
+}
+
+p { text-align:justify; }
+
+.error { background: #fcc; }
+
+textarea { height: 20em; width: 30em; }
+
+/* These classes can be used to align elements side by side.
+ * Mark the parent as .float-container and some element at the end
+ * as .clear. The .clear element will end the float.
+ * If there is no such element in your markup already,
+ * add something like a <br/> for this.
+ */
+.float-container > * {
+   float: left;
+   margin-right: 3em;
+}
+.clear { float: none; clear: both; }
