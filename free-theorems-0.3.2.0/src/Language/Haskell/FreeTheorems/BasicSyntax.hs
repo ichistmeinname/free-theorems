@@ -9,7 +9,8 @@ module Language.Haskell.FreeTheorems.BasicSyntax where
 
 
 
-import Data.Generics (Typeable, Data)
+import Data.Generics (Typeable, Data, everything, mkQ)
+import Data.List (nubBy)
 
 
 
@@ -57,7 +58,6 @@ getDeclarationArity (NewtypeDecl d) = Just . length . newtypeVars $ d
 getDeclarationArity (TypeDecl d)    = Just . length . typeVars $ d
 getDeclarationArity (ClassDecl d)   = Nothing
 getDeclarationArity (TypeSig s)     = Nothing
-
 
 
 -- | A @type@ declaration for a type synonym.
@@ -135,6 +135,23 @@ data ClassDeclaration = Class
   }
   deriving (Eq, Typeable, Data)
 
+
+-- | Retrieves the amount of type parameters expected for the class variable
+--   or Nothing, if the amount of parameters differs.
+
+getClassArity :: ClassDeclaration -> Maybe Int
+getClassArity cd =
+  let collect t = case t of
+                         (TypeVarApp tv' _) | tv' == classVar cd -> [t]
+                         otherwise                               -> []
+      sigs = classFuns cd
+      appls = everything (++) (mkQ [] collect) $ sigs
+      appls' = nubBy typeAppsArityEquals appls
+      typeAppsArityEquals (TypeVarApp _ t1) (TypeVarApp _ t2) = length t1 == length t2
+      (TV (Ident i)) = classVar cd
+   in if (length appls' == 1) then case appls'!!0 of
+                                (TypeVarApp tv' ts) -> Just . length $ ts
+                              else Nothing
 
 
 -- | A type signature.

@@ -25,6 +25,7 @@ module Language.Haskell.FreeTheorems.Syntax (
   , NewtypeDeclaration (..)
   , TypeDeclaration (..)
   , ClassDeclaration (..)
+  , getClassArity
   , Signature (..)
   , DataConstructorDeclaration (..)
   , BangTypeExpression (..)

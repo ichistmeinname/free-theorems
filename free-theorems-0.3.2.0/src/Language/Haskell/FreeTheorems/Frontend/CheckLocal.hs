@@ -13,7 +13,7 @@ module Language.Haskell.FreeTheorems.Frontend.CheckLocal (
 
 import Data.Generics (Data, everything, mkQ)
 import Data.List (group, sort, nubBy)
-import Data.Maybe (mapMaybe, fromJust, isJust)
+import Data.Maybe (mapMaybe, fromJust, isJust, isNothing)
 import qualified Data.Set as Set
     ( Set, union, empty, difference, fromList, null, elems, isSubsetOf
     , singleton)
@@ -137,7 +137,7 @@ checkClassDecl d =
     checkClassMethodsDistinct (map signatureName . classFuns $ d)
     checkClassVarInMethods (classVar d) (classFuns d)
     checkClassDeclNotRecursive (className d) (classFuns d)
-    checkClassVarParamCount (classFuns d) (classVar d)
+    checkClassVarParamCount d
     mapM_ (checkNoFixedTEsNamed "class method")
           (map (makePair signatureName (singletonList . signatureType))
                (classFuns d))
@@ -281,6 +281,8 @@ checkClassMethodsDistinct is =
 
 -- | Checks if the given identifier occurs as free type variable in every
 --   signature. If not, an error message is created.
+--   (thr) the application of the class var to types does not
+--         change its free quality.
 
 checkClassVarInMethods :: TypeVariable -> [Signature] -> ErrorOr ()
 checkClassVarInMethods v@(TV vName) ss =
@@ -310,17 +312,20 @@ checkClassDeclNotRecursive ident sigs =
 --         is applied to the same amount of parameters.
 -- TODO: works, but shouldn't this be a global check for every type signature?
 --       similar to checkArity in CheckGlobal - maybe even extend that function?
-checkClassVarParamCount :: [Signature] -> TypeVariable -> ErrorOr ()
-checkClassVarParamCount sigs tv =
-  let collect t = case t of
-                         (TypeVarApp tv' _) | tv' == tv -> [t]
-                         otherwise                      -> []
-      appls = everything (++) (mkQ [] collect) $ sigs
-      appls' = nubBy typeAppsArityEquals appls
-      typeAppsArityEquals (TypeVarApp _ t1) (TypeVarApp _ t2) = length t1 == length t2
-      (TV (Ident i)) = tv
-   in errorIf (length appls' > 1) (pp $ "Different occurences of type constructor " ++
-                                        "variable " ++  i ++ " with different arities.")
+checkClassVarParamCount :: ClassDeclaration -> ErrorOr ()
+checkClassVarParamCount cd = errorIf (isNothing . getClassArity $ cd)
+  (pp $ "Different occurences of type constructor " ++
+      "variable ?? with different arities.")
+--  let checkTypeVarApp
+  --collect t = case t of
+      --                    (TypeVarApp tv' _) | tv' == tv -> [t]
+      --                    otherwise                      -> []
+      -- appls = everything (++) (mkQ [] collect) $ sigs
+      -- appls' = nubBy typeAppsArityEquals appls
+      -- typeAppsArityEquals (TypeVarApp _ t1) (TypeVarApp _ t2) = length t1 == length t2
+      -- (TV (Ident i)) = tv
+--   in errorIf (length appls' > 1) (pp $ "Different occurences of type constructor " ++
+--                                        "variable " ++  i ++ " with different arities.")
 
 
 -- | Checks that no FixedTypeExpression occurs in the given list of named

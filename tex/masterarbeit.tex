@@ -582,6 +582,20 @@ Unter die globalen Checks fällt z.B., dass zu einem Funktionsnamen nicht mehrer
 
 Am Ende schließt \texttt{check} noch alle Typausdrücke, dh. bei frei vorkommenden Typvariablen werden entsprechende Typabstraktionen um den Ausdruck geschlossen. Das ist wichtig, da in der weiteren Implementierung davon ausgegangen wird, dass alle Typausdrücke geschlossen sind und entsprechende Typabstraktionen zu jeder implizit allquantifizierten Variable vorhanden sind.
 
+Tabelle \ref{bla} zeigt eine Übersicht aller globalen Überprüfungen.
+
+\begin{tabular}{| l | l |}
+\hline
+Name&Beschreibung\\
+\hline
+  checkUnique&\\
+  checkArities&\\
+  checkAcyclicTypeSynonyms&\\
+  checkAcyclicTypeClasses&\\
+  checkAllConsAndClassesDeclared&\\
+\hline
+\end{tabular}
+
 \subsection{interpret}
 
 Tatsächlich macht die \texttt{interpret}-Funktion nichts, was nicht schon bekannt ist \todo{Das heißt, wenn ich es denn schon geschrieben hätte}: Sie überführt die Funktionssignatur in eine
@@ -658,6 +672,42 @@ ist auch zu beachten, dass die in Abschnitt \ref{sec:check} erwähnte \texttt{ch
 \subsection{Erweiterung von Relation}
 
 Da eine neue Relationskonstruktion eingeführt wird, muss auch der entsprechende Datentyp angepasst werden.
+
+\subsection{Erweiterung von check}
+
+Da in der ursprünglichen Version von free-theorems Typkonstruktorvariablen nicht gestattet waren, konnten einige
+Fehlerüberprüfungen eingespart werden. Erlaubt man Typkonstruktorvariablen, muss man zusätzliche Fehlerfälle abdecken,
+die auftreten können. Betrachten wir das folgende Beispiel:
+
+\begin{minted}{haskell}
+test :: Functor f => f a -> f
+\end{minted}
+
+Hierbei handelt es sich nicht um eine korrekte Haskell-Typsignatur: Die Variable f wird als Functor eingeführt und in der Signatur
+einmal mit einem Parameter, einmal ohne Parameter aufgerufen. Selbst wenn man die Deklaration von Functor außer Acht lässt,
+kann man deutlich sehen, dass eine der beiden Vorkommen von \texttt{f} fehlerhaft ist. \texttt{f} erwartet entweder einen
+oder gar keinen Parameter, unterschiedliche Parameterzahlen sind nicht gestattet.
+
+Da Functor bekannt ist, kann man einfach die Deklaration dieser Klasse betrachten:
+
+\begin{minted}{haskell}
+class Functor f where
+   fmap :: (a -> b) -> f a -> f b
+\end{minted}
+
+Anhand der Deklaration der Klassenfunktionen kann man nun sehen, dass die Variable \texttt{f} stets auf einen einzelnen 
+Parameter angewandt wird, das heißt, man kann bei allen Vorkommen der Klasse Functor davon ausgehen, dass diese
+auf genau einen Parameter appliziert werden müssen. Natürlich kommt hier eine weitere Überprüfung ins Spiel: Es muss
+sichergestellt werden, dass die Klassenvariable - in diesem Fall f - in sämtlichen Klassenfunktionen mit der gleichen Anzahl an
+Parametern verwendet werden.
+
+Die Überprüfung innerhalb einer Klasse auf gleiche Arität aller Vorkommen der Klassenvariable ist eine lokale Überprüfung -
+es wird stets nur die Klassendeklaration benötigt, ein globaler Kontext muss nicht bekannt sein. Möchte man überprüfen,
+ob Typkonstruktorvariablen in beliebigen Deklarationen die korrekte Anzahl an Parametern haben, dann muss man den
+globalen Kontext betrachten: Die Deklaration der Klasse muss in Betracht gezogen werden.
+
+Eine Besonderheit ist hierbei auch, dass eine Typvariable auf mehrere Klassen gleichzeitig eingeschränkt werden kann
+\todo{stimmt das überhaupt?}. 
 
 \section{Zusammenfassung}
 
