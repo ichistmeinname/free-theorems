@@ -16,6 +16,12 @@ class Serializable a where
 instance Serializable Gluku where
   serialize (Gluku x) = "hello"
 
+class TestClass t where
+  testtest :: t a -> String
+
+hello :: (Functor f, TestClass f) => f a -> f a
+hello = undefined
+
 teststr :: String
 
 --teststr = "class Serializable a where\n\

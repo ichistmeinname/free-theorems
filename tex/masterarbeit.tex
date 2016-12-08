@@ -649,6 +649,57 @@ usw.
 Schließlich bietet free-theorems noch die Möglichkeit, die generierten Theoreme zu vereinfachen, indem nach einigen typischen
 Mustern gesucht wird, beispielsweise: Entfernen aller unbenutzten allquantifizierten Variablen, $\forall v. f v == g v \rightarrow f == g$ usw.
 
+\subsection{Beispiel}
+
+In den vorangegangenen Abschnitten wurde ein kurzer Umriss der Bibliothek free-theorems gegeben, die im Folgenden um
+Typkonstruktorklassen erweitert werden soll. Bevor die benötigten Änderungen erläutert werden, soll hier zunächst ein
+kompletter Durchlauf als Beispiel gegeben werden. Es werden sämtliche Daten betrachtetet, die auf dem Weg von einer
+Eingabezeichnekette zur resultierenden Ausgabezeichenkette entstehen.
+
+\todo{Grafik}
+
+Wir bemühen wieder unser Beispiel aus der Einleitung:
+
+\begin{minted}{haskell}
+f :: [a] -> [a]
+\end{minted}
+
+Im ersten Schritt setzt man einen bereitgestellten Parser ein, um diesen Haskell-Code in den bibliotheksinternen, vereinfachten
+Syntaxbaum \texttt{BasicSyntax} zu parsen. Die \texttt{parse}-Funktion gibt genaugenommen eine Liste von \texttt{Declaration}s, also Deklarationen. Dabei handelt es sich um alle Toplevel-Deklarationen, die eine Rolle spielen, also Funktionssignaturen,
+Datentypdeklarationen und Klassendeklarationen.
+
+\begin{minted}{haskell}
+...
+\end{minted}
+
+Hier wurde die Darstellung ein wenig vereinfacht, um das Verständnis zu erleichtern. Zu beachten ist aber, dass sämtliche
+Funktionsimplementierungen wegfallen. Sie spielen für die Generierung freier Theoreme keine Rolle, das bedeutet aber auch,
+dass free-theorems keine Fehlerprüfungen im Implementierungsteil durchführt. Die Bibliothek kann ohne Auftreten von Fehlern
+durchlaufen, selbst der zu einer Funktionssignatur gehörige Code Fehler enthält.
+
+Jetzt, da die \texttt{BasicSyntax} der Beispielfunktion vorhanden ist, muss \texttt{check} aufgerufen werden, um Fehler
+zu entdecken. Ein Aufruf macht aus der Liste von \texttt{Declaration}s eine Liste von \texttt{ValidDeclaration}s. Tatsächlich
+enthält diese Datenstruktur lediglich ein zusätzliches Feld \texttt{isStrictDeclaration}, das anzeigt, ob die entsprechende
+Deklaration strikte Elemente enthält oder von diesen abhängt.
+
+Um genau zu sein, ist der Ergebnistyp von \texttt{check} monadisch, es werden per Writer-Monade Fehlermeldungen
+generiert, falls Fehler auftreten. Es ist noch anzumerken, dass \texttt{check} auch beim Auftreten von Fehlern eine Liste
+von Deklarationen zurückgibt. Lediglich die Deklarationen, die Fehler enthalten, werden weggelassen; das bedeutet, dass
+unter Umständen Theoreme generiert werden können, wenn nur Fehler auftreten, die keine Auswirkung auf das zu generierende
+Theorem haben.
+
+\begin{minted}{haskell}
+...
+\end{minted}
+
+An dieser Stelle haben wir eine Liste gültiger Deklarationen, und wir haben eine Liste eventell aufgetretener Fehler. Um nun
+freie Theoreme zu einer Typsignatur zu generieren, wird zunächst einmal eine Typsignatur benötigt. free-theorems bietet die
+Funktion \texttt{filterTypeSignatures}, um Typsignaturen aus einer Liste von \texttt{ValidSignature}s herauszufiltern, was in
+unserem Beispiel keinen Unterschied macht, weil es lediglich aus einer Typsignatur besteht.
+
+Jetzt können wir \texttt{interpret} verwenden, um zu unserer \texttt{ValidSignature} unter Verwendung der übrigen
+\texttt{Declaration}s die Relationaldarstellung unsereres Datentyps
+
 \section{Erweiterung um Typklassen und -konstruktoren}
 \label{sec:erweiterung-typklassen}
 
@@ -706,8 +757,15 @@ es wird stets nur die Klassendeklaration benötigt, ein globaler Kontext muss ni
 ob Typkonstruktorvariablen in beliebigen Deklarationen die korrekte Anzahl an Parametern haben, dann muss man den
 globalen Kontext betrachten: Die Deklaration der Klasse muss in Betracht gezogen werden.
 
-Eine Besonderheit ist hierbei auch, dass eine Typvariable auf mehrere Klassen gleichzeitig eingeschränkt werden kann
-\todo{stimmt das überhaupt?}. 
+Eine Besonderheit ist hierbei auch, dass eine Typvariable auf mehrere Klassen gleichzeitig eingeschränkt werden kann. So ist
+das folgende Beispiel legitimer Haksell-Code:
+
+\begin{minted}{haskell}
+test :: (SomeClass1 f, SomeClass2 f) => f a -> f b
+\end{minted}
+
+Man muss also zusätzlich sicherstellen, dass alle Klassen, die für die gleichen Variablen angegeben sind, die gleiche Anzahl an
+Parametern erwarten.
 
 \section{Zusammenfassung}
 
