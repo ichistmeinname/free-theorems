@@ -195,35 +195,17 @@ interpretM l t = case t of
   TypeVarApp v ts -> do
     env <- ask
     (RelVar ri rv) <- maybeToMonad (Map.lookup v env)
-    -- TODO: special case for inequational theorems
-    -- (RelVar ri rv) <- case test of
-    --                   (RelVar _ _) -> return test
-    --                   (FunVar ri e) -> return (RelVar ri (RVar "FunVar")) -- TODO: hack!
-    --                   RelBasic{}   -> error "oh RelBasic"
-    --                   RelLift{}    -> error "oh RelLift"
-    --                   RelFun{}     -> error "oh RelFun"
-    --                   RelFunLab{}  -> error "oh RelFunLab"
-    --                   RelAbs{}     -> error "oh RelAbs"
-    --                   RelTypeConsAbs{} -> error "oh RelTypeConsAbs"
-    --                   FunAbs{}  -> error "oh RelFunAbs"
-    --                   otherwise    -> error "oh no"
---    let (RelationInfo l (TypeExp (TF (Ident t1))) (TypeExp (TF (Ident t2))))
-    -- (thr) TODO: The following lines are pretty much testing code. It works (well, sometimes),
-    -- but now this has to be made presentable
+
+    -- (thr) TODO: The following lines should be moved to a function
     (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
     let (TypeExp (TF (Ident t1))) = relationLeftType ri
     let (TypeExp (TF (Ident t2))) = relationRightType ri
     let (TypeExp (TF (Ident t1'))) = relationLeftType (relationInfo r)
     let (TypeExp (TF (Ident t2'))) = relationRightType (relationInfo r)
     let newreli = (RelationInfo l (TypeExp (TF (Ident (t1 ++ " " ++ t1'))))) (TypeExp (TF (Ident (t2 ++ " " ++ t2'))))
---    ri <- mkRelationInfo l t       -- create the relation info
---    (rv, t1, t2) <- lift newRelationVariable    -- create a new variable
 
---    return (RelTypeConsApp ri rv rs)
     let (RVar i) = rv
---    return (RelLift ri (ConVar (Ident i)) [rs])
-    if (null ts) then return $ error "FIXME: this happens, although it shouldn't."
-                 else return (RelTypeConsApp newreli rv r)
+    return (RelTypeConsApp newreli rv r)
 
   where
     mkRelationInfo l t = do
