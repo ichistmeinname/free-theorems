@@ -59,6 +59,9 @@ data UnfoldedState = UnfoldedState
         -- ^ Another infinite list storing names for functions.
         --   Every element of this list is distinct to the elements of
         --   'newVariableNames' and 'newFunctionNames1'.
+
+  , newTypeConstNames :: [String]
+        -- ^ (thr) Type constructor variable names
   }
 
 
@@ -81,6 +84,9 @@ initialState ir =
         , newFunctionNames2 = functionVariableNames2 ir
           -- take the name store of functions which was already used during
           -- generation and modification of the intermediate relations
+
+        , newTypeConstNames = filter (`notElem` fs) typeConstVarNameStore
+          -- (thr) type constructor variables from name store
         }
 
 
@@ -107,6 +113,8 @@ newVariableFor t = do
     otherwise      -> do state <- get
                          let ([x], xs) = splitAt 1 (newVariableNames state)
                          put (state { newVariableNames = xs })
+--                         let ([x], xs) = splitAt 1 (newTypeConstNames state)
+--                         put (state { newTypeConstNames= xs })
                          return (TVar x)
 
 
@@ -521,7 +529,7 @@ unfoldCon vs rs (DataCon name ts) =
     else let n  = length ts
              xs = map (\i -> TVar ('x' : show i)) [1..n]
              ys = map (\i -> TVar ('y' : show i)) [1..n]
-             is = map (interpretEx ([], []) vs rs . withoutBang) ts
+             is = map (interpretEx ([], [], []) vs rs . withoutBang) ts
              os = listify (\(_::TermVariable) -> True) rs
              fs = map (\(TVar v) -> v) (xs ++ ys ++ os)
              txs = map TermVar xs
@@ -541,12 +549,13 @@ unfoldFormulaEx forbidden (x, y, rel) =
           { newVariableNames = filter (`notElem` forbidden) variableNameStore
           , newFunctionNames1 = filter (`notElem` forbidden) functionNameStore1
           , newFunctionNames2 = filter (`notElem` forbidden) functionNameStore2
+          , newTypeConstNames = filter (`notElem` forbidden) typeConstVarNameStore
           }
    in runReader (evalStateT (unfoldFormula x y rel) s) (True, False)
 
 
 interpretEx ::
-    ([String], [TypeExpression]) -> [TypeVariable] -> [Relation]
+    ([String], [TypeExpression], [TypeExpression]) -> [TypeVariable] -> [Relation]
     -> TypeExpression -> Relation
 interpretEx ns vs rs t =
   let e = Map.fromList (zip vs rs)
@@ -615,7 +624,7 @@ collectClasses = nub . everything (++) ([] `mkQ` getCC)
 
 
 unfoldClass ::
-    ([String], [TypeExpression]) -> [Declaration] -> [String]
+    ([String], [TypeExpression], [TypeExpression]) -> [Declaration] -> [String]
     -> (Relation, TypeClass) -> (UnfoldedClass, [(Relation, TypeClass)])
 unfoldClass istore decls forbiddenNames (r, c@(TC name)) =
   let ClassDecl d = fromJust (find (\d -> getDeclarationName d == name) decls)

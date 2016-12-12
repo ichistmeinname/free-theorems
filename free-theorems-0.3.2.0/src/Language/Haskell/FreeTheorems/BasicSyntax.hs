@@ -143,15 +143,21 @@ getClassArity :: ClassDeclaration -> Maybe Int
 getClassArity cd =
   let collect t = case t of
                          (TypeVarApp tv' _) | tv' == classVar cd -> [t]
+                         (TypeVar tv')      | tv' == classVar cd -> [t]
                          otherwise                               -> []
       sigs = classFuns cd
-      appls = everything (++) (mkQ [] collect) $ sigs
+      appls = everything (++) (mkQ [] collect) sigs
       appls' = nubBy typeAppsArityEquals appls
       typeAppsArityEquals (TypeVarApp _ t1) (TypeVarApp _ t2) = length t1 == length t2
+      typeAppsArityEquals (TypeVar _) (TypeVar _)             = True
+      typeAppsArityEquals (TypeVarApp _ _) (TypeVar _)        = False
+      typeAppsArityEquals (TypeVar _) (TypeVarApp _ _)        = False
+
       (TV (Ident i)) = classVar cd
-   in if (length appls' == 1) then case appls'!!0 of
-                                (TypeVarApp tv' ts) -> Just . length $ ts
-                              else Nothing
+   in case appls' of
+      [(TypeVarApp tv' ts)] -> Just . length $ ts
+      [(TypeVar tv')]       -> Just 0
+      otherwise             -> Nothing
 
 
 -- | A type signature.

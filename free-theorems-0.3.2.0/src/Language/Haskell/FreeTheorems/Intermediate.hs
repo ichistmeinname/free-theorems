@@ -31,7 +31,8 @@ import Language.Haskell.FreeTheorems.Theorems
 import Language.Haskell.FreeTheorems.Frontend.TypeExpressions
     ( substituteTypeVariables )
 import Language.Haskell.FreeTheorems.NameStores
-    ( relationNameStore, typeExpressionNameStore, functionNameStore1, functionNameStore2 )
+    ( relationNameStore, typeExpressionNameStore, functionNameStore1, functionNameStore2,
+      typeConstVarNameStore )
 
 
 -- helper to stay compatible with new Map.lookup for base >= 4.0.0.0
@@ -167,12 +168,16 @@ interpretM l t = case t of
   TypeAbs v cs t' -> do
     -- (thr) check if variable is used as type constructor. When this is
     --       the case, use RelTypeConsAbs instead of RelAbs.
+    -- (thr) TODO: right now it only checks if the variable is applied somewhere
+    --             in the declaration - instead it should check how much parmeters
+    --             are expected.
     ri <- mkRelationInfo l t                    -- create the relation info
-    (rv, t1, t2) <- lift newRelationVariable    -- create a new variable
+    let (TV i) = v -- TODO: probably pretty ugly
+    (rv, t1, t2) <- lift $ if (isTypeConstructor i t') then newTypeConstRelationVariable
+                                                       else newRelationVariable -- create a new variable
     let rvar = RelVar (RelationInfo l t1 t2) rv
     r  <- local (Map.insert v rvar) $ interpretM l t'  -- subrelations
     let res = relRes l ++ (if null cs then [] else [RespectsClasses cs])
-    let (TV i) = v -- TODO: probably pretty ugly
     return $ if (isTypeConstructor i t') then (RelTypeConsAbs ri rv (t1,t2) res r)
                                          else (RelAbs ri rv (t1,t2) res r)
 
@@ -189,11 +194,27 @@ interpretM l t = case t of
     -- (thr) create a relation for type constructor variable application
   TypeVarApp v ts -> do
     env <- ask
-    (RelVar (RelationInfo l (TypeExp (TF (Ident t1))) (TypeExp (TF (Ident t2)))) rv) <- maybeToMonad (Map.lookup v env)
-    -- (thr) TODO: The following lines are pretty much testing code. It works, but now this has to
-    --             be made presentable
+    (RelVar ri rv) <- maybeToMonad (Map.lookup v env)
+    -- TODO: special case for inequational theorems
+    -- (RelVar ri rv) <- case test of
+    --                   (RelVar _ _) -> return test
+    --                   (FunVar ri e) -> return (RelVar ri (RVar "FunVar")) -- TODO: hack!
+    --                   RelBasic{}   -> error "oh RelBasic"
+    --                   RelLift{}    -> error "oh RelLift"
+    --                   RelFun{}     -> error "oh RelFun"
+    --                   RelFunLab{}  -> error "oh RelFunLab"
+    --                   RelAbs{}     -> error "oh RelAbs"
+    --                   RelTypeConsAbs{} -> error "oh RelTypeConsAbs"
+    --                   FunAbs{}  -> error "oh RelFunAbs"
+    --                   otherwise    -> error "oh no"
+--    let (RelationInfo l (TypeExp (TF (Ident t1))) (TypeExp (TF (Ident t2))))
+    -- (thr) TODO: The following lines are pretty much testing code. It works (well, sometimes),
+    -- but now this has to be made presentable
     (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
-    let (RelationInfo _ (TypeExp (TF (Ident t1'))) (TypeExp (TF (Ident t2')))) = relationInfo r
+    let (TypeExp (TF (Ident t1))) = relationLeftType ri
+    let (TypeExp (TF (Ident t2))) = relationRightType ri
+    let (TypeExp (TF (Ident t1'))) = relationLeftType (relationInfo r)
+    let (TypeExp (TF (Ident t2'))) = relationRightType (relationInfo r)
     let newreli = (RelationInfo l (TypeExp (TF (Ident (t1 ++ " " ++ t1'))))) (TypeExp (TF (Ident (t2 ++ " " ++ t2'))))
 --    ri <- mkRelationInfo l t       -- create the relation info
 --    (rv, t1, t2) <- lift newRelationVariable    -- create a new variable
@@ -201,7 +222,8 @@ interpretM l t = case t of
 --    return (RelTypeConsApp ri rv rs)
     let (RVar i) = rv
 --    return (RelLift ri (ConVar (Ident i)) [rs])
-    return (RelTypeConsApp newreli rv r)
+    if (null ts) then return $ error "FIXME: this happens, although it shouldn't."
+                 else return (RelTypeConsApp newreli rv r)
 
   where
     mkRelationInfo l t = do
@@ -245,8 +267,9 @@ type Environment = Map.Map TypeVariable Relation
 -- | Represents the names of future variable names. The first component provides
 --   names for relations, while the second component provides names for type
 --   expressions.
+--   (thr) The third component contains names for type constructor variables.
 
-type NameStore = ([String], [TypeExpression])
+type NameStore = ([String], [TypeExpression], [TypeExpression])
 
 
 
@@ -258,7 +281,9 @@ initialState :: [String] -> NameStore
 initialState ns =
    ( relationNameStore
    , map (TypeExp . TF . Ident) . filter (`notElem` ns)
-         $ typeExpressionNameStore )
+         $ typeExpressionNameStore
+   , map (TypeExp . TF . Ident) . filter (`notElem` ns)
+         $ typeConstVarNameStore )
 
 
 -- | (thr) Checks if the given type variable is applied to arguments, which
@@ -283,14 +308,23 @@ isTypeConstructor i t = case t of
 newRelationVariable ::
     State NameStore (RelationVariable, TypeExpression, TypeExpression)
 newRelationVariable = do
-  (rvs, ts) <- get
+  (rvs, ts, tcs) <- get
   let ([rv], rvs') = splitAt 1 rvs
   let ([t1, t2], ts') = splitAt 2 ts
-  put (rvs', ts')
+  put (rvs', ts', tcs)
   return (RVar rv, t1, t2)
 
 
+-- | (thr) Creates a new type constructor relation variable using the name store.
 
+newTypeConstRelationVariable ::
+  State NameStore (RelationVariable, TypeExpression, TypeExpression)
+newTypeConstRelationVariable = do
+  (rvs, ts, tcs) <- get
+  let ([rv], rvs') = splitAt 1 rvs
+  let ([tc1, tc2], tcs') = splitAt 2 tcs
+  put (rvs', ts, tcs')
+  return (RVar rv, tc1, tc2)
 
 ------- Instantiation of relation variables -----------------------------------
 

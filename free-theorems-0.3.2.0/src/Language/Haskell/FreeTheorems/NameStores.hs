@@ -10,6 +10,7 @@ module Language.Haskell.FreeTheorems.NameStores
     , functionNameStore1
     , functionNameStore2
     , variableNameStore
+    , typeConstVarNameStore
     ) where
 
 
@@ -58,6 +59,11 @@ variableNameStore :: [String]
 variableNameStore = createNames "xyzvwabcdeijklmn" 'x'
 
 
+-- | an infinite list of names for type constructor variables
+
+typeConstVarNameStore :: [String]
+typeConstVarNameStore = createNames "" 'k'
+
 
 -- | Creates an infinite list of names based on a list of simple names and a
 --   default prefix. After simple names have been used, the numbers starting
@@ -67,6 +73,3 @@ createNames :: [Char] -> Char -> [String]
 createNames prefixes prefix =
   let unpack is = case is of { (c:cs) -> Just ([c], cs) ; otherwise -> Nothing }
    in unfoldr unpack prefixes ++ (map (\i -> prefix : show i) [1..])
-
-
-

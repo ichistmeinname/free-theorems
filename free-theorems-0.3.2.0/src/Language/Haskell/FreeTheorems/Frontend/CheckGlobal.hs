@@ -205,6 +205,7 @@ checkClassVarArities vds ds = foldChecks checkClassVarArity ds
      checkSubExpr :: Int -> TypeVariable -> TypeExpression -> Bool
      checkSubExpr ar tv e = case e of
        (TypeVarApp tv' es) -> (tv /= tv') || (length es == ar)
+       (TypeVar tv')       -> (tv /= tv') || (ar == 0)
        otherwise           -> True
 
      checkTypeAbsExpression :: TypeVariable -> [TypeClass] -> TypeExpression -> [TypeVariable]

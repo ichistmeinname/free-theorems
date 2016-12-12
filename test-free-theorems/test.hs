@@ -1,6 +1,6 @@
 import Language.Haskell.FreeTheorems
 import Language.Haskell.FreeTheorems.Theorems
-import Language.Haskell.FreeTheorems.Parser.Hsx
+import Language.Haskell.FreeTheorems.Parser.Hsx(parse)
 import Language.Haskell.FreeTheorems.BasicSyntax
 import Control.Monad(when)
 import Control.Monad.Writer(Writer, runWriter, writer)
@@ -28,9 +28,9 @@ teststr :: String
 --  \serialize :: a -> String\n\n\
 --  \test :: Serializable s => s -> s"
 
-teststr = "class Functor f where\n\
+teststr = "class Test f where\n\
           \  fmap :: (a -> b) -> f a -> f b\n\n\
-          \test :: Functor f => f a -> f a"
+          \test :: Test f => f a -> f a"
 
 specializeIntermediate :: Intermediate -> Intermediate
 specializeIntermediate i = spec i (relationVariables i)
@@ -73,13 +73,13 @@ mainLoop = do
                              putStrLn "\nIntermediate representation:"
                              putStrLn (show intm)
                              putStrLn "\nTheorem:"
-                             putStrLn $ show (prettyTheorem [] $ asTheorem intm)
+                             putStrLn $ show (prettyTheorem [] $ (simplify . asTheorem) intm)
                              putStrLn "\nSpecialized:"
                              let specIntm = specializeIntermediate intm
-                             putStrLn $ show (prettyTheorem [] $ asTheorem specIntm)
+                             putStrLn $ show (prettyTheorem [] $ (simplify . asTheorem) specIntm)
                              putStrLn "\nUnfolded lifts:"
                              let unflifts = unfoldLifts allDecls intm
-                             putStrLn $ (show . hcat) $ map (prettyUnfoldedLift []) unflifts
+                             putStrLn $ (show . hcat) $ map (prettyUnfoldedLift [] . simplifyUnfoldedLift) unflifts
                              putStrLn "\nUnfolded classes:"
                              let unfclasses = unfoldClasses allDecls intm
                              putStrLn $ (show . hcat) $ map (prettyUnfoldedClass []) unfclasses
