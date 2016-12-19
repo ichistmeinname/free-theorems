@@ -210,15 +210,16 @@ checkClassVarArities vds ds = foldChecks checkClassVarArity ds
 
      checkTypeAbsExpression :: TypeVariable -> [TypeClass] -> TypeExpression -> [TypeVariable]
      checkTypeAbsExpression tv tc e = case tc of
-       []    -> []
-       [(TC i)] -> case findClassDeclaration i of
-                      Nothing -> error $ "Could not find declaration of " ++ show i ++ "."
-                      Just cd -> let ar = getClassArity cd
-                                  in case ar of
-                                    Nothing    -> []
-                                    (Just ar') -> if checkExpressionForVar tv ar' e then []
-                                                                                    else [tv]
-       otherwise -> error "FIXME: right now, only single class constraint is supported"
+       []          -> []
+       ((TC i):rs) -> case findClassDeclaration i of
+                        Nothing -> error $ "Could not find declaration of " ++ show i ++ "."
+                        Just cd -> let ar = getClassArity cd
+                                    in (case ar of
+                                        Nothing    -> []
+                                        (Just ar') -> if checkExpressionForVar tv ar' e then []
+                                                                                        else [tv])
+                                       ++ (checkTypeAbsExpression tv rs e)
+--       otherwise -> error "FIXME: right now, only single class constraint is supported"
      -- TODO: (thr) since multiple super classes are allowed we need to check if
      --             all super classes have the same amount of variables
 
