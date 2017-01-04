@@ -1,0 +1,52 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\section{Einleitung}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+Die funktionale Programmiersprache Haskell bietet ein komplexes Typsystem, das auf der Typinferenz nach Hindley-Milner basiert \todo{cite}.
+Zu jedem Ausdruck lässt sich eine Typsignatur herleiten, die den allgemeinsten Typen dieses Ausdrucks darstellt. Außerdem
+kann der Programmierer zu jedem Ausdruck eine Typsignatur angeben, was zur Übersicht beiträgt und Fehlern vorbeugt.
+Das Typsystem ist so mächtig, dass die Typsignatur allein schon sehr viele Rückschlüsse über die zugehörige Funktion ermöglicht.
+Betrachten wir beispielhaft die folgende Signatur.
+
+\begin{minted}{haskell}
+test :: (a -> b) -> [a] -> [b]
+\end{minted}
+
+Allein durch diesen Typen lässt sich bereits erahnen, was sich ungefähr hinter dieser Funktion verbirgt. Die Funktion nimmt
+eine Funktion und eine Liste als Argumente. Die Funktion muss dabei den Typen der Listenelemente auf einen anderen Typen
+abbilden. Als Ergebnis liefert die Funktion den Rückgabetypen der übergebenen Funktion. Es ist anzunehmen, dass die Funktion
+\texttt{test} die Eingabeliste mithilfe der übergebenen Funktion manipuliert und die resultierende Liste zurückgibt.
+
+Haskell liefert eine solche Funktion in der Prelude, man kennt sie unter dem Namen \texttt{map}. Dass sich \texttt{test} und
+\texttt{map} eine Typsignatur teilen, lässt also Rückschlüsse auf eine ähnliche Funktionsweise zu. Doch diese Ähnlichkeit
+ist nicht auf vage Aussagen beschränkt, man kann ganz systematisch korrekte Aussagen zu beliebigen Typsignaturen
+herleiten, wie \cite{xyz} \todo{cite} zeigt.
+
+Die Herleitung freier Theoreme ist so generisch, dass sie auch programmtisch erledigt werden kann. Genau das macht
+\cite{bla} \todo{cite} - hierbei handelt es sich um die Bibliothek \textit{free-theorems}, die es ermöglicht, Haskell-Code einzulesen
+und aus beliebigen Typsignaturen Formeln zu generieren, die die entsprechenden freien Theoreme repräsentieren. Zudem gibt es
+mit \cite{x} \todo{cite} eine Webanwendung, die einen Zugriff auf die Funktionen der Bibliothek ermöglicht.
+Leider bietet die Bibliothek \textit{free-theorems} nicht sämtliche Sprachfunktionen von Haskell an. 
+
+Ein wichtiger Aspekt
+bei der Programmierung in Haskell sind Typklassen. Sie ermöglichen es, Datenstrukturen in Klassen einzuordnen, und für diese
+Klassen Funktionen anzugeben, die pro Datentyp implementiert werden können. Kurz gesagt erlauben Typklassen Ad-Hoc-Polymorphismus in Haskell.
+
+Zwar unterstützt die Bibliothek Typklassen, allerdings nur für Datentypen, die keinen Typen als Parameter erwarten. Die
+bekanntere \texttt{Monad}-Klasse beispielsweise ist für Datentypen definiert, die einen Typparameter haben. Eine Verwendung
+mit der \texttt{free-theorems} Bibliothek ist somit nicht möglich, oftmals möchte man aber nicht auf solche Typklassen verzichten.
+Grundsätzlich unterscheidet sich die Verwendung von Typkonstruktorklassen gar nicht gravierend von einfachen Typklassen.
+
+Ich habe die Bibliothek um eine entsprechende Funktionalität erweitert. In der vorliegenden Arbeit wird erläutert, wie die Bibliothek
+und insbesondere die Anpassungen für Typkonstruktorklassen aussehen. Dazu wird zunächst auf die Grundlagen eingegangen,
+die benötigt werden, um die Theorie dahinter zu verstehen. Im folgenden Abschnitt geht es um das allgemeine Vorgehen beim
+Herleiten freier Theoreme. Insbesondere wird dabei auch auf Typkonstruktorklassen eingegangen.
+
+Schließlich wird die Bibliothek \textit{free-theorems} etwas genauer beschrieben, wobei insbesondere auf den Aufbau und die
+grundsätzliche Aufteilung eingegangen wird, um dann im darauf folgenden Abschnitt zu erläutern, an welchen Stellen diese
+Bibliothek erweitert werden muss, um die zusätzliche Funktionalität für Typkonstruktorklassen zu leisten.
+
+In dieser Arbeit wird dabei größtenteils von einer vereinfachten Sprache ausgegangen, die weder Striktheit noch den Fixpunktoperator kennt.
+Die ursprüngliche \texttt{free-theorems} Bibliothek berücksichtigt die Besonderheiten bereits, die sich durch Verwendung dieser
+speziellen Operatoren ergeben. Die Erweiterungen für Typkonstruktorklassen ignorieren diese Besonderheiten bisher, hier
+sind eventuell noch Anpassungen möglich. In Abschnitt \todo{ref} wird genauer auf diese Problematik eingegangen. \todo{?}

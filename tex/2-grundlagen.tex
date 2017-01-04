@@ -1,0 +1,131 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\section{Grundlagen}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+In diesem Abschnitt sollen einige Grundlagen eingeführt werden, die in den folgenden Kapiteln von Bedeutung sind. Zunächst werden
+einige Definitionen und Notationen bezüglich Relationen angegeben. Daraufhin wird noch einmal kurz auf Typklassen in Haskell
+eingegangen.
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Relationen}
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Die mathematische Grundlage und das wichtigste Werkzeug beim Erzeugen von freien Theoremen sind Relationen.
+
+Sie werden verwendet, um Ausdrücke einander zuzuordnen, die durch Polymorphie ähnlich oder ``austauschbar'' sind.
+In diesem Abschnitt werden einige Definitionen und Notationen eingeführt, die wir in späteren Abschnitten verwenden werden,
+um Relationen zu beschreiben. \todo{Quellen}
+
+Eine Relation ist auf zwei Mengen definiert, deren Elemente sie einander zuordnet. Die Schreibweise
+$\mathcal{R} : T_1 \Leftrightarrow T_2$ sagt, dass $\mathcal{R}$ eine auf den Mengen $T_1$ und $T_2$ definierte
+Relation ist. Sie ordnet den Elementen der ersten Menge beliebig viele Elemente der zweiten Menge zu. Man kann die Relation
+auffassen als eine Menge von Paaren, wobei jedes Paar aus einem Element aus $T_1$ und einem Element aus $T_2$ besteht.
+
+\begin{align*}
+T_1 \times T_2 \subset \mathcal{R}
+\end{align*}
+
+Die Aussage $(x, y) \in \mathcal{R}$ bedeutet also, dass x und y bezüglich $\mathcal{R}$ verwandt sind. Man schreibt hierfür
+auch gelegentlich $x\ R\ y$. Aus zwei Relationen kann man neue Relationen konstruieren, so liefert beispielsweise die
+Verknüpfung \todo{Verknüpfung?} $;$ von zwei Relationen $\mathcal{R} : T_1 \Leftrightarrow T_2$ und
+$\mathcal{S} : T_2 \Leftrightarrow T_3$ die folgende Relation.
+
+\begin{align*}
+&\mathcal{R} ; \mathcal{S} : T_1 \Leftrightarrow T_3\\
+&\mathcal{R} ; \mathcal{S} := \{ (x, z) | x \in T_1, z \in T_3, \exists y : (x, y) \in \mathcal{R} \wedge (y, z) \in \mathcal{S} \}
+\end{align*}
+
+
+\subsubsection{Relationen und Funktionen}
+%`````````````````````````````````
+
+Wie bereits erwähnt, ordnet eine Relation einem Element ein einzelnes Element, mehrere Elemente oder gar keine Elemente zu.
+Das unterscheidet sie von einer Funktion, oder besser: Das macht Funktionen zu speziellen Relationen. Eine
+Funktion ist auch auf zwei Mengen definiert, doch sie ordnet jedem Element genau ein Ergebnis zu - Eingabewerte mit
+mehreren Funktionswerten sind genausowenig enthalten wie Eingabewerte ohne Ergebnis.
+
+Betrachten wir eine beliebige Funktion $f : T_1 \rightarrow T_2$, d.h. eine Funktion, die Elemente der Menge $T_1$ auf
+Elemente der Menge $T_2$ abbildet. Zu jedem $x \in T_1$ ist also $f(x)$ definiert, wobei $f(x) \in T_2$. Funktionen kann
+man aber auch als Relationen darstellen.
+
+\begin{align*}
+f = \{ (x, f(x)) | x \in T_1 \}
+\end{align*}
+
+Andersrum bedeutet das, dass es Relationen gibt, die man auch als Funktionen auffassen kann. Hat man beispielsweise
+eine Aussage über beliebige Relationen $\forall \mathcal{R} : T_1 \Leftrightarrow T_2 . A(\mathcal{R})$, wobei A eine
+Aussage ist, die von $\mathcal{R}$ abhängt, dann macht es Sinn, aus dieser Aussage eine speziellere Aussage zu folgern,
+die wie folgt aussieht.
+
+\begin{align*}
+\forall f : T_1 \rightarrow T_2 . A'(f)
+\end{align*}
+
+Hierbei soll A'(f) die auf Funktionen spezialisierte Aussage sein. Aus jeder Aussage über beliebige Relationen folgt also eine
+Aussage über entsprechende Funktionen. Dies ist für freie Theoreme von Bedeutung, da man sich vor allem für eine vereinfachte
+Darstellung mit Funktionen interessiert.
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Haskell}
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Die in dieser Ausarbeitung verwendete Bibliothek generiert freie Theoreme für in Haskell geschriebene Programme. Der Fokus
+liegt dabei auf der Erweiterung um Typkonstruktorklassen, weshalb in diesem Abschnitt kurz darauf eingegangen werden soll,
+wie genau eine solche Klasse in Haskell definiert wird. Ansonsten wird davon ausgegangen, dass grundsätzliche Kenntnisse der
+Programmiersprache vorhanden sind, andernfalls sei an dieser Stelle auf \cite{haskell} verwiesen.
+
+Typklassen in Haskell setzen Ad-Hoc-Polyphormismus um und können beliebig definiert werden. Eine Typklasse besteht aus
+einem Namen, beliebig vielen Funktionssignaturen und gegebenenfalls aus vordefinierten Implementierungen einzelner
+Funktionen. Es folgt ein einfaches Beispiel, das auch in der Prelude von Haskell enthalten ist \todo{ist es?}.
+
+\begin{minted}{haskell}
+class Show a where
+   show :: a -> String
+\end{minted}
+
+Der Name dieser Beispielklasse ist \texttt{Show}. Man gibt eine Typvariable an, in diesem Fall \texttt{a}, die auch in jeder
+Funktionssignatur vorkommen muss. In dieser Beispielklasse wird genau eine Funktionssignatur angegeben: Die Signatur
+\texttt{a -> String} für die Funktion \texttt{show}.
+
+Im weiteren Haskellprogramm kann nun für beliebige Datentypen eine Instanzdeklaration angegeben werden. Der folgende
+Quellcode zeigt ein Beispiel für einen selbstdefinierten Datentyp.
+
+\begin{minted}{haskell}
+data Test = Test Int String
+
+instance Show Test where
+   show (Test _ s) = s
+\end{minted}
+
+Kommt nun im Programm in einem Ausdruck der Funktionsaufruf \texttt{show} vor, so wird anhand des Parametertypen
+entschieden, welche Instanz dieser Klasse verwendet wird. Es kann also für jeden Typen eine komplett andere Implementierung
+angegeben werden.
+
+Nun ist es ja auch möglich, dass ein selbstdefinierter Datentyp einen Typen als Parameter erwartet, wie das folgende Beispiel
+zeigt.
+
+\begin{minted}{haskell}
+data Test a = Test a String
+\end{minted}
+
+Beim Ausdruck \texttt{Test} handelt es sich in diesem Fall also nicht um einen Typen, sondern eher um einen funktionsähnlichen Ausdruck, der
+einen Typen als Parameter erwartet und einen Typen zurückgibt. Man spricht hier auch von Sorten (engl. ``kinds''). Haskell
+führt für Sorten eine eigene Notation ein. Alle Basistypen wie \texttt{Int}, \texttt{String}, etc. sind von der Sorte *.
+Typkonstruktoren, die einen Typen als Parameter erwarten und daraus einen neuen Typen konstruieren, sind von der Sorte
+$* \rightarrow *$.
+Kompliziertere Sorten wie zum Beispiel $* \rightarrow (* \rightarrow *) \rightarrow *$ sind ebenfalls möglich.
+
+Typklassen können auch für Datentypen definiert werden, die Typparameter erwarten. Das folgende Beispiel zeigt die
+Definition für die Typklasse \texttt{Functor}, die für einen Typen definiert ist, der wiederum einen Typparameter erwartet.
+
+\begin{minted}{haskell}
+class Functor f where
+   fmap :: (a -> b) -> f a -> f b
+\end{minted}
+
+Hier ist \texttt{f} die Typvariable. Die Signatur für \texttt{fmap} lässt erkennen, dass \texttt{f} auf einen Parameter appliziert
+wird, also muss \texttt{f} von der Sorte $* \rightarrow *$ sein. Zu beachten ist hier, dass es keinen Sinn macht (und auch nicht
+gestattet ist), dass die Typvariable mit unterschiedlichen Anzahlen an Argumenten auftaucht. Ebenso wäre es ungültig,
+eine Instanz von \texttt{Functor} zu definieren für einen Datentyp, der keine Typparameter erwartet.

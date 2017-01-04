@@ -1,0 +1,38 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\section{Striktheit und Rekursion}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+Bisher wurde eine Wahrheit größtenteils ignoriert: Die bisher generierten freien Theoreme sind nur unter ganz bestimmten
+Bedingungen gültig. Beim Beispiel \texttt{$test :: [a] \rightarrow [a]$} wurde behauptet, dass die Funktion \texttt{test}
+lediglich Ausdrücke aus der Eingabeliste in der Ausgabeliste weiderverwenden könne. Tatsächlich entspricht das nicht ganz der
+Wahrheit, denn in Haskell ist zum Beispiel auch denkbar, dass $\bot$ (\textit{bottom}) zurückgegeben wird, beispielsweise
+durch Nichtterminierung oder einen Laufzeitfehler.
+
+free-theorems definiert verschiedene Untermengen der Programmiersprache Haskell, zu denen sich unterschiedlich komplexe
+Theoreme generieren lassen. Ein Faktor, der nämlich Probleme bereiten kann, ist der Fixpunktoperator.
+Die Bilbiothek definiert drei Untermengen:
+
+\begin{itemize}
+   \item BasicSubset
+   \item SubsetWithFix
+   \item SubsetWithSeq
+\end{itemize}
+
+Die erste Untermenge, BasicSubset, entspricht dem Girard-Reynoldschen Lambda-Kalkül \cite{bla}, erweitert um Datentypen und
+Typklassen \cite{freetheorems}. Insbesondere sind aber keine undefinierten Werte erlaubt, die zum Beispiel durch Nichtterminierung,
+Division durch Null oder Pattern Matching Fehler auftreten.
+Das ändert sich in SubsetWithFix. Hier ist zusätzlich der Fixpunktoperator \textit{fix} verfügbar, und es müssen folglich undefinierte
+Werte erlaubt werden. Was noch fehlt, ist die \textit{seq}-Funktion sowie Striktheits-Flags. Letztere können bei selbstdefinierten
+Datentypen an die einzelnen Untertypen \todo{Richtige Bezeichnung für einzelne "Parameter" eines Datentyps?} annotiert werden,
+um eine strikte Auswertung zu erzwingen.
+Die Untermenge SubsetWithSeq ermöglicht schließlich die zuletzt genannten Aspekte: Es wird Striktheit durch \textit{seq}
+eingeführt, dadurch sind dann auch Striktheitsannotationen in Datentypen möglich.
+
+Es wird noch eine weitere Unterscheidung eingeführt: Zu SubsetWithFix und SubsetWithSeq kann noch unterschieden werden,
+ob Gleichungs- oder Ungleichungsresultate gewünscht sind. \todo{equational and inequational results - bessere Übersetzung?}
+Daraus ergeben sich insgesamt fünf Varianten, für die \cite{freetheorems} die folgende Schreibweise einführt, wobei $M$ die Menge
+der verfügbaren \textit{Modelle} ist:
+
+\begin{align}
+M = \{(basic, =), (fix, =), (fix, \sqsubseteq), (seq, =), (seq, \sqsubseteq)\}
+\end{align}
