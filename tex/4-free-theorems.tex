@@ -99,10 +99,25 @@ als Typsignaturen verzichten kann und der Rest des Programms irrelevant ist. Wä
 also die jeweiligen Funktionsrümpfe, zutrifft, gibt es dennoch andere Deklarationen, an denen man ebenfalls interessiert ist.
 
 Man bekommt nämlich genau dann ein Problem, wenn der Entwickler im Programm eigene Datentypen deklariert und diese in
-den Funktionssignaturen verwendet. Neben Funktionssignaturen werden also zusätzlich auch Datentyp
-Natürlich ist man hauptsächlich an den Funktionssignaturen interessiert, da man aus diesen die Theoreme ableitet. Aber natürlich können diese Signaturen ihrerseits wiederum 
-selbst definierte Datentypen oder auch Klasseneinschränkungen enthalten. Man kommt also nicht umhin, auch diese mit einzubeziehen und ebenfalls in der BasicSyntax vorzusehen.
-Das Beispiel in Listing \ref{lst:ast-data} zeigt eine data-Deklaration.
+den Funktionssignaturen verwendet. Neben Funktionssignaturen werden also zusätzlich auch Datentypdeklarationen benötigt.
+Hierzu gehören sowohl die \texttt{data}- als auch \texttt{type}- und \texttt{newtype}-Deklarationen (die semantischen Unterschiede
+zwischen diesen verschiedenen Deklarationen spielen dabei keine Rolle). Listing \ref{lst:ast-data} zeigt ein Beispiel für eine
+\texttt{data}-Deklaration und deren entsprechende Darstellung als \texttt{BasicSyntax}.
+
+An diesem Beispiel kann man ebenfalls sehen, dass die Konstruktorparameter in die \texttt{Unbanged}-Struktur eingebettet sind.
+Es gibt \texttt{Unbanged} und \texttt{Banged}, was einfach sagt, ob eine Striktheitsannotation vor dem entsprechenden
+Parameter steht oder nicht. Es soll hier nicht näher darauf eingegangen werden, wozu diese Annotation verwendet wird, in
+Kapitel \ref{sec:striktheit-und-rekursion} wird noch ein bisschen näher darauf eingegangen.
+
+Klassendeklarationen werden insbesondere in Kapitel \ref{sec:erweiterung-um-typklassen} benötigt. Sie werden aber auch schon
+von \texttt{free-theorems} beachtet und in die \texttt{BasicSyntax} mit aufgenommen. Der Grund dafür ist der, dass ja auch
+Typvariablen in Typsignaturen auftreten können, die auf eine bestimmte Klasse eingeschränkt sind. Die aus der Allquantifizierung
+resultierenden Relationen dürfen also nicht über alle Typen quantifiziert sein, sondern nur über solche, die zur entsprechenden
+Klasse passen.
+
+%Natürlich ist man hauptsächlich an den Funktionssignaturen interessiert, da man aus diesen die Theoreme ableitet. Aber natürlich können diese Signaturen ihrerseits wiederum 
+%selbst definierte Datentypen oder auch Klasseneinschränkungen enthalten. Man kommt also nicht umhin, auch diese mit einzubeziehen und ebenfalls in der BasicSyntax vorzusehen.
+%Das Beispiel in Listing \ref{lst:ast-data} zeigt eine data-Deklaration.
 
 \begin{listing}[ht]
 \inputminted[tabsize=2]{haskell}{ast2.hs}
