@@ -132,99 +132,246 @@ Klasse passen.
 
 \label{sec:check}
 
-Im zweiten Schritt wird die \texttt{check}-Funktion benutzt, um alle Deklarationen auf Gültigkeit zu überprüfen und die Liste der Deklaration zu filtern. Ungültige Deklarationen
-werden unter Angabe einer Fehlermeldung aus der Liste entfernt \cite{freetheorems}.
+An dieser Stelle liegt das Eingabeprogramm also in einem vereinfachten abstrakten Syntaxbaum vor. Da der Parser das Programm
+erfolgreich geparst hat, können Parserfehler ab hier ausgeschlossen werden. Der Haskell-Parser ist aber wirklich nur dazu da,
+Haskell-Code in einen Syntaxbaum zu überführen, über Syntax hinausgehende Fehler werden nicht erkannt. Aus diesem Grund
+muss der Syntaxbaum jetzt auf semantische Fehler überprüft werden, was in der \texttt{check}-Funktion geschieht.
 
-Es ist zwar davon auszugehen, dass die Syntax des Programmes korrekt ist, da ansonsten der Haskell-Parser bereits im ersten Schritt einen Fehler gemeldet hätte, dennoch ist
-dieser zweite Schritt nötig, um auch korrekte Semantik voraussetzen zu können \todo{wahrscheinlich falsch ausgedrückt} (da andernfalls auch für fehlerhafte Programme Theoreme generiert würden, was keinen Sinn macht).
+Fehlerhafte Deklarationen werden aus der Liste der Deklarationen gefiltert, und es werden entsprechende Fehlermeldungen
+generiert. Fehler führen hier nicht automatisch zum Abbruch, es ist ja durchaus möglich, dass die Fehler in Deklarationen
+auftreten, die für die betrachtete Funktionssignatur keine Rolle spielen.
 
-Die check-Funktion untergliedert sich in lokale und globale Checks, wobei die lokalen Checks pro Definition durchgeführt werden, die globalen Checks beziehen sich auf die Gesamtheit aller Definitionen. Beispielsweise wird lokal überprüft, ob bei Deklarationen die freien Variablen auf der rechten Seite auf der linken Seite der Defintion deklariert sind, es wird sichergestellt
-dass auf der linken Seite alle Variablennamen verschieden sind, primitive Datentypen nicht deklariert werden usw.
+Es wird zwischen lokaler und globaler Fehlerprüfung unterschieden. Lokale Prüfungen werden pro Deklaration durchgeführt,
+ohne den globalen Kontext zu betrachten. Hier werden lediglich solche Fehler betrachtet, die sich anhand der Deklaration selbst
+erkennen lassen. Ein Beispiel sind \texttt{data}-Deklarationen: Hier müssen auf der rechten Seite auftretende Typvariablen
+auch auf der linken Seite vorkommen; einen Fehler würde beispielsweise folgender Code erzeugen.
 
-Unter die globalen Checks fällt z.B., dass zu einem Funktionsnamen nicht mehrere Deklarationen existieren, dass alle Typkonstruktoren die korrekte Anzahl an Parametern haben oder auch dass keine Kreise in der Typklassenhierarchie existieren \cite{freetheorems}.
+\begin{minted}{haskell}
+data Test = Test a
+\end{minted}
 
-Am Ende schließt \texttt{check} noch alle Typausdrücke, dh. bei frei vorkommenden Typvariablen werden entsprechende Typabstraktionen um den Ausdruck geschlossen. Das ist wichtig, da in der weiteren Implementierung davon ausgegangen wird, dass alle Typausdrücke geschlossen sind und entsprechende Typabstraktionen zu jeder implizit allquantifizierten Variable vorhanden sind.
+Außerdem müssen alle Variablennamen auf der linken Seite paarweise verschieden sein, primitive Datentypen dürfen nicht
+neu deklariert werden, usw.
 
-Tabelle \ref{bla} zeigt eine Übersicht aller globalen Überprüfungen.
+Nach den lokalen Überprüfungen finden die globalen Checks statt. Hier geht es um solche Prüfungen, bei denen stets das komplette
+Programm betrachtet werden muss, zum Beispiel um sicherzustellen, dass alle Funktionsnamen im Programm deklariert sind,
+pro Funktionsname nur eine Deklaration existiert, Typkonstruktoren die korrekte Anzahl an Parametern haben etc.
 
+Eine besondere Aufgabe der globalen Überprüfung ist es auch, sämtliche Typausdrücke zu \textit{schließen}; es ist in Haskell
+erlaubt, freie Typvariablen in Funktionssignaturen zu verwenden - diese werden implizit als allquantifiziert angesehen.
+Das Schließen eines Typausdrucks besteht nun darin, sämtliche freien Typvariablen zu beseitigen, indem eine entsprechende
+explizite Allquantifizierung davorgesetzt wird.
+
+So kann im weiteren Programmverlauf davon ausgegangen werden, dass keine freien Typvariablen mehr vorkommen, was die
+Verarbeitung erleichtert.
+%Dabei wird dafür gesorgt, dass keine freien Typvariablen mehr in Typsignaturen vorkommen, indem die entsprechenden Variablen durch einen
+
+
+% % %
+
+%Im zweiten Schritt wird die \texttt{check}-Funktion benutzt, um alle Deklarationen auf Gültigkeit zu überprüfen und die Liste der Deklaration zu filtern. Ungültige Deklarationen
+%werden unter Angabe einer Fehlermeldung aus der Liste entfernt \cite{freetheorems}.
+%
+%Es ist zwar davon auszugehen, dass die Syntax des Programmes korrekt ist, da ansonsten der Haskell-Parser bereits im ersten Schritt einen Fehler gemeldet hätte, dennoch ist
+%dieser zweite Schritt nötig, um auch korrekte Semantik voraussetzen zu können \todo{wahrscheinlich falsch ausgedrückt} (da andernfalls auch für fehlerhafte Programme Theoreme generiert würden, was keinen Sinn macht).
+%
+%Die check-Funktion untergliedert sich in lokale und globale Checks, wobei die lokalen Checks pro Definition durchgeführt werden, die globalen Checks beziehen sich auf die Gesamtheit aller Definitionen. Beispielsweise wird lokal überprüft, ob bei Deklarationen die freien Variablen auf der rechten Seite auf der linken Seite der Defintion deklariert sind, es wird sichergestellt
+%dass auf der linken Seite alle Variablennamen verschieden sind, primitive Datentypen nicht deklariert werden usw.
+%
+%Unter die globalen Checks fällt z.B., dass zu einem Funktionsnamen nicht mehrere Deklarationen existieren, dass alle Typkonstruktoren die korrekte Anzahl an Parametern haben oder auch dass keine Kreise in der Typklassenhierarchie existieren \cite{freetheorems}.
+%
+%Am Ende schließt \texttt{check} noch alle Typausdrücke, dh. bei frei vorkommenden Typvariablen werden entsprechende Typabstraktionen um den Ausdruck geschlossen. Das ist wichtig, da in der weiteren Implementierung davon ausgegangen wird, dass alle Typausdrücke geschlossen sind und entsprechende Typabstraktionen zu jeder implizit allquantifizierten Variable vorhanden sind.
+
+Tabelle \ref{tab:global-checks} zeigt eine Übersicht aller globalen Überprüfungen.
+
+\begin{table}[th]
+\centering
 \begin{tabular}{| l | l |}
 \hline
-Name&Beschreibung\\
+Name&Prüfung\\
 \hline
-  checkUnique&\\
-  checkArities&\\
-  checkAcyclicTypeSynonyms&\\
-  checkAcyclicTypeClasses&\\
-  checkAllConsAndClassesDeclared&\\
+  checkUnique&Alle Namen kommen nur einmal vor\\
+  checkArities&Typkonstruktoren haben korrekte Anzahl an Parametern\\
+  checkAcyclicTypeSynonyms&Typsynonyme sind azyklisch\\
+  checkAcyclicTypeClasses&Typklassen sind azyklisch\\
+  checkAllConsAndClassesDeclared&Alle Typkonstruktoren und Typklassen sind deklariert\\
 \hline
 \end{tabular}
+\caption{Globale Überprüfungen}
+\label{tab:global-checks}
+\end{table}
+
+Sind alle globalen Überprüfungen abgeschlossen, werden die übrig bleibenden Deklarationen an den Core-Teil weitergereicht.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{interpret}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Tatsächlich macht die \texttt{interpret}-Funktion nichts, was nicht schon bekannt ist \todo{Das heißt, wenn ich es denn schon geschrieben hätte}: Sie überführt die Funktionssignatur in eine
-Relationsdarstellung, wobei sie Typvariablen neu generierte Relationsvariablen zuordnet. Um es mit der Aufteilung von \cite{freetheorems} auszudrücken, stellt sie den Übergang des Frontends zum Core dar, wo der interessante Arbeitsschritt ausgeführt wird.
+Die erste Funktion des Cores ist \texttt{interpret}. Diese Funktion \textit{interpretiert} eine Funktionssignatur als Relation. Sie
+erwartet eine (geprüfte) Deklaration als Eingabe und liefert eine Relation, verpackt in eine sogenannte \texttt{Intermediate}-Struktur,
+die neben der eigentlichen Relation noch Zusatzinformationen beinhaltet, beispielsweise den Namen der interpretierten Funktion
+sowie freie Variablennamen für neu einzuführende Variablen.
+Diese Funktion setzt also den Schritt um, die Funktionssignatur in die Relationsschreibweise zu überführen.
 
-Der Datentyp, der hier verwendet wird, heißt Immediate. Dieser Datentyp ist letztlich nur ein Container für eine Relation mit
-dem repräsentierten Typausdruck, zusätzlichen (unendlichen) Listen von freien Variablennamen und sonstigen Zusatzinformationen.
+\texttt{interpret} durchläuft rekursiv die \texttt{BasicSyntax}-Struktur und erzeugt entsprechende Relationen.
+Tabelle \ref{tab:relations} zeigt, welche Konstruktoren der \texttt{Relation}-Datentyp hat. Dabei ist zu beachten, dass
+\texttt{FunVar} nur verwendet wird, wenn Relationen zu Funktionen spezialisiert werden. \todo{referenz auf spaeter}
 
-
-\subsubsection{Relation}
-% ``````````````````
-
-Für die Darstellung als Relationen definiert free-theorems den Datentyp \texttt{Theorem}, der folgende Konstruktoren hat:
-
-\todo{unvollständig. und evtl unnötig}
-
+\begin{table}
+\centering
 \begin{tabular}{| l | l | l |}
 \hline
-Konstruktor & Parameter & Entsprechung \\
+BasicSyntax & Relation & Mathematische Entsprechung\\
 \hline
-RelVar & RelationVariable & $\alpha$ \\
-FunVar & (Either Term Term) & ? \\
-RelBasic & - & R \\
-RelLift & TypeConstructor [Relation] & [R], etc. \\
-RelFun & Relation Relation & $S \rightarrow T$ \\
-RelFunLab & Relation Relation & $S \rightarrow T$ \\
-RelAbs & RelationVariable (TypeExpression,  & $\forall R . F R$ \\
-& TypeExpression) [Restriction] Relation & \\
-FunAbs & ... & \\
+TypeVar & RelVar & $\alpha$ \\
+FunVar & - & f \\
+TypeCon & RelBasic & $\mathcal{R}$ \\
+& RelLift & [$\mathcal{R}$], etc. \\
+TypeFun & RelFun & $S \rightarrow T$ \\
+& RelFunLab & $S \rightarrow T$ \\
+TypeAbs & RelAbs & $\forall R . F R$ \\
+& FunAbs &\\
 \hline
 \end{tabular}
+\caption{Konstruktoren des Datentyps Relation}
+\label{tab:relations}
+\end{table}
 
-Wie man sieht, fehlt noch ein Konstruktor für die neu eingeführte Variante, dass eine Typkonstruktorvariable auf Relationen
-angewandt wird. Darauf wird in Abschnitt \ref{sec:erweiterung-typklassen} eingegangen.
+Wie vorangehend erwähnt, werden sämtliche freie Variablen in Typsignaturen eliminiert, was dazu führt, dass \texttt{interpret}
+stets zuerst auf einen \texttt{forall}-Ausdruck stoßen wird, bevor es die Typvariable selbst antrifft. Das wird ausgenutzt, indem
+beim Antreffen von \texttt{forall} ein Eintrag in einer Map angelegt wird, auf den dann bei Verarbeitung jedes Vorkommens der
+Typvariable über den Variablennamen wieder zugegriffen wird.
 
+Ansonsten wird systematisch jeder Ausdruck der \texttt{BasicSyntax} durch den entsprechenden \texttt{Relation}-Ausdruck
+ersetzt. Typkonstruktorausdrücke werden entweder zu einer \texttt{RelBasic}, also einer einfachen Relation auf Typmengen,
+oder zu \texttt{RelLift}-Ausdrücken, also \textit{gelifteten} Relationen, je nachdem ob es sich um nullstellige oder mehrstellige
+Typkonstruktoren handelt.
 
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-\subsection{asTheorem}
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Aus der Funktion resultiert also letztendlich ein \texttt{Relation}-Ausdruck, der im nächsten Schritt weiterverarbeitet wird.
 
-Die \texttt{asTheorem}-Funktion stellt eine Datenstruktur des Typs \texttt{Intermediate} als Theorem dar. Tatsächlich passiert hier aber eine ganze Menge mehr als der Name
-vermitteln mag. Das schrittweise Abrollen der Relationen stellt schließlich den entscheidenden Schritt dar, durch den man überhaupt auf
-die Theoreme schließen kann.
+% % %
 
-\todo{Hier eventuell auch ein Beispiel?}
+%Tatsächlich macht die \texttt{interpret}-Funktion nichts, was nicht schon bekannt ist \todo{Das heißt, wenn ich es denn schon geschrieben hätte}: Sie überführt die Funktionssignatur in eine
+%Relationsdarstellung, wobei sie Typvariablen neu generierte Relationsvariablen zuordnet. Um es mit der Aufteilung von \cite{freetheorems} auszudrücken, stellt sie den Übergang des Frontends zum Core dar, wo der interessante Arbeitsschritt ausgeführt wird.
+
+%Der Datentyp, der hier verwendet wird, heißt Immediate. Dieser Datentyp ist letztlich nur ein Container für eine Relation mit
+%dem repräsentierten Typausdruck, zusätzlichen (unendlichen) Listen von freien Variablennamen und sonstigen Zusatzinformationen.
+
+%
+%\subsubsection{Relation}
+%% ``````````````````
+%
+%Für die Darstellung als Relationen definiert free-theorems den Datentyp \texttt{Relation}, der folgende Konstruktoren hat:
+%
+%\todo{unvollständig. und evtl unnötig}
+%
+%Wie man sieht, fehlt noch ein Konstruktor für die neu eingeführte Variante, dass eine Typkonstruktorvariable auf Relationen
+%angewandt wird. Darauf wird in Abschnitt \ref{sec:erweiterung-typklassen} eingegangen.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Spezialisieren von Relationsvariablen zu Funktionen}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Ist das Theorem generiert, kann man nun die Funktionsrelation spezialisieren, um das Theorem zu vereinfachen. Aus einem
-$A : S \leftrightarrow T$ wird also $\forall a : S \rightarrow T$
+Der Spezialisierungsschritt ist optional. Wie in den Grundlagen erläutert, kann man jede Funktion auch als Relation auffassen,
+Funktionen sind also spezielle Relationen. Hat man eine allgemeine Aussage über beliebige Relationen, dann trifft dieselbe
+Aussage auch auf alle solche Relationen zu, bei denen es sich um Funktionen handelt - man spezialisiert die Aussage einfach
+auf Funktionen.
 
-usw.
+Es bietet sich an, das zu tun, weil die Funktionsdarstellung übersichtlicher und intuitiver verständlich ist. Aus diesem Grund
+bietet \textit{free-theorems} die Funktion \texttt{specialise} an. Diese Funktion erwartet eine Intermediate-Struktur und
+eine Relationsvariable und transformiert die Intermediate-Struktur, indem sie sämtliche vorkommen der Relationsvariablen
+durch Funktionsvariablen ersetzt.
+
+Die \texttt{asTheorem}-Funktion, die im nächsten Abschnitt erläutert wird, akzeptiert sowohl Relationsvariablen als auch
+Funktionsvariablen.
+%Ist das Theorem generiert, kann man nun die Funktionsrelation spezialisieren, um das Theorem zu vereinfachen. Aus einem
+%$A : S \leftrightarrow T$ wird also $\forall a : S \rightarrow T$
+
+%usw.
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{asTheorem}
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Der Schritt, der zu Beginn als ``Abrollen'' der Parametrizitätsaussage eingeführt wurde, wird in der Funktion \texttt{asTheorem}
+durchgeführt. Wie in Abschnitt \ref{sec:free-theorems-param} erläutert, gilt zu jeder aus einer Typsignatur hergeleiteten
+Relation das Parametrizitäts-Theorem der Form $(e, e) \in \mathcal{R}$ ($e$ ist der Ausdruck, $\mathcal{R}$ ist die hergeleitete
+Relation).
+
+Als Eingabe erwartet \texttt{asTheorem} sinnigerweise die Intermediate-Struktur aus den vorangegangenen Schritten. Diese wird
+nun rekursiv in eine Formel umgewandelt. Als Ergebnis liefert die Funktion eine \texttt{Formula}, wobei es sich um einen
+Datentyp handelt, der die Darstellung von Formeln ermöglicht. Man kann diesen Datentyp als eine Vorstufe zur reinen
+Zeichenkette ansehen, denn er stellt in keinster Weise sicher, dass die Formeln sinnvoll sind. Lediglich syntaktische Korrektheit
+ist durch Verwenden der Datenstruktur gegeben.
+
+%Grundsätzlich nutzt \texttt{asTheorem} eine Reihe von \texttt{unfold}-Funktionen, die jeweils einen Konstruktor des
+%Relation-Datentyps abdecken. Die oberste Funktion ist \texttt{unfoldFormula}, die die folgende Signatur hat.
+
+Intern ruft die Funktion eine Funktion namens \texttt{unfoldFormula} auf, die die folgende Signatur hat.
+
+\begin{minted}{haskell}
+unfoldFormula :: Term -> Term -> Relation -> Unfolded Formula
+\end{minted}
+
+Die Parameter entsprechen dabei dem Ausgangsausdruck $(x, y) \in \mathcal{R}$, wobei $\mathcal{R}$ eine (eventuell aus
+Relationen konstruierte) Relation ist, deren Definition angewandt werden soll. Handelt es sich bei $\mathcal{R}$ beispielsweise
+um eine einfache Relationsvariable, gibt \texttt{unfoldFormula} die Formel $(x, y) \in \mathcal{R}$ zurück. Handelt es sich
+um eine \texttt{RelBasic}, d.h. sie ist aus einem nullstelligen Typkonstruktor entstanden (z.B. \texttt{Int}), dann wird hingegen
+die Formel $x = y$ zurückgegeben, da in der Basistypen durch Identitätsrelationen dargestellt werden und $x$ und $y$ folglich
+nur verwandt sein können, wenn sie gleich sind.
+
+Hinter dem Rückgabewert \texttt{Unfolded Formula} verbirgt sich noch eine Monade, mit der eventuell auftretende Fehlermeldungen
+durchgereicht werden können. Das interessante Ergebnis ist die resultierende Formel, die als \texttt{Formula} zurückgegeben wird.
+
+Konkret bedeutet das also: Wird die Funktion \texttt{asTheorem} mit einer Intermediate-Struktur aufgerufen, die den
+Funktionsnamen \texttt{n} und die Relation \texttt{r} beinhaltet, wertet sie den folgenden Ausdruck aus.
+
+\begin{minted}{haskell}
+unfoldFormula n n r
+\end{minted}
+
+% TODO: noch weiter ins detail gehen?
+
+%Die \texttt{asTheorem}-Funktion stellt eine Datenstruktur des Typs \texttt{Intermediate} als Theorem dar. Tatsächlich passiert hier aber eine ganze Menge mehr als der Name
+%vermitteln mag. Das schrittweise Abrollen der Relationen stellt schließlich den entscheidenden Schritt dar, durch den man überhaupt auf
+%die Theoreme schließen kann.
+%
+%\todo{Hier eventuell auch ein Beispiel?}
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{simplify}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Schließlich bietet free-theorems noch die Möglichkeit, die generierten Theoreme zu vereinfachen, indem nach einigen typischen
-Mustern gesucht wird, beispielsweise: Entfernen aller unbenutzten allquantifizierten Variablen, $\forall v. f v == g v \rightarrow f == g$ usw.
+An dieser Stelle liegt die Formel im \texttt{Formula}-Datentyp vor. Bevor sie schließlich mithilfe der Pretty Printer Funktionen
+in eine Zeichenkette umgewandelt wird, kann optional noch die \texttt{simplify}-Funktion aufgerufen werden, die einige
+Vereinfachungen auf die Formel anwendet. Diese Funktion hat keine Kenntnis von der ursprünglichen Relationaldarstellung, sie
+vereinfacht einfach nur typische Muster.
+
+Ein Beispiel wäre zum Beispiel das Entfernen aller unbenutztzen allquantifizierten Variablen, wie in der folgenden Formel zu sehen
+ist.
+
+\begin{align*}
+& \forall v \forall x . x = x \\
+\Leftrightarrow & \forall x . x = x 
+\end{align*}
+
+Auch möglich ist zum Beispiel die folgende Vereinfachung, die im Zusammenhang mit freien Theoremen häufig angewandt werden
+kann.
+
+\begin{align*}
+&\forall v . f\ v = g\ v\\
+\Leftrightarrow & f = g
+\end{align*}
+
+Die Funktion \texttt{simplify} erwartet also eine \texttt{Formula} und transformiert diese. Die resultierende Formel kann
+dann per Pretty Printer in eine Zeichenkette umgewandelt werden.
+
+%Schließlich bietet free-theorems noch die Möglichkeit, die generierten Theoreme zu vereinfachen, indem nach einigen typischen
+%Mustern gesucht wird, beispielsweise: Entfernen aller unbenutzten allquantifizierten Variablen, $\forall v. f v == g v \rightarrow f == g$ usw.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
