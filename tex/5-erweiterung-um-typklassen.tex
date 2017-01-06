@@ -6,32 +6,104 @@
 
 % TODO: Hier weiter machen
 
-In diesem Abschnitt soll erläutert werden, welche Änderungen an free-theorems vorgenommen werden müssen, um auch Typklassen und Typkonstruktoren miteinzubeziehen. In
-Abschnitt 
+In den bisherigen Abschnitten wurden die Grundlagen zu freien Theoremen erklärt, es wurde erläutert, wie freie Theoreme
+aussehen, wenn Typkonstruktorklassen eine Rolle spielen, und es wurde ein Einblick in die Bibliothek \textit{free-theorems}
+gegeben. Es sind jetzt alle Werkzeuge vorhanden, um die Bibliothek so zu erweitern, dass auch Klassen möglich sind,
+deren Typparameter von der Sorte $* \rightarrow *$ sind und Typsignaturen zu schreiben, in denen Typvariablen auf
+solche Klassen beschränkt und auf Parameter angewandt werden.
 
-usw.
+Dieses Kapitel ist aufgeteilt in die verschiedenen Schritte, die bei der Verwendung der Bibliothek durchlaufen werden. Es
+wird jeweils darauf eingegangen, welche Änderungen notwendig sind und was jeweils zu beachten ist, um Typkonstruktorklassen
+zu unterstützen.
+
+%In diesem Abschnitt soll erläutert werden, welche Änderungen an free-theorems vorgenommen werden müssen, um auch Typklassen und Typkonstruktoren miteinzubeziehen. In
+%Abschnitt 
+%
+%usw.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Erweiterungen der BasicSyntax}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Da Typvariablenapplikation in \cite{freetheorems} nicht vorgesehen ist, musste ein solches Konstrukt in die BasicSyntax-Struktur eingefügt werden. Hierbei ist zu beachten: Die Applikation
-von Standardtypkonstruktoren, beispielsweise \texttt{[a]} für Listen, ist sehr wohl vorgesehen und wird in der BasicSyntax durch \texttt{TypeCon} im Datentyp \texttt{TypeExpression} dargestellt. \todo{Wahrscheinlich viel zu speziell} Diese Standardtypkonstruktoren werden in diesem Zusammenhang aber als Sonderfälle betrachtet \ref{sec:freie-theoreme}, um das System wirklich um eigene Typklassen zu erweitern, muss es auch möglich sein, Typkonstruktorvariablen auf Typen anzuwenden.
+Bevor man mit Typkonstruktorvariablen arbeiten kann, müssen diese natürlich zunächst in der \texttt{BasicSyntax} vorgesehen
+sein. An sich verhalten sich diese ja wie andere Typvariablen auch, mit dem Unterschied, dass sie - ähnlich wie Funktionen -
+auf andere Typausdrücke angewandt werden können. Das folgende Beispiel soll dies verdeutlichen.
 
-Die Erweiterung der BasicSyntax sieht hier so aus, dass ein neuer Konstruktor \texttt{TypeVarApp} zum Datentypen \texttt{TypeExpression} hinzugefügt wird. In Listing \ref{lst:typevarapp} ist ein Beispiel zu sehen.
+%Der erste Schritt ist selbsterklärend: Die Syntax um erweitert werden um die Möglichkeit, Typvariablen funktionsähnlich
+%auf weitere Typen anzuwenden. Zu sehen ist das im folgenden Beispiel.
 
+\begin{minted}{haskell}
+test :: Monad m => m a -> (a -> m b) -> m b
+\end{minted}
+
+Das Beispiel zeigt die Signatur der Funktion \texttt{test}, in der die freie Typvariable \texttt{f} auf die Klasse \texttt{Monad}
+eingeschränkt wird. Diese Klasse ist so definiert, dass sie einen Typparameter erwartet, der von der Sorte $* \rightarrow *$ ist,
+folglich also selbst einen Parameter erwartet. Dementsprechend kommt in der Signatur beispielsweise der Ausdruck \texttt{f a} vor,
+d.h. die Typkonstruktorvariable \texttt{f} wird angewandt auf die Typvariable \texttt{a}.
+
+Es ist noch zu beachten, dass eine solche Applikation bei bestimmten Standardtypkonstruktoren bereits vorgesehen ist, diese
+hat mit Typvariablenapplikation aber nichts zu tun. So sind \texttt{[a]} und \texttt{Maybe a} bereits möglich, hier wird aber
+erkannt, dass \texttt{[]} und \texttt{Maybe} keine Typvariablen sondern Standardtypkonstruktoren sind. \todo{nicht sicher}
+
+Um dieser neuen syntaktischen Möglichkeit Rechnung zu tragen, wird die \texttt{BasicSyntax} um den Konstruktor
+\texttt{TypeVarApp} erweitert. Am besten wird das deutlich, wenn man betrachtet, in welchen Ausdruck das obige Beispiel
+in \texttt{BasicSyntax} überführt wird - siehe hierzu Listing \ref{lst:typevarapp}.
+
+\begin{listing}[ht]
 \inputminted[tabsize=2]{haskell}{typevarapp.hs}
+\caption{Beispielsignatur von test in BasicSyntax-Struktur}
+\label{lst:typevarapp}
+\end{listing}
 
-Abgesehen vom offensichtlichen Problem, dass dieser Konstruktor bei der Theoremgenerierung zu Fehlern beim Pattern Matching oder zumindest zu unerwünschtem Verhalten führt,
-ist auch zu beachten, dass die in Abschnitt \ref{sec:check} erwähnte \texttt{check}-Funktion entsprechend angepasst wird.
+Damit ist bereits die einzige benötigte Syntaxänderung eingeführt, da Klassendeklarationen bereits möglich sind. Innerhalb der
+Klassendeklaration muss Variablenapplikation natürlich auch möglich sein. Das ist aber automatisch möglich, da sich die Änderungen
+auf sämtliche Funktionssignaturen erstrecken, unabhängig ob Toplevel-Signaturen oder Signaturen von Klassenfunktionen.
+
+%Da Typvariablenapplikation in \cite{freetheorems} nicht vorgesehen ist, musste ein solches Konstrukt in die BasicSyntax-Struktur eingefügt werden. Hierbei ist zu beachten: Die Applikation
+%von Standardtypkonstruktoren, beispielsweise \texttt{[a]} für Listen, ist sehr wohl vorgesehen und wird in der BasicSyntax durch \texttt{TypeCon} im Datentyp \texttt{TypeExpression} dargestellt. \todo{Wahrscheinlich viel zu speziell} Diese Standardtypkonstruktoren werden in diesem Zusammenhang aber als Sonderfälle betrachtet \ref{sec:freie-theoreme}, um das System wirklich um eigene Typklassen zu erweitern, muss es auch möglich sein, Typkonstruktorvariablen auf Typen anzuwenden.
+%
+%Die Erweiterung der BasicSyntax sieht hier so aus, dass ein neuer Konstruktor \texttt{TypeVarApp} zum Datentypen \texttt{TypeExpression} hinzugefügt wird. In Listing \ref{lst:typevarapp} ist ein Beispiel zu sehen.
+%
+%\inputminted[tabsize=2]{haskell}{typevarapp.hs}
+%
+%Abgesehen vom offensichtlichen Problem, dass dieser Konstruktor bei der Theoremgenerierung zu Fehlern beim Pattern Matching oder zumindest zu unerwünschtem Verhalten führt,
+%ist auch zu beachten, dass die in Abschnitt \ref{sec:check} erwähnte \texttt{check}-Funktion entsprechend angepasst wird.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Erweiterung von Relation}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Da eine neue Relationskonstruktion eingeführt wird, muss auch der entsprechende Datentyp angepasst werden.
+% Da eine neue Relationskonstruktion eingeführt wird, muss auch der entsprechende Datentyp angepasst werden.
+Der abstrakte Syntaxbaum in der \texttt{BasicSyntax}-Struktur wird von der \textit{interpret}-Funktion in eine relationale
+Darstellung überführt. Das folgende Beispiel beinhaltet zur Verdeutlichung ein explizites \texttt{forall}.
+
+\begin{minted}{haskell}
+test :: forall a. a -> a
+\end{minted}
+
+Die Typsignatur dieses Beispiels lässt sich als Relation $\forall \mathcal{R}. \mathcal{R} \rightarrow \mathcal{R}$ auffassen.
+Dabei ist $\forall \mathcal{R}. \mathcal{A}(\mathcal{R})$ so definiert, dass über alle Relationen aller Typmengen allquantifiziert
+wird (vgl. Abschnitt \ref{sec:free-theorems-param}). \todo{richtig so?} So weit ist das Vorgehen bereits bekannt und auch schon
+in \textit{free-theorems} implementiert.
+
+Interessant ist nun, wie es sich verhält, wenn eine solche Typvariable auf Typausdrücke angewandt wird, wie das folgende
+Beispiel zeigt.
+
+\begin{minted}{haskell}
+test :: forall f a. Functor f => f a -> f a
+\end{minted}
+
+Dieses Beispiel wird überführt in $\forall^{\{Functor\}} \mathcal{F} \forall \mathcal{R}. \mathcal{F} \mathcal{R} \rightarrow
+\mathcal{F} \mathcal{R}$, wobei $\mathcal{F}$ \textit{keine} Relation ist. Es handelt sich hierbei, im Gegensatz zu $\mathcal{R}$ aus
+dem ersten Beispiel, um eine Fuktion, die eine Relation auf eine andere Relation abbildet. Es wird hier also auch nicht über
+Relationen allquantifiziert, sondern über entsprechende Funktionen, was bedeutet, dass es sich um eine andere Konstruktion
+handelt als die Allquantifizierung über einfache Typvariablen.
+
+Dieser Argumentation folgend wird ein zusätzlicher Konstruktor eingeführt für die Typkonstruktorabstraktion, der
+\texttt{RelTypeConsAbs} genannt wird. Außerdem wird der Konstruktor \texttt{RelTypeConsApp} eingeführt, der benutzt
+wird, wenn man eine Relationsfunktion auf eine Relation anwendet, im obigen Beispiel also $\mathcal{F} \mathcal{R}$.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
