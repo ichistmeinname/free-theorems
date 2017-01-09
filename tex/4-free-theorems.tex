@@ -274,6 +274,8 @@ Aus der Funktion resultiert also letztendlich ein \texttt{Relation}-Ausdruck, de
 \subsection{Spezialisieren von Relationsvariablen zu Funktionen}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+\label{sec:specialise-relvars}
+
 Der Spezialisierungsschritt ist optional. Wie in den Grundlagen erläutert, kann man jede Funktion auch als Relation auffassen,
 Funktionen sind also spezielle Relationen. Hat man eine allgemeine Aussage über beliebige Relationen, dann trifft dieselbe
 Aussage auch auf alle solche Relationen zu, bei denen es sich um Funktionen handelt - man spezialisiert die Aussage einfach
@@ -284,7 +286,47 @@ bietet \textit{free-theorems} die Funktion \texttt{specialise} an. Diese Funktio
 eine Relationsvariable und transformiert die Intermediate-Struktur, indem sie sämtliche vorkommen der Relationsvariablen
 durch Funktionsvariablen ersetzt.
 
-Die \texttt{asTheorem}-Funktion, die im nächsten Abschnitt erläutert wird, akzeptiert sowohl Relationsvariablen als auch
+Im zweiten Schritt führt sie die \texttt{reduceLifts}-Funktion aus, die versucht geliftete Datentypen zu vereinfachen.
+\todo{besser ausdrücken} Wenn es sich hierbei um eine Funktion handelt, dann wird überprüft, ob es sich beim Typen
+um Listen oder um den spezifischen Typen \texttt{Maybe} handelt. In diesen Fällen wird der Ausdruck ersetzt durch die
+Funktion $map$ bzw. $fmap$, angewandt auf die entsprechende Funktion. Man kann dies als das \textit{Lifting} der Funktion
+in den entsprechenden Kontext auffassen.
+
+Am einfachsten lässt sich das an einem Beispiel zeigen.
+
+\begin{minted}{haskell}
+test :: a -> [a]
+\end{minted}
+
+Man kann leicht nachvollziehen, dass diese Signatur zu folgendem freien Theorem führt.
+
+\begin{align*}
+& \forall T_1, T_2 \in Types, \mathcal{R} : T_1 \Leftrightarrow T_2 \\
+& \forall (x, y) \in \mathcal{R} \\
+& (test_{T1}\ x, test_{T2}\ y) \in lift_{[]}(\mathcal{R})
+\end{align*}
+
+Ersetzt man die Relationsvariablen jetzt durch Funktionensvariablen, ergibt sich die folgende Aussage.
+
+\begin{align*}
+& \forall f : T_1 \rightarrow T_2 \\
+& \forall x \in T_1 \\
+& lift_{[]}(f) (test_{T_1}\ x) = test_{T2} (f\ x)
+\end{align*}
+
+Zu beachten ist hier, dass der letzte Schritt nicht zwingend durchgeführt werden kann. Ein solches Lifting ist nur in besonderen
+Fällen möglich, in diesem Fall entspricht das Lifting der Funktion $f$ in den Listenkontext ganz einfach der Haskell-Funktion
+\texttt{map}. Das Theorem lässt sich also auch wie folgt ausdrücken.
+
+\begin{align*}
+& \forall f : T_1 \rightarrow T_2 \\
+& \forall x \in T_1 \\
+& map\ f\ (test_{T_1}\ x) = test_{T2} (f\ x)
+\end{align*}
+
+Handelt es sich um den Typen \texttt{Maybe}, lässt sich stattdessen $fmap\ f$ verwenden.
+
+Die \texttt{asTheorem}-Funktion, die im nächsten Abschnitt erläutert wird, arbeitet sowohl mit Relationsvariablen als auch mit
 Funktionsvariablen.
 %Ist das Theorem generiert, kann man nun die Funktionsrelation spezialisieren, um das Theorem zu vereinfachen. Aus einem
 %$A : S \leftrightarrow T$ wird also $\forall a : S \rightarrow T$

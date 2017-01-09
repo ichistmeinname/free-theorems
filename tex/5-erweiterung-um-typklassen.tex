@@ -4,8 +4,6 @@
 
 \label{sec:erweiterung-um-typklassen}
 
-% TODO: Hier weiter machen
-
 In den bisherigen Abschnitten wurden die Grundlagen zu freien Theoremen erklärt, es wurde erläutert, wie freie Theoreme
 aussehen, wenn Typkonstruktorklassen eine Rolle spielen, und es wurde ein Einblick in die Bibliothek \textit{free-theorems}
 gegeben. Es sind jetzt alle Werkzeuge vorhanden, um die Bibliothek so zu erweitern, dass auch Klassen möglich sind,
@@ -105,14 +103,22 @@ Dieser Argumentation folgend wird ein zusätzlicher Konstruktor eingeführt für
 \texttt{RelTypeConsAbs} genannt wird. Außerdem wird der Konstruktor \texttt{RelTypeConsApp} eingeführt, der benutzt
 wird, wenn man eine Relationsfunktion auf eine Relation anwendet, im obigen Beispiel also $\mathcal{F} \mathcal{R}$.
 
+Mit diesen Erweiterungen ist es möglich, die hinzukommenden relationalen Strukturen auszudrücken.
+
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Erweiterung von check}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Da in der ursprünglichen Version von free-theorems Typkonstruktorvariablen nicht gestattet waren, konnten einige
-Fehlerüberprüfungen eingespart werden. Erlaubt man Typkonstruktorvariablen, muss man zusätzliche Fehlerfälle abdecken,
-die auftreten können. Betrachten wir das folgende Beispiel:
+%Da in der ursprünglichen Version von free-theorems Typkonstruktorvariablen nicht gestattet waren, konnten einige
+%Fehlerüberprüfungen eingespart werden. Erlaubt man Typkonstruktorvariablen, muss man zusätzliche Fehlerfälle abdecken,
+%die auftreten können. Betrachten wir das folgende Beispiel:
+
+In der ursprünglichen Version von \textit{free-theorems} können Typkonstruktorvariablen nicht verwendet werden. Es wird eine
+Fehlermeldung ausgegeben, sobald eine Typvariable auf eine andere angewandt wird. Gestattet man dies, müssen neu
+entstehende Problemfälle abgedeckt werden.
+
+Das folgende Beispiel zeigt ein solches Problem.
 
 \begin{minted}{haskell}
 test :: Functor f => f a -> f
@@ -148,5 +154,48 @@ das folgende Beispiel legitimer Haksell-Code:
 test :: (SomeClass1 f, SomeClass2 f) => f a -> f b
 \end{minted}
 
-Man muss also zusätzlich sicherstellen, dass alle Klassen, die für die gleichen Variablen angegeben sind, die gleiche Anzahl an
-Parametern erwarten.
+%Man muss also zusätzlich sicherstellen, dass alle Klassen, die für die gleichen Variablen angegeben sind, die gleiche Anzahl an
+%Parametern erwarten.
+
+Es muss also sichergestellt werden, dass alle Klassen, die pro Variable angegeben sind, die gleiche Anzahl an Parametern erwarten.
+Dieses Problem erledigt sich allerdings automatisch, wenn man die rechte Seite auf Fehler überprüft, da im Falle unterschiedlicher
+Aritäten mindestens einer der beiden Ausdrücke \texttt{f a} und \texttt{f b} einen Fehler erzeugen würde.
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Erweiterung von specialise}
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Durch Anwenden der Funktion \textit{specialize} wird die Formel des Theorems teilweise stark vereinfacht, da relationale
+Aussagen der Form $(x, y) \in \mathcal{R}$ in Gleichungen der Form $f\ x = y$ überführt werden. Es wäre wünschenswert,
+diese Vereinfachungen auch für Ausdrücke mit Typkonstruktorvariablen anzuwenden.
+
+In Abschnitt \ref{sec:specialise-relvars} wurde bereits beschrieben, wie \textit{specialise} in \textit{free-theorems} bisher arbeitet.
+Es liegt die Vorgehensweise nahe, die bisherige Methode auch auf beliebige Typkonstruktorvariablen auszuweiten. Hier tritt nur leider
+das Problem auf, dass man keine Informationen über die konkret verwendete Datenstruktur hat. Alles, was bekannt ist, ist die
+verwendete Typklasse, die natürlich die Existenz gewisser Funktionen voraussetzt.
+
+Doch selbst wenn diese Funktionen gegeben sind, kann man keine Aussage darüber treffen, was diese Funktion tun, da Typklassen
+Ad-Hoc-Polymorphismus nutzen: Über die tatsächliche Implementierung ist nichts bekannt. Das heißt: Selbst im Falle, dass
+die Typvariable auf Instanzen der Typklasse \texttt{Functor} eingeschränkt ist, was bedeutet, dass eine Funktion \texttt{fmap}
+existiert, kann man daraus nicht schließen, dass ein Ausdruck der Art $(x, y) \in lift_{Functor}(\mathcal{R})$ auf den Ausdruck
+$fmap\ f\ x = y$ spezialisiert werden könnte.
+
+Eine erste Implementierung sah diesen Ansatz vor, wurde dann aber wieder entfernt.
+% TODO: Was ist, wenn Functor-Gesetze gelten?
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Beispieldurchlauf}
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Um die Funktionsweise der Erweiterungen zu verdeutlichen und einen Einblick in die Änderungen zu geben, wird in diesem Abschnitt
+ein kompletter Durchlauf der erweiterten Bibliothek erläutert, wobei sämtliche Zwischendarstellungen der Daten angegeben werden.
+
+Wir verwenden dabei das Beispiel, das bereits in Abschnitt \ref{sec:typkonstruktorklassen} betrachtet wurde.
+
+\begin{minted}{haskell}
+fmap :: Functor f =>w (a -> b) -> f a -> f b
+\end{minted}
+
+% TODO: Beispieldurchlauf zuende schreiben

@@ -6,6 +6,9 @@ In diesem Abschnitt sollen einige Grundlagen eingeführt werden, die in den folg
 einige Definitionen und Notationen bezüglich Relationen angegeben. Daraufhin wird noch einmal kurz auf Typklassen in Haskell
 eingegangen.
 
+Da diese Arbeit zu großen Teilen auf \cite{freetheorems} aufbaut, werden die dort verwendeten Notationen größtenteils
+weiter verwendet.
+
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Relationen}
@@ -17,6 +20,24 @@ Sie werden verwendet, um Ausdrücke einander zuzuordnen, die durch Polymorphie �
 In diesem Abschnitt werden einige Definitionen und Notationen eingeführt, die wir in späteren Abschnitten verwenden werden,
 um Relationen zu beschreiben. \todo{Quellen}
 
+% % % % % Nicht zwingend drin % % % % %
+
+\todo{Hiervon brauche ich wahrscheinlich nicht viel}
+Ist $X$ eine Menge, dann ist durch $\mathcal{P}(X)$ die Potenzmenge von $X$ gegeben, bei der es sich um die Menge handelt, die
+alle Teilmengen von $X$ beinhaltet.
+
+Eine \textit{gerankte} Menge \todo{Wie soll man ranked übersetzen?} ist ein Paar $(A, rank)$, wobei $A$ eine endliche Menge ist und
+$rank : A \rightarrow \mathbb{N}$ eine Funktion, die jedem Element der Menge einen Rang zuordnet. Man bezeichnet mit
+$A^{(n)}$ die Menge $\{a \in A | rank(a) = n \}$, $n \in \mathbb{N}$.
+
+Sei X eine Menge und $\sqsubseteq_{X}$ eine partielle Ordnung über X. Man nennt eine Funktion $\bar{x} : \mathbb{N} \rightarrow X$
+eine \textit{monotone Sequenz} über $X$, wenn $\bar{x}(i) \sqsubseteq_{X} \bar{x}(i + 1)$ für alle $i \in \mathbb{N}$.
+
+Wenn $\sqsubseteq_{X}$ ein kleinstes Element besitzt, dann ist $\sqsubseteq_{X}$ eine komplette Partialordnung und man nennt $X$
+\textit{geordnet}. Dieses kleinste Element wird typischweise als $\bot_{X}$ bezeichnet.
+
+% % % % %% % % % % % % % % % % %
+
 Eine \textit{binäre Relation} ist auf zwei Mengen definiert, deren Elemente sie einander zuordnet. Die Schreibweise
 $\mathcal{R} : T_1 \Leftrightarrow T_2$ sagt, dass $\mathcal{R}$ eine auf den Mengen $T_1$ und $T_2$ definierte
 Relation ist. Sie ordnet den Elementen der ersten Menge beliebig viele Elemente der zweiten Menge zu. Man kann die Relation
@@ -27,15 +48,45 @@ T_1 \times T_2 \subset \mathcal{R}
 \end{align*}
 
 Die Aussage $(x, y) \in \mathcal{R}$ bedeutet also, dass x und y bezüglich $\mathcal{R}$ verwandt sind. Man schreibt hierfür
-auch gelegentlich $x\ R\ y$. Aus zwei Relationen kann man neue Relationen konstruieren, so liefert beispielsweise die
-Verknüpfung \todo{Verknüpfung?} $;$ von zwei Relationen $\mathcal{R} : T_1 \Leftrightarrow T_2$ und
-$\mathcal{S} : T_2 \Leftrightarrow T_3$ die folgende Relation.
+auch gelegentlich $x\ R\ y$.
+
+% % % % % % % % % % % % % % % %
+
+Sei $\mathcal{R} \in X \times Y$ eine binäre Relation über zwei geordnete Mengen $X$ und $Y$. Man nennt $\mathcal{R}$ \textit{strikt},
+wenn $(\bot, \bot) \in \mathcal{R}$. $\mathcal{R}$ wird \textit{total} genannt, wenn für jedes Paar $(x, y) \in \mathcal{R}$ gilt dass
+aus $y = \bot$ folgt $x = \bot$.
+
+Man nennt $\mathcal{R}$ \textit{bottom-reflecting} \todo{wie soll man das bloß übersetzen?}, wenn sogar für jedes Paar
+$(x, y) \in \mathcal{R}$ gilt: $y = \bot \Leftrightarrow x = \bot$.
+
+Wenn für alle monotonen Sequenzen $\bar{x}$ und $\bar{y}$ über $X$ und $Y$, die $(\bar{x}(i), \bar{y}(i)) \in \mathcal{R}$
+erfüllen, jeweils das Paar der Suprema ($\sqcup{\bar{x}}, \sqcup{\bar{y}})$ \todo{Bessere Notation für Supremum} in $\mathcal{R}$ ist, dann nennt man $\mathcal{R}$ \textit{stetig}. Eine Relation ist \textit{zulässig}, wenn sie strikt und stetig ist.
+
+Sind drei Mengen $X$, $Y$ und $Z$ und zwei binäre Relationen $\mathcal{R} \subset X \times Y$ und $\mathcal{R} \subset Y \times Z$
+gegeben, dann definiert man die \textit{Komposition} von $\mathcal{R}$ und $\mathcal{S}$, geschrieben $\mathcal{R} ; \mathcal{S}$
+wie folgt.
 
 \begin{align*}
-&\mathcal{R} ; \mathcal{S} : T_1 \Leftrightarrow T_3\\
-&\mathcal{R} ; \mathcal{S} := \{ (x, z) | x \in T_1, z \in T_3, \exists y : (x, y) \in \mathcal{R} \wedge (y, z) \in \mathcal{S} \}
+\mathcal{R} ; \mathcal{S} = \{ (x, z) | \exists y \in Y . (x, y) \in \mathcal{R} \and (y, z) \in \mathcal{S} \} \subset X \times Z
 \end{align*}
 
+Sind X und Y Mengen und X ist geordnet, dann nennt man eine Relation $\mathcal{R} \subset X \times Y$ \textit{links-abgeschlossen},
+\todo{Übersetzung?} wenn $\sqsubseteq_{X} ; R = R$.
+
+Das Inverse einer Relation $\mathcal{R} \subseteq X \times Y$ wird definiert als $\mathcal{R}^{-1} = \{(y, x) | (x, y) \in \mathcal{R}\}
+\subseteq Y \times X$. Möchte man $\sqsubseteq^{-1}$ beschreiben, nutzt man zuweilen auch das umgedrehte Symbol $\sqsupseteq$.
+
+Seien $X$ und $Y$ geordnete Mengen. Man nennt eine Funktion $f$ \textit{monoton}, wenn aus $x \sqsubseteq y$ folgt, dass
+$f(x) \sqsubseteq f(y)$ für alle $x, y \in X$.
+
+%Sei $V$ eine endliche Menge und $\mathcal{E}$ eine binäre Relation auf $V$. Das Tupel $G = (V, \mathcal{E}) bezeichnet einen
+%\textit{gerichteten Graphen}. Die Elemente von $V$ nennt man \textit{Vertices}. Die transitive Hülle von $E$ bezeichnet man mit
+%$\mathcal{E}^{+}$. Sei $V_c = \{ v \in V | (v, v) } \in \mathcal{E}^{+} \} die Menge aller Vertizes, die Teil eines Kreises sind.
+%
+%Für je zwei Teilmengen $V_1, V_2 \subseteq V$, bezeichnet die Menge $R(V_1, V_2) = \{ v_2 \in V_2 | \exists v_1 \in V_1. (v_1, v_2) \in
+%\mathcal{E}^{+} \} alle Vertices in $V_2$, die von einem Vertex aus $V_1$ aus erreichbar sind.Wenn $V'$ eine Teilmenge von $V$ ist,
+%dann ist die Menge $V' \backslash R(V \backslash V', V') 
+% % % % % % % % % % % % % % % % %
 
 \subsubsection{Relationen und Funktionen}
 %`````````````````````````````````
@@ -55,7 +106,7 @@ f = \{ (x, f(x)) | x \in T_1 \}
 
 Man nennt die zu $f$ gehörige Relation auch den \textit{Graphen} zu $f$.
 
-Andersrum bedeutet das, dass es Relationen gibt, die man auch als Funktionen auffassen kann. Hat man beispielsweise
+Andererseits bedeutet das, dass es Relationen gibt, die man auch als Funktionen auffassen kann. Hat man beispielsweise
 eine Aussage über beliebige Relationen $\forall \mathcal{R} : T_1 \Leftrightarrow T_2 . A(\mathcal{R})$, wobei A eine
 Aussage ist, die von $\mathcal{R}$ abhängt, dann macht es Sinn, aus dieser Aussage eine speziellere Aussage zu folgern,
 die wie folgt aussieht.
