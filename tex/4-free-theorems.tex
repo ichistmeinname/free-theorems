@@ -427,7 +427,8 @@ Eingabezeichnekette zur resultierenden Ausgabezeichenkette entstehen.
 
 \todo{Grafik}
 
-Wir bemühen wieder unser Beispiel aus der Einleitung:
+Wir bemühen das Beispiel aus dem vorangegangenen Kapitel. Die Typsignatur ist simpel genug,
+um die grundlegende Funktionsweise zu erläutern, ohne die auftretenden Datenstrukturen unnötig kompliziert zu machen.
 
 \begin{minted}{haskell}
 f :: [a] -> [a]
@@ -437,8 +438,38 @@ Im ersten Schritt setzt man einen bereitgestellten Parser ein, um diesen Haskell
 Syntaxbaum \texttt{BasicSyntax} zu parsen. Die \texttt{parse}-Funktion gibt genaugenommen eine Liste von \texttt{Declaration}s, also Deklarationen. Dabei handelt es sich um alle Toplevel-Deklarationen, die eine Rolle spielen, also Funktionssignaturen,
 Datentypdeklarationen und Klassendeklarationen.
 
+%[
+%   (TypeSig
+%      (Signature {
+%         signatureName = (Ident {unpackIdent = "test"}),
+%         signatureType =
+%            (TypeAbs (TV (Ident {unpackIdent = "a"}))
+%               []
+%               (TypeFun
+%                  (TypeVar
+%                     (TV (Ident {unpackIdent = "a"}))
+%                  )
+%                 (TypeVar (TV (Ident {unpackIdent = "a"})))
+%               ))}))
+%]
+
 \begin{minted}{haskell}
-...
+(TypeSig (Signature {
+   signatureName = (Ident "test"),
+   signatureType =
+      (TypeAbs (TV (Ident "a"))
+         []
+         (TypeFun
+            (TypeCon ...
+               [(TypeVar (TV (Ident "a")))]
+            )
+            (TypeCon ...
+               [(TypeVar (TV (Ident "a")))]
+            )
+         )
+      )
+   })
+)
 \end{minted}
 
 Hier wurde die Darstellung ein wenig vereinfacht, um das Verständnis zu erleichtern. Zu beachten ist aber, dass sämtliche
@@ -458,7 +489,7 @@ unter Umständen Theoreme generiert werden können, wenn nur Fehler auftreten, d
 Theorem haben.
 
 \begin{minted}{haskell}
-...
+[(ValidDeclaration (TypeSig ...) False)]
 \end{minted}
 
 An dieser Stelle haben wir eine Liste gültiger Deklarationen, und wir haben eine Liste eventell aufgetretener Fehler. Um nun
@@ -467,4 +498,68 @@ Funktion \texttt{filterTypeSignatures}, um Typsignaturen aus einer Liste von \te
 unserem Beispiel keinen Unterschied macht, weil es lediglich aus einer Typsignatur besteht.
 
 Jetzt können wir \texttt{interpret} verwenden, um zu unserer \texttt{ValidSignature} unter Verwendung der übrigen
-\texttt{Declaration}s die Relationaldarstellung unsereres Datentyps
+\texttt{Declaration}s die Relationaldarstellung unsereres Datentyps zu generieren. Das Ergebnis sieht wie folgt aus.
+
+\begin{minted}{haskell}
+(Intermediate "test" BasicSubset
+   (RelAbs "R" ("t1", "t2")
+      (RelFun
+         (RelLift ("[t1]", "[t2]") ConList (RelVar "R"))
+         (RelLift ("[t1]", "[t2]") ConList (RelVar "R"))
+      )
+   )
+   ...
+)
+\end{minted}
+
+Auch dieses Beispiel ist stark vereinfacht dargestellt, beinhaltet aber die wichtigsten Elemente. Zu beachten ist vor allem,
+dass es sich bei den Tupeln \texttt{("[t1]'', "[t2]'')} nicht wirklich um Tupel von Zeichenketten handelt, tatsächlich sind dies
+\texttt{TypeExpression}s der \texttt{BasicSyntax}-Struktur. Der Einfachheit halber werden diese hier jedoch als Zeichenketten
+dargestellt, da ihre tatsächliche Form im Folgenden auch keine wirkliche Rolle mehr spielt.
+
+Wie man sehen kann, wird alles in den \texttt{Intermediate}-Datentyp eingerahmt. Dieser enthält den Namen des Ausdrucks, d.h.
+den Funktionsnamen, für den die Typsignatur überhaupt angegeben wird. Zudem ist angegeben, welche \textit{Sublanguage}
+verwendet wird. In diesem Fall ist dies \texttt{BasicSubset}; dieser Wert hängt davon ab, wie \texttt{interpret} aufgerufen wurde.
+
+Ansonsten spiegelt die Struktur ziemlich genau den Aufbau der \texttt{TypeSig}-Struktur wider. Zur Erinnerung: An dieser Stelle
+wird die Typsignatur auch lediglich als Konstruktion aus verschiedenen Relationaldarstellungen zusammengesetzt. Wie diese
+im Einzelnen definiert sind, spielt hier noch keine Rolle.
+
+Nun soll der Ausdruck auf Funktionen spezialisiert werden. In den bisherigen Beispielen wurde die Aussage zunächst abgerollt, dann
+wurde ganz am Ende die Aussage spezialisiert. Es spielt für die Korrektheit der Aussage keine Rolle, ob sie zuerst abgerollt wird, oder ob
+zuerst Relationsvariablen auf Funktionsvariablen spezialisiert werden und das Abrollen danach stattfindet.
+
+Es wird also die Funktion \texttt{specialise} aufgerufen, die den Ausdruck folgendermaßen transformiert.
+
+\begin{minted}{haskell}
+(Intermediate "test" BasicSubset 
+   (FunAbs "f" ("t1", "t2")
+      (RelFun
+         (FunVar "map_{t1}_{t2} f")
+         (FunVar "map_{t1}_{t2} f")
+      )
+   )
+   ...
+)
+\end{minted}
+
+Die Struktur \texttt{FunVar} enthält nicht wirklich eine Zeichenkette, sondern vielmehr einen Ausdruck des Typs \texttt{Term},
+mit dem der entsprechende Ausdruck dargestellt wird. Der Punkt ist aber, dass durch \texttt{specialise} die Relationsvariable
+zu einer Funktionsvariable wurde, die dann durch Lift-Reduzierung zum Ausdruck \texttt{map f} vereinfacht wurde (inklusive
+Annotationen für Typinstanziierungen).
+
+An dieser Stelle wird dann \texttt{asTheorem} aufgerufen, die Funktion, die die Aussage abrollt und die Formel des Theorems
+erzeugt. Folgende Struktur wird zurückgegeben.
+
+\begin{minted}{haskell}
+(ForallRelations (RVar "R") ("t1", "t2")
+   (ForallPairs ("x", "y")
+      (RelLift ("[t1]", "[t2]") ConList (RelVar "R"))
+      (Predicate
+         (IsMember "test_{t1} x" "test_{t2} y"
+            (RelLift ("[t1]", "[t2]") ConList (RelVar "R"))))
+   )
+)
+\end{minted}
+
+% TODO: das hier ist die nicht-spezialisierte variante. muss auch noch im code ermoeglicht werden.

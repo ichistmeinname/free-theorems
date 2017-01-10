@@ -182,3 +182,22 @@ Hier ist \texttt{f} die Typvariable. Die Signatur für \texttt{fmap} lässt erke
 wird, also muss \texttt{f} von der Sorte $* \rightarrow *$ sein. Zu beachten ist hier, dass es keinen Sinn macht (und auch nicht
 gestattet ist), dass die Typvariable mit unterschiedlichen Anzahlen an Argumenten auftaucht. Ebenso wäre es ungültig,
 eine Instanz von \texttt{Functor} zu definieren für einen Datentyp, der keine Typparameter erwartet.
+
+Wie nutzt man diese Typklassen, nachdem man sie definiert hat? Man kann für beliebige Typvariablen in Signaturen einen Kontext
+angeben, das heißt man schränkt die Typvariablen auf bestimmte Typklassen ein. Zu sehen ist das im folgenden Beispiel.
+
+\begin{minted}{haskell}
+test :: Functor f => f Int -> f Int
+\end{minted}
+
+Hier ist \texttt{f} eine freie Typvariable, für die jedoch ein Kontext angegeben ist, der besagt, dass sie auf Instanzen
+der Typklasse \texttt{Functor} beschränkt ist. Für die Implementierung heißt das, dass Funktionen auf die entsprechenden
+Parameter angewandt werden können, die für die Typklasse \texttt{Functor} definiert sind. Das folgende Beispiel ist also
+eine mögliche Implementierung des obigen Beispiels.
+
+\begin{minted}{haskell}
+test x = fmap (+1) x
+\end{minted}
+
+Haskell erkennt, dass \texttt{x} ein Typ sein muss, für den eine \texttt{Functor}-Instanz deklariert ist, weshalb eine
+\texttt{fmap}-Implementierung existiert.

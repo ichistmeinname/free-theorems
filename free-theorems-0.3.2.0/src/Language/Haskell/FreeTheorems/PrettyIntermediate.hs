@@ -8,6 +8,7 @@ module Language.Haskell.FreeTheorems.PrettyIntermediate where
 
 import Text.PrettyPrint
 
+import Language.Haskell.FreeTheorems.BasicSyntax
 import Language.Haskell.FreeTheorems.Intermediate
 import Language.Haskell.FreeTheorems.PrettyBase
 import Language.Haskell.FreeTheorems.LanguageSubsets
@@ -23,20 +24,39 @@ instance Show Intermediate where
         SubsetWithFix _ -> "SubsetWithFix"
         SubsetWithSeq _ -> "SubsetWithSeq"
 
-      getRelStr (RelVar _ (RVar s)) = "(RelVar " ++ s ++ ")"
-      getRelStr (FunVar _ term) = "(FunVar " ++ (prettyTerm . fromEither $ term) ++ ")"
-      getRelStr (RelBasic _) = "RelBasic"
-      getRelStr (RelLift ri tc rels) = "(RelLift {" ++ (show $ relationLeftType ri) ++ "," ++ (show $ relationRightType ri) ++ "} TC " ++ (unwords $ map getRelStr rels) ++ ")"
-      getRelStr (RelFun _ r1 r2) = "(RelFun " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
-      getRelStr (RelFunLab _ r1 r2) = "(RelFunLab " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
-      getRelStr (RelAbs _ (RVar rv) (t1, t2) _ rel) = "(RelAbs \"" ++ rv ++ "\" (" ++ (show t1) ++ ", " ++ (show t2) ++ ") " ++ (getRelStr rel) ++ ")"
-      getRelStr (RelTypeConsAbs _ _ (t1, t2) _ rel) = "(RelTypeConsAbs (" ++ (show t1) ++ ", " ++ (show t2) ++ ") " ++ (getRelStr rel) ++ ")"
-      getRelStr (RelTypeConsApp ri (RVar rv) rel) = "(RelTypeConsApp {" ++ (show $ relationLeftType ri) ++ "," ++ (show $ relationRightType ri) ++ "} \"" ++ rv ++ "\" " ++ (getRelStr rel) ++ ")"
-      getRelStr (FunAbs _ _ (t1, t2) res rel) = "(FunAbs (" ++ (show t1) ++ ", " ++ (show t2) ++ ") " ++ (getRelStr rel) ++ ")"
+instance Show Relation where
+  show = getRelStr
 
-      fromEither :: Either a a -> a
-      fromEither (Left x) = x
-      fromEither (Right x) = x
+instance Show Term where
+  show = prettyTerm
+
+getRelStr :: Relation -> String
+getRelStr (RelVar _ (RVar s)) = "(RelVar \"" ++ s ++ "\")"
+getRelStr (FunVar _ term) = "(FunVar \"" ++ (prettyTerm . fromEither $ term) ++ "\")"
+getRelStr (RelBasic _) = "RelBasic"
+getRelStr (RelLift ri tc rels) = "(RelLift (\"" ++ (show $ relationLeftType ri) ++ "\", \"" ++ (show $ relationRightType ri) ++ "\") " ++ getTypeConsStr tc ++ " " ++ (unwords $ map getRelStr rels) ++ ")"
+getRelStr (RelFun _ r1 r2) = "(RelFun " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
+getRelStr (RelFunLab _ r1 r2) = "(RelFunLab " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
+getRelStr (RelAbs _ (RVar rv) (t1, t2) _ rel) = "(RelAbs \"" ++ rv ++ "\" (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
+getRelStr (RelTypeConsAbs _ _ (t1, t2) _ rel) = "(RelTypeConsAbs (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
+getRelStr (RelTypeConsApp ri (RVar rv) rel) = "(RelTypeConsApp (\"" ++ (show $ relationLeftType ri) ++ "\", \"" ++ (show $ relationRightType ri) ++ "\") \"" ++ rv ++ "\" " ++ (getRelStr rel) ++ ")"
+getRelStr (FunAbs _ n (t1, t2) res rel) = let (TVar v) = fromEither n
+                                           in "(FunAbs \"" ++ v ++ "\" (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
+
+fromEither :: Either a a -> a
+fromEither = either id id
+
+getTypeConsStr :: TypeConstructor -> String
+getTypeConsStr ConUnit            = "ConUnit"
+getTypeConsStr ConList            = "ConList"
+getTypeConsStr (ConTuple i)       = "(ConTuple " ++ show i ++ ")"
+getTypeConsStr ConInt             = "ConInt"
+getTypeConsStr ConInteger         = "ConInteger"
+getTypeConsStr ConFloat           = "ConFloat"
+getTypeConsStr ConDouble          = "ConDouble"
+getTypeConsStr ConChar            = "ConChar"
+getTypeConsStr (Con (Ident i))    = "(Con (Ident " ++ i ++ "))"
+getTypeConsStr (ConVar (Ident i)) = "(ConVar (Ident " ++ i ++ "))"
 
 prettyTerm :: Term -> String
 prettyTerm (TermVar (TVar s)) = s

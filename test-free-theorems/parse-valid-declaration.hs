@@ -20,6 +20,7 @@ describeValDecl d = "(ValidDeclaration " ++
 describeDecl :: Declaration -> String
 describeDecl (TypeDecl _) = "TypeDeclaration"
 describeDecl (ClassDecl cl) = "(ClassDecl " ++ describeClass cl ++ ")"
+describeDecl (TypeSig sig) = "(TypeSig " ++ describeSignature sig ++ ")"
 describeDecl _ = "Unknown"
 
 describeClass :: ClassDeclaration -> String

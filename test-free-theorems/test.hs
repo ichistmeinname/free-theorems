@@ -5,6 +5,7 @@ import Language.Haskell.FreeTheorems.BasicSyntax
 import Control.Monad(when)
 import Control.Monad.Writer(Writer, runWriter, writer)
 import Text.PrettyPrint.HughesPJ
+import Data.List(intercalate)
 
 import KnownDeclarations
 
@@ -23,6 +24,67 @@ hello :: (Functor f, TestClass f) => f a -> f a
 hello = undefined
 
 teststr :: String
+
+describeFormula :: Formula -> String
+describeFormula (ForallRelations (RVar rv) (t1, t2) rss f)
+   = "(ForallRelations (RVar \"" ++ rv ++ "\") (\"" ++ (show t1) ++ "\", \"" ++ show t2 ++ "\")"
+     ++ (intercalate "," $ map describeRestriction rss) ++ " " ++ describeFormula f ++ ")"
+      -- ^ Quantifies a relation variable and two type expressions.
+
+describeFormula (ForallFunctions tv (t1, t2) rss f)
+   = "(ForallFunctions tv (t1, t2) rss f)"
+      -- ^ Quantifies a function variable and two type expressions.
+
+describeFormula (ForallTypeConstructors rv (t1, t2) rss f)
+   = "(ForallTypeConstructors rv (t1, t2) rss f)"
+
+describeFormula (ForallPairs ((TVar t1), (TVar t2)) rel f)
+   = "(ForallPairs (\"" ++ t1 ++ "\", \"" ++ t2 ++ "\") " ++ (show rel) ++ " " ++ describeFormula f ++ ")"
+
+describeFormula (ForallVariables tv te f)
+   = "(ForallVariables tv te f)"
+
+
+describeFormula (Equivalence f1 f2)
+   = "(Equivalence " ++ describeFormula f1 ++ " " ++ describeFormula f2 ++ ")"
+
+describeFormula (Implication f1 f2)
+   = "(Implication " ++ describeFormula f1 ++ " " ++ describeFormula f2 ++ ")"
+
+describeFormula (Conjunction f1 f2)
+   = "(Conjunction " ++ describeFormula f1 ++ " " ++ describeFormula f2 ++ ")"
+
+describeFormula (Predicate predi)
+   = "(Predicate " ++ describePredicate predi ++ ")"
+
+
+describeRestriction :: Restriction -> String
+describeRestriction Strict           = "Strict"
+describeRestriction Continuous       = "Continuous"
+describeRestriction Total            = "Total"
+describeRestriction BottomReflecting = "BottomReflecting"
+describeRestriction LeftClosed       = "LeftClosed"
+describeRestriction (RespectsClasses classes) = (intercalate ", ") . (map describeRespectsClass) $ classes
+
+describeRespectsClass :: TypeClass -> String
+describeRespectsClass (TC (Ident i)) = "(TC (Ident " ++ i ++ "))"
+
+describePredicate :: Predicate -> String
+describePredicate (IsMember t1 t2 rel)
+   = "(IsMember \"" ++ show t1 ++ "\" \"" ++ show t2 ++ "\" " ++ show rel ++ ")"
+
+describePredicate (IsEqual t1 t2)
+   = "(IsEqual \"" ++ show t1 ++ "\" \"" ++ show t2 ++ "\")"
+
+describePredicate (IsLessEq t1 t2)
+  = "(IsLessEq \"" ++ show t1 ++ "\" \"" ++ show t2 ++ "\")"
+
+describePredicate (IsNotBot t)
+  = "(IsNotBot \"" ++ show t ++ "\")"
+
+describePredicate IsTrue
+  = "IsTrue"
+
 
 --teststr = "class Serializable a where\n\
 --  \serialize :: a -> String\n\n\
@@ -68,14 +130,18 @@ mainLoop = do
                          else case interpret valdecls BasicSubset (head sigs) of
                            Nothing     -> return ()
                            (Just intm) -> do
+                             let specIntm = specializeIntermediate intm
                              putStrLn "\nInput:"
                              putStrLn s
                              putStrLn "\nIntermediate representation:"
-                             putStrLn (show intm)
+                             putStrLn $ show intm
+                             putStrLn "\nTheorem (formula structure):"
+                             putStrLn $ (describeFormula . simplify . asTheorem) intm
                              putStrLn "\nTheorem:"
                              putStrLn $ show (prettyTheorem [] $ (simplify . asTheorem) intm)
+                             putStrLn "\nSpecialized intermediate:"
+                             putStrLn $ show specIntm
                              putStrLn "\nSpecialized:"
-                             let specIntm = specializeIntermediate intm
                              putStrLn $ show (prettyTheorem [] $ (simplify . asTheorem) specIntm)
                              putStrLn "\nUnfolded lifts:"
                              let unflifts = unfoldLifts allDecls intm
