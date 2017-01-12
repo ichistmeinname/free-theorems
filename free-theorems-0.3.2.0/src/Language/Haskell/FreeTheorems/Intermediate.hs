@@ -197,11 +197,19 @@ interpretM l t = case t of
     -- (thr) TODO: The following lines should be moved to a function
     -- TODO: also, doesn't work with Monad m => m (a -> b)
     (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
-    let (TypeExp (TF (Ident t1))) = relationLeftType ri
-    let (TypeExp (TF (Ident t2))) = relationRightType ri
-    let (TypeExp (TF (Ident t1'))) = relationLeftType (relationInfo r)
-    let (TypeExp (TF (Ident t2'))) = relationRightType (relationInfo r)
-    let newreli = (RelationInfo l (TypeExp (TF (Ident (t1 ++ " " ++ t1'))))) (TypeExp (TF (Ident (t2 ++ " " ++ t2'))))
+    let t1 = relationLeftType ri
+    let t2 = relationRightType ri
+    let t1' = relationLeftType (relationInfo r)
+    let t2' = relationRightType (relationInfo r)
+--    let (TypeExp (TF (Ident t1))) = relationLeftType ri
+--    let (TypeExp (TF (Ident t2))) = relationRightType ri
+--    let (TypeExp (TF (Ident t1'))) = relationLeftType (relationInfo r)
+--    let (TypeExp (TF (Ident t2'))) = relationRightType (relationInfo r)
+--    let newt1 = TypeExp (TF (Ident (t1 ++ " " ++ t1')))
+--    let newt2 = TypeExp (TF (Ident (t2 ++ " " ++ t2')))
+    let newt1 = TypeVarApp (TV (Ident "GLUKU1")) [t1']
+    let newt2 = TypeVarApp (TV (Ident "GLUKU2")) [t2']
+    let newreli = RelationInfo l newt1 newt2
 
     let (RVar i) = rv
     return (RelTypeConsApp newreli rv r)
@@ -328,6 +336,7 @@ relationVariables (Intermediate _ _ rel _ _ _ _) = getRVar True rel
 -- | Specialises a relation variable to a function variable in an intermediate
 --   structure.
 
+-- TODO: (thr) replaceRelVar: should RelVarApp (?) be replaced?
 specialise :: Intermediate -> RelationVariable -> Intermediate
 specialise ir rv = reduceLifts (replaceRelVar ir rv Left)
 
@@ -427,10 +436,13 @@ reduceLifts ir =
       RelAbs ri rv ts res r -> RelAbs ri rv ts res (re ok r)
       FunAbs ri fv ts res r -> FunAbs ri fv ts res (re ok r)
       RelTypeConsAbs ri rv ts res rel -> RelTypeConsAbs ri rv ts res (re ok rel)
-      RelTypeConsApp ri rv rel' -> if ok
+--      RelTypeConsApp ri (RVar rv) rel' ->
+      --if ok
 --                                    then reduceTypeConApp ri (re ok rel')
-                                    then reduce (RelLift ri (ConVar (Ident"?")) [(re ok rel')])
-                                    else rel
+
+                                    -- TODO: cannot reduce (see thesis)
+--                                    then reduce (RelLift ri (ConVar (Ident rv)) [(re ok rel')])
+--                                    else rel
       otherwise             -> rel
 
     mk' ok ri r = case theoremType (relationLanguageSubset ri) of
