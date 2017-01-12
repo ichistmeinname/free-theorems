@@ -3,11 +3,13 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 In diesem Abschnitt sollen einige Grundlagen eingeführt werden, die in den folgenden Kapiteln von Bedeutung sind. Zunächst werden
-einige Definitionen und Notationen bezüglich Relationen angegeben. Daraufhin wird noch einmal kurz auf Typklassen in Haskell
-eingegangen.
+einige mathematische Definitionen und Notationen angegeben, die zum großen Teil Relationen betreffen.
+Daraufhin wird noch einmal kurz auf Typklassen in Haskell eingegangen.
 
-Da diese Arbeit zu großen Teilen auf \cite{freetheorems} aufbaut, werden die dort verwendeten Notationen größtenteils
-weiter verwendet.
+%Da diese Arbeit zu großen Teilen auf \cite{freetheorems} aufbaut, werden die dort verwendeten Notationen größtenteils
+%weiter verwendet.
+Die Notationen, die hier eingeführt werden, bauen größtenteils auf \cite{freetheorems} auf, da die dort beschriebene Bibliothek
+die Grundlage für die vorliegende Arbeit darstellt.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -16,39 +18,42 @@ weiter verwendet.
 
 Die mathematische Grundlage und das wichtigste Werkzeug beim Erzeugen von freien Theoremen sind Relationen.
 
-Sie werden verwendet, um Ausdrücke einander zuzuordnen, die durch Polymorphie ähnlich oder ``austauschbar'' sind.
-In diesem Abschnitt werden einige Definitionen und Notationen eingeführt, die wir in späteren Abschnitten verwenden werden,
-um Relationen zu beschreiben. \todo{Quellen}
+Sie werden im Zusammenhang mit freien Theoremen verwendet, um Ausdrücke einander zuzuordnen, die durch Polymorphie einander
+ähnlich bzw. ``austauschbar'' sind.
+In diesem Abschnitt werden einige Definitionen und Notationen eingeführt, die in späteren Abschnitten Verwendung finden werden,
+um Relationen zu beschreiben und mit diesen zu arbeiten. \todo{Quellen?}
 
 % % % % % Nicht zwingend drin % % % % %
 
-\todo{Hiervon brauche ich wahrscheinlich nicht viel}
-Ist $X$ eine Menge, dann ist durch $\mathcal{P}(X)$ die Potenzmenge von $X$ gegeben, bei der es sich um die Menge handelt, die
-alle Teilmengen von $X$ beinhaltet.
+\todo{Hiervon brauche ich wahrscheinlich nicht alles}
+Zunächst werden die grundlegenden Notationen behandelt. Ist $X$ eine Menge, dann ist durch $\mathcal{P}(X)$ die Potenzmenge von $X$ gegeben, bei der es sich um die Menge handelt, die alle Teilmengen von $X$ beinhaltet.
 
-Eine \textit{gerankte} Menge \todo{Wie soll man ranked übersetzen?} ist ein Paar $(A, rank)$, wobei $A$ eine endliche Menge ist und
-$rank : A \rightarrow \mathbb{N}$ eine Funktion, die jedem Element der Menge einen Rang zuordnet. Man bezeichnet mit
-$A^{(n)}$ die Menge $\{a \in A | rank(a) = n \}$, $n \in \mathbb{N}$.
+%Eine \textit{gerankte} Menge \todo{Wie soll man ranked übersetzen?} ist ein Paar $(A, rank)$, wobei $A$ eine endliche Menge ist und
+%$rank : A \rightarrow \mathbb{N}$ eine Funktion, die jedem Element der Menge einen Rang zuordnet. Man bezeichnet mit
+%$A^{(n)}$ die Menge $\{a \in A | rank(a) = n \}$, $n \in \mathbb{N}$.
 
 Sei X eine Menge und $\sqsubseteq_{X}$ eine partielle Ordnung über X. Man nennt eine Funktion $\bar{x} : \mathbb{N} \rightarrow X$
 eine \textit{monotone Sequenz} über $X$, wenn $\bar{x}(i) \sqsubseteq_{X} \bar{x}(i + 1)$ für alle $i \in \mathbb{N}$.
 
 Wenn $\sqsubseteq_{X}$ ein kleinstes Element besitzt, dann ist $\sqsubseteq_{X}$ eine komplette Partialordnung und man nennt $X$
-\textit{geordnet}. Dieses kleinste Element wird typischweise als $\bot_{X}$ bezeichnet.
+\textit{geordnet}. Dieses kleinste Element wird typischweise als $\bot_{X}$ (\textit{bottom}) bezeichnet.
 
 % % % % %% % % % % % % % % % % %
 
 Eine \textit{binäre Relation} ist auf zwei Mengen definiert, deren Elemente sie einander zuordnet. Die Schreibweise
 $\mathcal{R} : T_1 \Leftrightarrow T_2$ sagt, dass $\mathcal{R}$ eine auf den Mengen $T_1$ und $T_2$ definierte
-Relation ist. Sie ordnet den Elementen der ersten Menge beliebig viele Elemente der zweiten Menge zu. Man kann die Relation
-auffassen als eine Menge von Paaren, wobei jedes Paar aus einem Element aus $T_1$ und einem Element aus $T_2$ besteht.
+Relation ist. Man kann die Relation auffassen als eine Menge von Paaren, wobei jedes Paar aus einem Element aus $T_1$ und einem
+Element aus $T_2$ besteht.
+%Sie ordnet den Elementen der ersten Menge beliebig viele Elemente der zweiten Menge zu. Man kann die Relation
+%auffassen als eine Menge von Paaren, wobei jedes Paar aus einem Element aus $T_1$ und einem Element aus $T_2$ besteht.
 
 \begin{align*}
 T_1 \times T_2 \subset \mathcal{R}
 \end{align*}
 
 Die Aussage $(x, y) \in \mathcal{R}$ bedeutet also, dass x und y bezüglich $\mathcal{R}$ verwandt sind. Man schreibt hierfür
-auch gelegentlich $x\ R\ y$.
+auch gelegentlich $x\ R\ y$. Anders ausgedrückt ordnet eine Relation jedem Element aus der ersten Menge beliebig viele Elemente
+aus der zweiten Menge zu.
 
 % % % % % % % % % % % % % % % %
 
@@ -70,7 +75,7 @@ wie folgt.
 \mathcal{R} ; \mathcal{S} = \{ (x, z) | \exists y \in Y . (x, y) \in \mathcal{R} \and (y, z) \in \mathcal{S} \} \subset X \times Z
 \end{align*}
 
-Sind X und Y Mengen und X ist geordnet, dann nennt man eine Relation $\mathcal{R} \subset X \times Y$ \textit{links-abgeschlossen},
+Ist Y eine Menge und X eine geordnete Menge, dann nennt man eine Relation $\mathcal{R} \subset X \times Y$ \textit{links-abgeschlossen},
 \todo{Übersetzung?} wenn $\sqsubseteq_{X} ; R = R$.
 
 Das Inverse einer Relation $\mathcal{R} \subseteq X \times Y$ wird definiert als $\mathcal{R}^{-1} = \{(y, x) | (x, y) \in \mathcal{R}\}
@@ -88,17 +93,17 @@ $f(x) \sqsubseteq f(y)$ für alle $x, y \in X$.
 %dann ist die Menge $V' \backslash R(V \backslash V', V') 
 % % % % % % % % % % % % % % % % %
 
-\subsubsection{Relationen und Funktionen}
+%\subsubsection{Relationen und Funktionen}
 %`````````````````````````````````
 
 Wie bereits erwähnt, ordnet eine Relation einem Element ein einzelnes Element, mehrere Elemente oder gar keine Elemente zu.
 Das unterscheidet sie von einer Funktion, oder besser: Das macht Funktionen zu speziellen Relationen. Eine
-Funktion ist auch auf zwei Mengen definiert, doch sie ordnet jedem Element genau ein Ergebnis zu - Eingabewerte mit
+Funktion, ebenfalls auf zwei Mengen definiert, ordnet jedem Element genau ein Ergebnis zu - Eingabewerte mit
 mehreren Funktionswerten sind genausowenig enthalten wie Eingabewerte ohne Ergebnis.
 
 Betrachten wir eine beliebige Funktion $f : T_1 \rightarrow T_2$, d.h. eine Funktion, die Elemente der Menge $T_1$ auf
 Elemente der Menge $T_2$ abbildet. Zu jedem $x \in T_1$ ist also $f(x)$ definiert, wobei $f(x) \in T_2$. Funktionen kann
-man aber auch als Relationen darstellen.
+man auch als Relationen darstellen.
 
 \begin{align*}
 f = \{ (x, f(x)) | x \in T_1 \}
@@ -108,14 +113,14 @@ Man nennt die zu $f$ gehörige Relation auch den \textit{Graphen} zu $f$.
 
 Andererseits bedeutet das, dass es Relationen gibt, die man auch als Funktionen auffassen kann. Hat man beispielsweise
 eine Aussage über beliebige Relationen $\forall \mathcal{R} : T_1 \Leftrightarrow T_2 . A(\mathcal{R})$, wobei A eine
-Aussage ist, die von $\mathcal{R}$ abhängt, dann macht es Sinn, aus dieser Aussage eine speziellere Aussage zu folgern,
+Aussage ist, die von $\mathcal{R}$ abhängig ist, dann macht es Sinn, aus dieser Aussage eine speziellere Aussage zu folgern,
 die wie folgt aussieht.
 
 \begin{align*}
 \forall f : T_1 \rightarrow T_2 . A'(f)
 \end{align*}
 
-Hierbei soll A'(f) die auf Funktionen spezialisierte Aussage sein. Aus jeder Aussage über beliebige Relationen folgt also eine
+Hierbei ist A'(f) die auf Funktionen spezialisierte Aussage. Aus jeder Aussage über beliebige Relationen folgt also eine
 Aussage über entsprechende Funktionen. Dies ist für freie Theoreme von Bedeutung, da man sich vor allem für eine vereinfachte
 Darstellung mit Funktionen interessiert.
 
@@ -124,14 +129,42 @@ Darstellung mit Funktionen interessiert.
 \subsection{Haskell}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Die in dieser Ausarbeitung verwendete Bibliothek generiert freie Theoreme für in Haskell geschriebene Programme. Der Fokus
-liegt dabei auf der Erweiterung um Typkonstruktorklassen, weshalb in diesem Abschnitt kurz darauf eingegangen werden soll,
-wie genau eine solche Klasse in Haskell definiert wird. Ansonsten wird davon ausgegangen, dass grundsätzliche Kenntnisse der
-Programmiersprache vorhanden sind, andernfalls sei an dieser Stelle auf \cite{haskell} verwiesen.
+Die in dieser Ausarbeitung verwendete Bibliothek generiert freie Theoreme für in Haskell geschriebene Programme. Grundsätzliche
+Kenntnisse der Programmiersprache Haskell werden in dieser Arbeit vorausgesetzt. In diesem Abschnitt wird noch einmal
+speziell auf das Sprachkonstrukt der Typkonstruktorklassen eingegangen, da der Fokus dieser Arbeit darauf liegt, deren Verwendung
+auch in der Bibliothek zu ermöglichen.
+Eine generelle Beschreibung der Sprache Haskell würde an dieser Stelle aber zu weit führen, hier sei auf \cite{haskell} verwiesen.
+\todo{verweis auf haskell}
 
-Typklassen in Haskell setzen Ad-Hoc-Polyphormismus um und können beliebig definiert werden. Eine Typklasse besteht aus
-einem Namen, beliebig vielen Funktionssignaturen und gegebenenfalls aus vordefinierten Implementierungen einzelner
-Funktionen. Es folgt ein einfaches Beispiel, das auch in der Prelude von Haskell enthalten ist \todo{ist es?}.
+
+%%% SO ZIEMLICH 1:1 AUS WADLER ÜBERNOMMEN %%%
+Haskell basiert auf dem Hindley/Milner Typsystem, in dem Typen nicht explizit angegeben werden müssen, sondern der allgemeinste
+Typ automatisch anhand der Definition inferiert werden kann \cite{wadler}. In dieser Arbeit wird, wie auch in \cite{wadler}, das
+Girard/Reynolds System verwendet, in dem die explizite Angabe von Typen gebundener Funktionsvariablen gefordert ist und
+Typapplikation bei polymorphen Typen explizit angezeigt werden muss \cite{wadler}.
+
+Da jedes Programm im Hindley/Milner System automatisch in das Giraard/Reynolds System überführt werden kann, entstehen hier
+keine Probleme.
+
+%%%
+
+
+
+%Der Fokus
+%liegt dabei auf der Erweiterung um Typkonstruktorklassen, weshalb in diesem Abschnitt kurz darauf eingegangen werden soll,
+%wie genau eine solche Klasse in Haskell definiert wird. Ansonsten wird davon ausgegangen, dass grundsätzliche Kenntnisse der
+%Programmiersprache vorhanden sind, andernfalls sei an dieser Stelle auf \cite{haskell} verwiesen.
+
+Typklassen in Haskell ermöglichen die Umsetzung von Ad-Hoc-Polymorphismus. Man kann beliebige Typklassen selbst definieren,
+wobei eine Typklasse immer aus einem Namen, beliebig vielen Funktionssignaturen und gegebenenflls auch aus vordefinierten
+Standardimplementierungen einzelner Funktionen besteht. Haskell transformiert Programme mit Typklassen intern in Programme
+ohne dieses Konstrukt.
+
+Es folgt ein einfaches Beispiel, das auch in der Prelude\footnote{Die Prelude ist Haskells Standardbibliothek und wird automatisch importiert \cite{haskell}} von Haskell enthalten ist.
+
+%Typklassen in Haskell setzen Ad-Hoc-Polyphormismus um und können beliebig definiert werden. Eine Typklasse besteht aus
+%einem Namen, beliebig vielen Funktionssignaturen und gegebenenfalls aus vordefinierten Implementierungen einzelner
+%Funktionen. Es folgt ein einfaches Beispiel, das auch in der Prelude von Haskell enthalten ist \todo{ist es?}.
 
 \begin{minted}{haskell}
 class Show a where
@@ -149,7 +182,7 @@ Quellcode zeigt ein Beispiel für einen selbstdefinierten Datentyp.
 data Test = Test Int String
 
 instance Show Test where
-   show (Test _ s) = s
+   show (Test _ s) = "Test " ++ s
 \end{minted}
 
 Kommt nun im Programm in einem Ausdruck der Funktionsaufruf \texttt{show} vor, so wird anhand des Parametertypen

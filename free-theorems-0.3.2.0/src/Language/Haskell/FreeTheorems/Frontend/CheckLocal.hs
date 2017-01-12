@@ -127,8 +127,6 @@ checkTypeDecl d =
 --   * The name of the class does not occur in a type expression of any class
 --     method.
 --   * No fixed type expression occurs in a type expression of any class method.
---   * (thr) TODO: check if all occurences of the type variable share the same
---                 number of parameters
 
 checkClassDecl :: ClassDeclaration -> ErrorOr ()
 checkClassDecl d =
@@ -310,22 +308,11 @@ checkClassDeclNotRecursive ident sigs =
 
 -- | (thr) Checks that every occurence of the class' type variable parameter
 --         is applied to the same amount of parameters.
--- TODO: works, but shouldn't this be a global check for every type signature?
---       similar to checkArity in CheckGlobal - maybe even extend that function?
+
 checkClassVarParamCount :: ClassDeclaration -> ErrorOr ()
 checkClassVarParamCount cd = errorIf (isNothing . getClassArity $ cd)
   (pp $ "Different occurences of type constructor " ++
-      "variable ?? with different arities.")
---  let checkTypeVarApp
-  --collect t = case t of
-      --                    (TypeVarApp tv' _) | tv' == tv -> [t]
-      --                    otherwise                      -> []
-      -- appls = everything (++) (mkQ [] collect) $ sigs
-      -- appls' = nubBy typeAppsArityEquals appls
-      -- typeAppsArityEquals (TypeVarApp _ t1) (TypeVarApp _ t2) = length t1 == length t2
-      -- (TV (Ident i)) = tv
---   in errorIf (length appls' > 1) (pp $ "Different occurences of type constructor " ++
---                                        "variable " ++  i ++ " with different arities.")
+      "variable ?? with different arities.") -- TODO: give additional error details
 
 
 -- | Checks that no FixedTypeExpression occurs in the given list of named

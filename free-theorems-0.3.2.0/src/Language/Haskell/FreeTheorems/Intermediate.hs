@@ -165,21 +165,19 @@ interpretM l t = case t of
     liftM2 (RelFunLab ri) (interpretM l t1) (interpretM l t2)
 
     -- create a relation for type abstractions
-  TypeAbs v cs t' -> do
+  TypeAbs v@(TV i) cs t' -> do
     -- (thr) check if variable is used as type constructor. When this is
     --       the case, use RelTypeConsAbs instead of RelAbs.
-    -- (thr) TODO: right now it only checks if the variable is applied somewhere
-    --             in the declaration - instead it should check how much parmeters
-    --             are expected.
-    ri <- mkRelationInfo l t                    -- create the relation info
-    let (TV i) = v -- TODO: probably pretty ugly
-    (rv, t1, t2) <- lift $ if (isTypeConstructor i t') then newTypeConstRelationVariable
-                                                       else newRelationVariable -- create a new variable
+    ri <- mkRelationInfo l t
+    (rv, t1, t2) <- lift $ if (isUsedAsTypeConstructor i t')
+                              then newTypeConstRelationVariable
+                              else newRelationVariable -- create a new variable
+
     let rvar = RelVar (RelationInfo l t1 t2) rv
     r  <- local (Map.insert v rvar) $ interpretM l t'  -- subrelations
     let res = relRes l ++ (if null cs then [] else [RespectsClasses cs])
-    return $ if (isTypeConstructor i t') then (RelTypeConsAbs ri rv (t1,t2) res r)
-                                         else (RelAbs ri rv (t1,t2) res r)
+    return $ if (isUsedAsTypeConstructor i t') then (RelTypeConsAbs ri rv (t1,t2) res r)
+                                               else (RelAbs ri rv (t1,t2) res r)
 
     -- create a second relation for type abstractions (used only for language
     -- subset with seq and the equational setting
@@ -197,6 +195,7 @@ interpretM l t = case t of
     (RelVar ri rv) <- maybeToMonad (Map.lookup v env)
 
     -- (thr) TODO: The following lines should be moved to a function
+    -- TODO: also, doesn't work with Monad m => m (a -> b)
     (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
     let (TypeExp (TF (Ident t1))) = relationLeftType ri
     let (TypeExp (TF (Ident t2))) = relationRightType ri
@@ -271,19 +270,18 @@ initialState ns =
 -- | (thr) Checks if the given type variable is applied to arguments, which
 --   makes it a type constructor variable.
 
-isTypeConstructor :: Identifier -> TypeExpression -> Bool
-isTypeConstructor i t = case t of
+isUsedAsTypeConstructor :: Identifier -> TypeExpression -> Bool
+isUsedAsTypeConstructor i t = case t of
     (TypeVarApp (TV i') ts) -> (i == i') || isListTypeCons ts
     (TypeVar (TV i')) -> False
     (TypeCon _ ts) -> isListTypeCons ts
-    (TypeFun t1 t2) -> (isTypeConstructor i t1) || (isTypeConstructor i t2)
-    (TypeFunLab t1 t2) -> (isTypeConstructor i t1) || (isTypeConstructor i t2)
-    (TypeAbs (TV i') _ t) -> (i /= i') && isTypeConstructor i t
-    (TypeAbsLab (TV i') _ t) -> (i /= i') && isTypeConstructor i t
+    (TypeFun t1 t2) -> isUsedAsTypeConstructor i t1 || isUsedAsTypeConstructor i t2
+    (TypeFunLab t1 t2) -> isUsedAsTypeConstructor i t1 || isUsedAsTypeConstructor i t2
+    (TypeAbs (TV i') _ t) -> (i /= i') && isUsedAsTypeConstructor i t
+    (TypeAbsLab (TV i') _ t) -> (i /= i') && isUsedAsTypeConstructor i t
     (TypeExp _) -> False
     where
-      isListTypeCons ts = (foldr (||) False
-                            (map (isTypeConstructor i) ts))
+      isListTypeCons = any $ isUsedAsTypeConstructor i
 
 -- | Creates a new relation variable using the name store.
 
@@ -376,22 +374,6 @@ replaceRelVar ir (RVar rv) leftOrRight =
          in if rv == r
               then FunAbs ri fv ts (res' ++ (classConstraints res)) rel'
               else rel
-
-{-      RelTypeConsAbs ri (RVar r) ts res rel' ->
-        -- TODO: just copied from RelAbs
-        let res'' = either (const funResL) (const funResR) fv
-            -- hack! should be somehow better implemented
-      -- if BottomReflecting is not present, we had
-            -- TypeAbsLab quantification in (SubsetWithSeq Equational)
-            res'  = if elem BottomReflecting res || elem Total res then res'' else filter (/= Total) res''
-         in if rv == r
-              then FunAbs ri fv ts (res' ++ (classConstraints res)) rel'
-              else rel
-
-      RelTypeConsApp ri (RVar r) _ ->
-        -- TODO: just copied from RelVar
-        let tv = either (Left . TermVar) (Right . TermVar) fv
-         in if rv == r then FunVar ri tv else rel -}
 
       otherwise -> rel
 

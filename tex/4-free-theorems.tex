@@ -417,6 +417,61 @@ dann per Pretty Printer in eine Zeichenkette umgewandelt werden.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{unfoldLifts, unfoldClasses}
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Schließlich bietet \textit{free-theorems} noch die Möglichkeit, die verwendeten Datentypen und Typklassen aus einer
+Signatur zu extrahieren und jeweils eine Relationaldarstellung zu generieren. Wie in Abschnitt \ref{sec:free-theorems-param}
+bereits beschrieben, stellt man verwendete Datentypen, die eine freie Typvariable als Parameter erwarten, als Relationen
+dar. Das Vorgehen ist auch hier sehr generisch, sodass dies von einer Funktion übernommen werden kann. Betrachten wir
+das folgende Beispiel.
+
+\begin{minted}{haskell}
+data MyType a = MyCons String Int a | MyOtherCons String
+
+test :: MyType a -> a
+\end{minted}
+
+In der Funktionssignatur zu \texttt{test} findet der selbstdefinierte Datentyp \texttt{MyType} Verwendung. Ihm wird die
+Typvariable \texttt{a} als Parameter übergeben. Im freien Theorem wurde die relationale Repräsentation eines gelifteten
+Datentyps immer durch eine Funktion \textit{lift} dargestellt. \textit{free-theorems} bietet die Funktion \texttt{unfoldLifts},
+die sämtliche Lifts aus dem Theorem extrahiert und deren Definition als Formel generiert.
+
+Auch bei benutzerdefinierten Datentypen geht es letztlich darum, welche Ausdrücke \textit{verwandt} sind bezüglich der
+Relation. Ein Datentyp hat stets verschiedene Konstruktoren. In der Relation entspricht das der Vereinigung verschiedener
+Teilmengen, eine Teilmenge pro Konstruktor. Die folgende Formel ergibt sich aus dem obigen Beispiel.
+
+\begin{minted}{haskell}
+"lift{MyType}(R)
+  = {(MyCons x1 x2 x3, MyCons y1 y2 y3) |
+       ((x1 = y1) && (x2 = y2)) && ((x3, y3) in R)}
+  u {(MyOtherCons x1, MyOtherCons y1) | x1 = y1}"
+\end{minted}
+
+Es wird einfach das bekannte Prinzip weitergeführt: Ausdrücke von Basistypen sind verwandt, wenn sie gleich sind. Ausdrücke
+des polymorphen Typen, der als Typvariable übergeben wurde, sind genau dann verwandt, wenn sie in der zugrundeliegenden
+Relation verwandt sind.
+
+Eine weitere Funktion, die \textit{free-theorems} anbietet, ist \texttt{unfoldClasses}. Diese Funktion extrahiert die Klassen,
+die im Theorem eine Rolle spielen, und erstellt zu jeder Klasse eine Formel, die beschreibt, wann Relationen diese Klasse
+\textit{respektieren}. Dabei wird die entsprechende Formel automatisch abgerollt. Im Folgenden wird dies an einem Beispiel
+verdeutlicht.
+
+\begin{minted}{haskell}
+class TestClass t where
+   testfun :: t -> t
+
+test :: TestClass t => t -> t
+\end{minted}
+
+Für dieses Beispiel erzeugt die Funktion \texttt{unfoldClasses} die folgende Formel.
+
+\begin{minted}{haskell}
+"R respects TestClass if
+  forall (x, y) in R. (testfun_{t1} x, testfun_{t2} y) in R"
+\end{minted}
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Beispiel}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -552,14 +607,36 @@ An dieser Stelle wird dann \texttt{asTheorem} aufgerufen, die Funktion, die die 
 erzeugt. Folgende Struktur wird zurückgegeben.
 
 \begin{minted}{haskell}
-(ForallRelations (RVar "R") ("t1", "t2")
-   (ForallPairs ("x", "y")
-      (RelLift ("[t1]", "[t2]") ConList (RelVar "R"))
+(ForallFunctions (TVar "f") ("t1", "t2")
+   (ForallVariables (TVar "x") "[t1]"
       (Predicate
-         (IsMember "test_{t1} x" "test_{t2} y"
-            (RelLift ("[t1]", "[t2]") ConList (RelVar "R"))))
-   )
-)
+         (IsEqual
+            "map_{t1}_{t2} f test_{t1} x"
+            "test_{t2} map_{t1}_{t2} f x"))))
 \end{minted}
 
-% TODO: das hier ist die nicht-spezialisierte variante. muss auch noch im code ermoeglicht werden.
+Nun muss lediglich noch der PrettyPrinter verwendet werden, um diese \texttt{Formula}-Struktur in eine Zeichenkette umzuwandeln,
+und man erhält das zu erwartende Ergebnis.
+
+\begin{minted}{haskell}
+"forall t1,t2 in TYPES, f :: t1 -> t2.
+ forall x :: [t1].
+  map_{t1}_{t2} f (test_{t1} x) = test_{t2} (map_{t1}_{t2} f x)"
+\end{minted}
+
+Es lassen sich noch verwendete Datentypen extrahieren und deren relationale Darstellung ermitteln, sowie verwendete Typklassen
+relational zu beschreiben. Dazu bietet \textit{free-theorems} die Funktionen \texttt{unfoldLifts} sowie \texttt{unfoldClasses}.
+Auch diese Funktionen liefern Formeln. %Da die Funktionsweise in Abschnitt \ref{sec:unfoldlifts} bereits detailliert beschrieben wurde,
+%soll sie hier nicht nochmal wiederholt werden.
+Da der Listentypkonstruktor verwendet wird, liefert die Funktion \texttt{unfoldLifts} eine Formel, die das Lifting in den Listenkontext
+beschreibt. Hier liefert \textit{free-theorems} eine spezielle Formel, die im Falle von Listen zurückgegeben wird. Bei benutzerdefinierten
+Datentypen würde eine Formel entsprechend dem Datentyp generiert werden.
+
+Ebenfalls möglich ist die Verwendung der Funktion \texttt{simplify}, die allein auf der resultierenden Formel noch Vereinfachungen
+durchführt. Wendet man sie auf die obige Formel an und verwendet den PrettyPrinter, ergibt sich die folgende
+Zeichenkette.
+
+\begin{minted}{haskell}
+"forall t1,t2 in TYPES, f :: t1 -> t2.
+ map_{t1}_{t2} f . test_{t1} = test_{t2} . map_{t1}_{t2} f"
+\end{minted}

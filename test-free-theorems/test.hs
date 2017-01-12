@@ -32,17 +32,20 @@ describeFormula (ForallRelations (RVar rv) (t1, t2) rss f)
       -- ^ Quantifies a relation variable and two type expressions.
 
 describeFormula (ForallFunctions tv (t1, t2) rss f)
-   = "(ForallFunctions tv (t1, t2) rss f)"
+   = let (TVar v) = either id id tv
+      in "(ForallFunctions (TVar \"" ++ v ++ "\") (\"" ++ show t1 ++ "\", \"" ++ show t2 ++ "\") " ++
+         (intercalate "," $ map describeRestriction rss) ++ " " ++ describeFormula f ++ ")"
       -- ^ Quantifies a function variable and two type expressions.
 
-describeFormula (ForallTypeConstructors rv (t1, t2) rss f)
-   = "(ForallTypeConstructors rv (t1, t2) rss f)"
+describeFormula (ForallTypeConstructors (RVar rv) (t1, t2) rss f)
+   = "(ForallTypeConstructors \"" ++ rv ++ "\" (\"" ++ show t1 ++ "\", \"" ++ show t2 ++ "\") " ++
+     (intercalate ", " $ map describeRestriction rss) ++ " " ++ describeFormula f ++ ")"
 
 describeFormula (ForallPairs ((TVar t1), (TVar t2)) rel f)
    = "(ForallPairs (\"" ++ t1 ++ "\", \"" ++ t2 ++ "\") " ++ (show rel) ++ " " ++ describeFormula f ++ ")"
 
-describeFormula (ForallVariables tv te f)
-   = "(ForallVariables tv te f)"
+describeFormula (ForallVariables (TVar tv) te f)
+   = "(ForallVariables (TVar \"" ++ tv ++ "\") \"" ++ show te ++ "\" " ++ describeFormula f ++ ")"
 
 
 describeFormula (Equivalence f1 f2)
@@ -141,6 +144,8 @@ mainLoop = do
                              putStrLn $ show (prettyTheorem [] $ (simplify . asTheorem) intm)
                              putStrLn "\nSpecialized intermediate:"
                              putStrLn $ show specIntm
+                             putStrLn "\nSpecialized (formula structure):"
+                             putStrLn $ (describeFormula . simplify . asTheorem) specIntm
                              putStrLn "\nSpecialized:"
                              putStrLn $ show (prettyTheorem [] $ (simplify . asTheorem) specIntm)
                              putStrLn "\nUnfolded lifts:"
