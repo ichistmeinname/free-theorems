@@ -103,6 +103,43 @@ Dieser Argumentation folgend wird ein zusätzlicher Konstruktor eingeführt für
 \texttt{RelTypeConsAbs} genannt wird. Außerdem wird der Konstruktor \texttt{RelTypeConsApp} eingeführt, der benutzt
 wird, wenn man eine Relationsfunktion auf eine Relation anwendet, im obigen Beispiel also $\mathcal{F} \mathcal{R}$.
 
+Tabellen \ref{tab:reltypeconsabs} und \ref{tab:reltypeconsapp} zeigen die Parameter für diese neuen Datentypkonstruktoren.
+
+\begin{table}[th]
+\begin{tabular}{ | l | l | }
+\hline
+RelTypeConsAbs & \\
+\hline
+\texttt{RelationInfo} & Zusätzliche Informationen zur Relation, in jedem Konstruktor \\
+& enthalten. \\
+\texttt{RelationVariable} & Funktionsvariable, die allquantifiziert wird. \\
+\texttt{(TypeExpression,} & Funktionsvariablen auf der linken und rechten Seite. \\
+\texttt{TypeExpression)} & \\
+\texttt{[Restriction]} & Einschränkungen auf Klassen, aber auch auf \textit{Striktheit},\\
+& \textit{Stetigkeit}, etc. \\
+\texttt{Relation} & Die Relation, die die quantifizierte Variable enthält. \\
+\hline
+\end{tabular}
+\caption{Parameter des Konstrktors \texttt{RealConsAbs}}
+\label{tab:reltypeconsabs}
+\end{table}
+
+\begin{table}[th]
+\begin{tabular}{ | l | l | }
+\hline
+RelTypeConsApp & \\
+\hline
+\texttt{RelationInfo} & Zusätzliche Informationen zur Relation, in jedem Konstruktor \\
+& enthalten. \\
+\texttt{RelationVariable} & Relationsfunktionsvariable, die auf eine Relation angewandt\\
+& wird. \\
+\texttt{Relation} & Relation, auf die die Typkonstruktorfunktion angewandt wird. \\
+\hline
+\end{tabular}
+\caption{Parameterliste des Konstruktors \texttt{RealConsApp}}
+\label{tab:reltypeconsapp}
+\end{table}
+
 Mit diesen Erweiterungen ist es möglich, die hinzukommenden relationalen Strukturen auszudrücken.
 
 
@@ -163,6 +200,34 @@ Aritäten mindestens einer der beiden Ausdrücke \texttt{f a} und \texttt{f b} e
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{Erweiterung von interpret}
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Die \texttt{interpret}-Funktion ist dafür zuständig, den abstrakten Syntaxbaum von Typsignaturen in die enstprechende
+\texttt{Intermediate}-Struktur zu überführen. Natürlich sind hier Änderungen notwendig, wenn \texttt{interpret} auch
+Typkonsturktorvariablen und deren Applikation erkennen und korrekt behandeln soll.
+
+Es wurde ja bereits in Abschnitt \ref{sec:free-theorems-interpret} erläutert, wie die Funktion mit dem \textit{forall}-Konstrukt
+umgeht: Es wird in eine Allquantifizierung über Relationen umgewandelt, also in einen \texttt{RelAbs}-Ausdruck.
+Da es sich hierbei nicht mehr zwingend um Relationen handelt, wenn Typkonstruktorvariablen vorkommen können, sondern auch
+Funktionen auf Relationen afutreten können, wird jetzt an dieser Stelle eine Fallunterscheidung eingebaut.
+
+Es wird überprüft, ob die entsprechende Typvariable, über die allquantifiziert wird, in der restlichen Typsignatur auf Parameter
+angewandt wird. Gibt es irgendwo ein solches Vorkommen, wird statt der \texttt{RelAbs} die neue \texttt{RelTypeConsAbs}-Struktur
+verwendet.
+
+Von den Parametern her unterscheiden sich die Konstruktoren nicht. Sie werden nur verwendet, damit sie nicht wie normale
+Typvariablen verwendet werden. Zum Beispiel macht es keinen Sinn, die Relationsfunktionen zu Typkonstruktorvariablen auf
+Funktionen zu spezialisieren. Auch sieht natürlich die resultierende Formel für Typkonstruktorabstraktion anders aus als die
+für Typabstraktion.
+
+Da in \texttt{check} bereits abgefangen wird, wenn Typkonstruktorvariablen mit der falschen Zahl an Parametern aufgerufen
+werden, kann in \texttt{interpret} davon ausgegangen werden, dass es sich bei einem Vorkommen einer
+Applikation von Typvariablen automatisch um eine Typkonstruktorvariable handeln muss.
+
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Erweiterung von specialise}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -186,6 +251,38 @@ Eine erste Implementierung sah diesen Ansatz vor, wurde dann aber wieder entfern
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsection{asTheorem}
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Die Funktion \texttt{asTheorem} wandelt die \texttt{Intermediate}-Darstellung um in eine Formel. Natürlich sind auch hier
+Anpassungen vonnöten, um auf vorkommende Typkonstruktorvariablen zu reagieren. Der Datentyp, mit dem Formeln
+dargestellt werden, ist \texttt{Formula}. Auch dieser muss um einen Konstruktor für die Allquantifizierung über
+Typkonstruktorvariablen erweitert werden, \texttt{ForallTypeConstructors} genannt.
+Dieser Konstruktor ist definiert wie der Konstruktor \texttt{ForallRelations}, nur wird er verwendet für die Allquantifizierung
+über Relationsfunktionen.
+
+Es gibt zwei neue Fälle zu beachten, was die Transformation von Relationen in Formeln angeht: Zum einen müssen die
+entsprechenden Relationsabstraktionen in die neue \texttt{ForallTypeConstructors}-Struktur überführt werden, zum anderen
+müssen die Vorkommen von \texttt{RelTypeConsApp} behandelt werden.
+
+Ähnlich wie auch bei anderen Typkonstruktoren, werden angewandte Typkonstruktorvariablen in einen \textit{lift}-Ausdruck
+überführt. Folgender Ausdruck sei als Beispiel gegeben.
+
+\begin{align*}
+\forall^{\{Functor\}} \mathcal{F} \forall \mathcal{R} . \mathcal{R} \rightarrow \mathcal{F} \mathcal{R}
+\end{align*}
+
+Der Ausdruck $\mathcal{F} \mathcal{R}$ aus diesem Beispiel wird als \texttt{Relation}-Struktur dargestellt durch den folgenden
+(hier leicht vereinfachten) Haskell-Ausdruck.
+
+\begin{minted}{haskell}
+(RelTypeConsApp ("k1 t1", "k2 t2") "F" (RelVar "R"))
+\end{minted}
+
+Dieser Ausdruck wird nun überführt in ...
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Beispieldurchlauf}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -195,7 +292,7 @@ ein kompletter Durchlauf der erweiterten Bibliothek erläutert, wobei sämtliche
 Wir verwenden dabei das Beispiel, das bereits in Abschnitt \ref{sec:typkonstruktorklassen} betrachtet wurde.
 
 \begin{minted}{haskell}
-fmap :: Functor f =>w (a -> b) -> f a -> f b
+fmap :: Functor f => (a -> b) -> f a -> f b
 \end{minted}
 
 % TODO: Beispieldurchlauf zuende schreiben

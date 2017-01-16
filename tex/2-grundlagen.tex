@@ -2,14 +2,26 @@
 \section{Grundlagen}
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-In diesem Abschnitt sollen einige Grundlagen eingeführt werden, die in den folgenden Kapiteln von Bedeutung sind. Zunächst werden
-einige mathematische Definitionen und Notationen angegeben, die zum großen Teil Relationen betreffen.
-Daraufhin wird noch einmal kurz auf Typklassen in Haskell eingegangen.
+Bevor auf die eigentliche Thematik eingegangen wird, bietet es sich an, einige Grundlagen zu klären, die im Laufe dieser Arbeit
+von Bedeutung sein werden. Ein großer Teil der Arbeit baut auf Relationen auf, weshalb neben grundsätzlichen mathematischen
+Notationen vor allem Definitionen und Notationen eingeführt werden, die Relationen betreffen.
+
+Neben mathematischen Grundlagen sind auch Haskell-Kenntnisse erforderlich. Es soll hier nicht darum gehen, die komplette 
+Programmiersprache Haskell zu beschreiben, aber es wird auf das Konzept der Typkonstruktorklassen eingegangen, da diese
+in dieser Ausarbeitung eine gesonderte Rolle spielen.
+
+%In diesem Abschnitt sollen einige Grundlagen eingeführt werden, die in den folgenden Kapiteln von Bedeutung sind. Zunächst werden
+%einige mathematische Definitionen und Notationen angegeben, die zum großen Teil Relationen betreffen.
+%Daraufhin wird noch einmal kurz auf Typklassen in Haskell eingegangen.
 
 %Da diese Arbeit zu großen Teilen auf \cite{freetheorems} aufbaut, werden die dort verwendeten Notationen größtenteils
 %weiter verwendet.
-Die Notationen, die hier eingeführt werden, bauen größtenteils auf \cite{freetheorems} auf, da die dort beschriebene Bibliothek
-die Grundlage für die vorliegende Arbeit darstellt.
+
+Die Bibliothek \textit{free-theorems}, auf der diese Arbeit basiert, wird beschrieben in \cite{freetheorems}. Die in diesem Abschnitt
+eingeführten Notationen orientieren sich größtenteils an den Definitionen aus \cite{freetheorems}.
+
+%Die Notationen, die hier eingeführt werden, bauen größtenteils auf \cite{freetheorems} auf, da die dort beschriebene Bibliothek
+%die Grundlage für die vorliegende Arbeit darstellt.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -97,7 +109,7 @@ $f(x) \sqsubseteq f(y)$ für alle $x, y \in X$.
 %`````````````````````````````````
 
 Wie bereits erwähnt, ordnet eine Relation einem Element ein einzelnes Element, mehrere Elemente oder gar keine Elemente zu.
-Das unterscheidet sie von einer Funktion, oder besser: Das macht Funktionen zu speziellen Relationen. Eine
+Das unterscheidet sie von einer Funktion, oder anders ausgedrückt: Das macht Funktionen zu speziellen Relationen. Eine
 Funktion, ebenfalls auf zwei Mengen definiert, ordnet jedem Element genau ein Ergebnis zu - Eingabewerte mit
 mehreren Funktionswerten sind genausowenig enthalten wie Eingabewerte ohne Ergebnis.
 
@@ -133,7 +145,7 @@ Die in dieser Ausarbeitung verwendete Bibliothek generiert freie Theoreme für i
 Kenntnisse der Programmiersprache Haskell werden in dieser Arbeit vorausgesetzt. In diesem Abschnitt wird noch einmal
 speziell auf das Sprachkonstrukt der Typkonstruktorklassen eingegangen, da der Fokus dieser Arbeit darauf liegt, deren Verwendung
 auch in der Bibliothek zu ermöglichen.
-Eine generelle Beschreibung der Sprache Haskell würde an dieser Stelle aber zu weit führen, hier sei auf \cite{haskell} verwiesen.
+Eine generelle Beschreibung der Sprache Haskell würde an dieser Stelle zu weit führen, hier sei auf \cite{haskell} verwiesen.
 \todo{verweis auf haskell}
 
 
@@ -155,7 +167,7 @@ keine Probleme.
 %wie genau eine solche Klasse in Haskell definiert wird. Ansonsten wird davon ausgegangen, dass grundsätzliche Kenntnisse der
 %Programmiersprache vorhanden sind, andernfalls sei an dieser Stelle auf \cite{haskell} verwiesen.
 
-Typklassen in Haskell ermöglichen die Umsetzung von Ad-Hoc-Polymorphismus. Man kann beliebige Typklassen selbst definieren,
+Typklassen in Haskell ermöglichen die Umsetzung von Ad-Hoc-Polymorphismus. \todo{zitat} Man kann beliebige Typklassen selbst definieren,
 wobei eine Typklasse immer aus einem Namen, beliebig vielen Funktionssignaturen und gegebenenflls auch aus vordefinierten
 Standardimplementierungen einzelner Funktionen besteht. Haskell transformiert Programme mit Typklassen intern in Programme
 ohne dieses Konstrukt.

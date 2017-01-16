@@ -39,7 +39,7 @@ ungültige Definitionen herauszufiltern, bevor der Syntaxbaum dann weiter an den
 
 Im Core findet dann die eigentliche Arbeit statt: Hier wird der Syntaxbaum in die entsprechende Relationaldarstellung
 überführt und in eine Zwischendarstellung abgelegt, \texttt{Intermediate} genannt. Im nächsten Schritt wird diese
-Relationaldarstellung dann Schritt für Schritt abgerollt und in eine Formel überführt. Diese Formel wird dann zurückgegeben.
+Relationaldarstellung dann Schritt für Schritt abgerollt und in eine Formel überführt. Diese Formel wird schließlich zurückgegeben.
 
 Um diese Formel darzustellen, werden dann im Pretty Printer Teil entsprechende Funktionen bereitgestellt, die in der Lage
 sind, den Formel-Datentypen in Zeichenketten umzuwandeln.
@@ -207,6 +207,8 @@ Sind alle globalen Überprüfungen abgeschlossen, werden die übrig bleibenden D
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{interpret}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\label{sec:free-theorems-interpret}
 
 Die erste Funktion des Cores ist \texttt{interpret}. Diese Funktion \textit{interpretiert} eine Funktionssignatur als Relation. Sie
 erwartet eine (geprüfte) Deklaration als Eingabe und liefert eine Relation, verpackt in eine sogenannte \texttt{Intermediate}-Struktur,

@@ -139,14 +139,16 @@ mainLoop = do
                              putStrLn "\nIntermediate representation:"
                              putStrLn $ show intm
                              putStrLn "\nTheorem (formula structure):"
-                             putStrLn $ (describeFormula . simplify . asTheorem) intm
+                             putStrLn $ (describeFormula . asTheorem) intm
                              putStrLn "\nTheorem:"
-                             putStrLn $ show (prettyTheorem [] $ (simplify . asTheorem) intm)
+                             putStrLn $ show (prettyTheorem [] $ (asTheorem) intm)
                              putStrLn "\nSpecialized intermediate:"
                              putStrLn $ show specIntm
                              putStrLn "\nSpecialized (formula structure):"
                              putStrLn $ (describeFormula . simplify . asTheorem) specIntm
                              putStrLn "\nSpecialized:"
+                             putStrLn $ show (prettyTheorem [] $ (asTheorem) specIntm)
+                             putStrLn "\nSpecialized and simplified:"
                              putStrLn $ show (prettyTheorem [] $ (simplify . asTheorem) specIntm)
                              putStrLn "\nUnfolded lifts:"
                              let unflifts = unfoldLifts allDecls intm

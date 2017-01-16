@@ -282,7 +282,7 @@ unfoldFun x y ri rel1 rel2 =
     FunAbs _ _ _ _ _    -> unfoldFunVars x y ri rel1 rel2
     -- (thr) Special constructors for type constructor variables
     -- TODO: what has to be done here?
-    RelTypeConsApp _ _ _ -> unfoldFunPairs x y ri rel1 rel2
+    RelTypeConsApp _ _ _ -> unfoldFunPairs x y ri rel1 rel2 -- TODO: special case for specialised fun?
     RelTypeConsAbs _ _ _ _ _ -> unfoldFunVars x y ri rel1 rel2
 
 -- | Unfolding operation for relational actions of function type constructors.

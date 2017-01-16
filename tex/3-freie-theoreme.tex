@@ -137,7 +137,7 @@ abgerollt wird:
 & (f_{A_1} l, f_{A_2} l') \in lift_{[]}(\mathcal{A}) \\
 \end{align*}
 
-Zur Erinnerung: $\mathcal{A} : A_1 \Leftrightarrow A_2$ bedeutet, dass $\mathcal{A}$ eine Relation auf den Mengen $A_1$ und $A_2$.
+Zur Erinnerung: $\mathcal{A} : A_1 \Leftrightarrow A_2$ bedeutet, dass $\mathcal{A}$ eine Relation auf den Mengen $A_1$ und $A_2$ ist.
 
 An diesem Punkt haben wir eine Aussage über beliebige Typrelationen $\mathcal{A}$, anschaulicher wäre aber eine Aussage
 über beliebige Funktionen. Da man Funtktionen als Spezialfall von Relationen betrachten kann, können wir die Aussage
@@ -184,13 +184,13 @@ Was aber völlig ignoriert wurde ist die Tatsache, dass man in Haskell auch übe
 nicht Platzhalter für speziellele Typen, sondern nur für Typkonstruktoren sind. Hier noch einmal das Beispiel aus der Einleitung:
 
 \begin{minted}{haskell}
-fmap :: Functor f =>w (a -> b) -> f a -> f b
+fmap :: Functor f => (a -> b) -> f a -> f b
 \end{minted}
 
 Es wird angegeben, dass $f$ eine Variable der Typklasse Funktor ist. Functor ist von der \textit{Sorte} $* \rightarrow *$,
 das heißt es handelt sich um einen Typkonstruktor, der einen Typ auf einen neuen Typ abbildet.
 Daher kann $f$ in der Typsignatur in $f a$ und $f b$ auf Parameter angewandt werden.
-Zwei Dinge müssen zum bisherigen Ansatz hinzugefügt werden: Allquantifizierung über Typkonstruktorvariablen muss separat betrachtet werden, und Klasseneinschränkungen müssen beachtet werden, im obigen Beispiel $Functor f$.
+Zwei Dinge müssen zum bisherigen Ansatz hinzugefügt werden: Allquantifizierung über Typkonstruktorvariablen muss separat betrachtet werden, und Klasseneinschränkungen müssen beachtet werden, im obigen Beispiel $Functor f$ \cite{voigtlander}.
 
 Die Allquantifizierung über Typkonstruktorvariablen funktioniert an sich ähnlich wie die Allquantifizierung über gewöhnliche
 Typvariablen. Statt beliebigen Relationen über beliebig gewählten Typen interpretiert man freie Typkonstruktorvariablen als
@@ -218,7 +218,7 @@ Sei $\mathcal{F}(\mathcal{X})$ wieder eine Typrelation, die von Typrelation $\ma
 \}
 \end{align*}
 
-Was ist nun mit Typkonstruktoren gemeint, die die Klasse C einhalten? Es werden nur jene Typkonstruktoren in Betracht gezogen,
+Was ist nun mit Typkonstruktoren gemeint, die die Klasse C \textit{einhalten}? Es werden nur jene Typkonstruktoren in Betracht gezogen,
 für die jede Klassenfunktion bezüglich ihrer Typrelation mit sich selbst verwandt ist. Für unser Beispiel bedeutet das, es werden nur
 Funktionen $\mathcal{F} : k_1 \Leftrightarrow k_2$ betrachtet, für die gilt:
 
@@ -229,16 +229,21 @@ Funktionen $\mathcal{F} : k_1 \Leftrightarrow k_2$ betrachtet, für die gilt:
 
 Die Anwendung von Typkonstruktorfunktionen auf Typrelationen ist nun nichts anderes als wiederum ein Lifting dieser
 Relation - mit dem Unterschied, dass wir erstmal keine genauen Aussagen über dieses Lifting treffen können.
-Eine Frage, die sich nun stellt, ist: Inwiefern kann man dann überhaupt mit diesen Relationsfunktionen arbeiten? An sich ist ja nur
-bekannt, dass sie Typrelationen auf andere Typrelationen abbilden. Mit der Klassenbeschränkung ist aber zumindest ein
-Anhaltspunkt gegeben. So kann man im Fall der $Functor$ Klasse beispielsweise davon ausgehen, dass es in irgendeiner
-Art und Weise möglich sein muss, den ``Inhalt'' des Functors zu manipulieren - eine Art ``natürliches'' $map$ 
-\todo{Quelle? Beweis?}, das im folgenden $map_F$ genannt wird.
+
+%Eine Frage, die sich nun stellt, ist: Inwiefern kann man dann überhaupt mit diesen Relationsfunktionen arbeiten? An sich ist ja nur
+%bekannt, dass sie Typrelationen auf andere Typrelationen abbilden. Mit der Klassenbeschränkung ist aber zumindest ein
+%Anhaltspunkt gegeben. So kann man im Fall der $Functor$ Klasse beispielsweise davon ausgehen, dass es in irgendeiner
+%Art und Weise möglich sein muss, den ``Inhalt'' des Functors zu manipulieren - eine Art ``natürliches'' $map$ 
+%\todo{Quelle? Beweis?}, das im folgenden $map_F$ genannt wird.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Anwendung}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+In den vorangehenden Abschnitten wurde beschrieben, wie freie Theoreme hergeleitet werden. Um zu zeigen, welchen
+Nutzen diese Technik hat und was man damit herleiten kann, werden in diesem Abschnitt einige Beispiele gegeben,
+in denen freie Theoreme eine Rolle spielen.
 
 In Haskell gibt es einige Typklassen, für die spezielle Gesetze formuliert werden. Diese Gesetze sind nicht in Haskell
 verankert, und theoretisch hindert einen nichts daran, diese Gesetze zu missachten. Ein prominentes Beispiel ist die
@@ -257,8 +262,13 @@ fmap id      = id
 fmap (p . q) = (fmap p) . (fmap q)
 \end{minted}
 
-An diesen Functor-Gesetzen ist interessant, dass tatsächlich nur das erste Gesetz gelten muss - das zweite folgt dann automatisch
-aus dem freien Theorem von $fmap$, wird uns also abermals ``geschenkt''. Um das zu zeigen, folgen wir wieder der bereits bekannten Vorgehensweise, dieses Mal erweitert um Typkonstruktorvariablen:
+Eine interessante Besonderheit der Functor-Gesetze ist, dass tatsächlich nur das erste Gesetz gelten muss. Gilt es, kann
+man das zweite Gesetz daraus folgern. Noch interessanter ist die Tatsache, dass freie Theoreme bei der Herleitung helfen.
+
+Wir beginnen mit der Herleitung des freien Theorems, wobei dieses Mal auch eine Typkonstruktorvariable vorkommt.
+
+%An diesen Functor-Gesetzen ist interessant, dass tatsächlich nur das erste Gesetz gelten muss - das zweite folgt dann automatisch
+%aus dem freien Theorem von $fmap$, wird uns also abermals ``geschenkt''. Um das zu zeigen, folgen wir wieder der bereits bekannten Vorgehensweise, dieses Mal erweitert um Typkonstruktorvariablen:
 
 \begin{align*}
 &(fmap, fmap) \in \forall \mathcal{F} . \forall \mathcal{R} . \forall \mathcal{S} . (\mathcal{R} \rightarrow \mathcal{S})
