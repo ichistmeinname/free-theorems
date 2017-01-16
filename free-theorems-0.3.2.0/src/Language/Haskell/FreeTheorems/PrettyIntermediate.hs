@@ -39,7 +39,8 @@ getRelStr (RelFun _ r1 r2) = "(RelFun " ++ (getRelStr r1) ++ " " ++ (getRelStr r
 getRelStr (RelFunLab _ r1 r2) = "(RelFunLab " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
 getRelStr (RelAbs _ (RVar rv) (t1, t2) _ rel) = "(RelAbs \"" ++ rv ++ "\" (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
 getRelStr (RelTypeConsAbs _ _ (t1, t2) _ rel) = "(RelTypeConsAbs (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
-getRelStr (RelTypeConsApp ri (RVar rv) rel) = "(RelTypeConsApp (\"" ++ (show $ relationLeftType ri) ++ "\", \"" ++ (show $ relationRightType ri) ++ "\") \"" ++ rv ++ "\" " ++ (getRelStr rel) ++ ")"
+getRelStr (RelTypeConsApp ri (RVar rv) rel) = "(RelTypeConsApp (\"" ++ (show $ relationLeftType ri) ++ "\", \"" ++ (show $ relationRightType ri) ++ "\") \""
+                                        ++ rv ++ "\" " ++ (getRelStr rel) ++ ")"
 getRelStr (FunAbs _ n (t1, t2) res rel) = let (TVar v) = fromEither n
                                            in "(FunAbs \"" ++ v ++ "\" (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
 
@@ -55,8 +56,8 @@ getTypeConsStr ConInteger         = "ConInteger"
 getTypeConsStr ConFloat           = "ConFloat"
 getTypeConsStr ConDouble          = "ConDouble"
 getTypeConsStr ConChar            = "ConChar"
-getTypeConsStr (Con (Ident i))    = "(Con (Ident " ++ i ++ "))"
-getTypeConsStr (ConVar (Ident i)) = "(ConVar (Ident " ++ i ++ "))"
+getTypeConsStr (Con (Ident i))    = "(Con (Ident \"" ++ i ++ "\"))"
+getTypeConsStr (ConVar (Ident i)) = "(ConVar (Ident \"" ++ i ++ "\"))"
 
 prettyTerm :: Term -> String
 prettyTerm (TermVar (TVar s)) = s

@@ -2,51 +2,124 @@
 \section{Einleitung}
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-Die funktionale Programmiersprache Haskell bietet ein komplexes Typsystem, das auf der Typinferenz nach Hindley-Milner basiert \todo{cite}.
-Zu jedem Ausdruck lässt sich eine Typsignatur herleiten, die den allgemeinsten Typen dieses Ausdrucks darstellt. Außerdem
-kann der Programmierer zu jedem Ausdruck eine Typsignatur angeben, was zur Übersicht beiträgt und Fehlern vorbeugt.
-Das Typsystem ist so mächtig, dass die Typsignatur allein schon sehr viele Rückschlüsse über die zugehörige Funktion ermöglicht.
-Betrachten wir beispielhaft die folgende Signatur.
+\label{sec:einleitung}
+
+Das Typsystem einer Programmiersprache hat einen nicht unerheblichen Einfluss darauf, wie sicher sich die Arbeit mit dieser
+Programmiersprache gestaltet. Natürlich kann man in einer dynamisch getypten Sprache alles entwickeln, was man auch mit
+einem statischen Typsystem programmieren kann. Und sicherlich werden auch manche behaupten, dass sie mit einem
+dynamischen Typsystem besser zurechtkommen als mit einem vollkommen statischen. Doch ein statisches Typsystem,
+bei dem sämtliche Typen bereits zur Kompilierzeit bekannt sind, hat unbestreitbare Vorteile.
+
+Haskell ist eine funktionale Programmiersprache mit einem komplett statischen Typsystem. Wie es bei vielen funktionalen
+Programmiersprachen der Fall ist, basiert auch Haskells Typsystem auf dem Hindley/Milner Typsystem \cite{wadler}, was es
+Haskell ermöglicht, zu jedem Ausdruck automatisch eine Typsignatur herzuleiten, die den allgemeinsten Typen dieses Ausdrucks
+darstellt. Jeder Ausdruck in Haskell hat einen ganz bestimmten Typen, und wenn dieser Typ nicht passt, dann kompiliert auch
+das Programm nicht.
+
+Der offensichtliche Vorteil für den Entwickler ist natürlich, dass viele unerwünschte Programmzustände gar nicht erst auftreten,
+weil sie bereits durch Typfehler abgefangen werden, während sie in Programmiersprachen mit dynamischem Typsystem ohne
+Fehlermeldung kompiliert werden, jedoch eine unerwartete Programmausführung zur Folge haben. Zudem kann der Entwickler
+eigene Typsignaturen angeben und erhält sofort einen Typfehler, wenn die tatsächlich inferierten Typen nicht mit den
+erwarteten Typsignaturen übereinstimmen.
+Bezüglich Fehleranfälligkeit und -prävention ist Haskells Typsystem also sehr entwicklerfreundlich.
+
+Besonders vorteilhaft ist Haskells Typsystem aber, um Schlüsse aus Funktionssignaturen zu ziehen, ohne die konkrete
+Signatur zu kennen. Betrachtet man eine solche Signatur, offenbart sich oft schon ein Teil der Funktionalität, da die
+Einschränkungen des Typsystems wenig Spielraum für unerwartetes Verhalten lassen. Die folgende Zeile zeigt ein Beispiel
+für eine solche Funktionstypsignatur.
+%
+%Die funktionale Programmiersprache Haskell bietet ein komplexes Typsystem, das auf der Typinferenz nach Hindley-Milner basiert \todo{cite}.
+%Zu jedem Ausdruck lässt sich eine Typsignatur herleiten, die den allgemeinsten Typen dieses Ausdrucks darstellt. Außerdem
+%kann der Programmierer zu jedem Ausdruck eine Typsignatur angeben, was zur Übersicht beiträgt und Fehlern vorbeugt.
+%Das Typsystem ist so mächtig, dass die Typsignatur allein schon sehr viele Rückschlüsse über die zugehörige Funktion ermöglicht.
+%Betrachten wir beispielhaft die folgende Signatur.
 
 \begin{minted}{haskell}
 test :: (a -> b) -> [a] -> [b]
 \end{minted}
 
-Allein durch diesen Typen lässt sich bereits erahnen, was sich ungefähr hinter dieser Funktion verbirgt. Die Funktion nimmt
-eine Funktion und eine Liste als Argumente. Die Funktion muss dabei den Typen der Listenelemente auf einen anderen Typen
-abbilden. Als Ergebnis liefert die Funktion den Rückgabetypen der übergebenen Funktion. Es ist anzunehmen, dass die Funktion
-\texttt{test} die Eingabeliste mithilfe der übergebenen Funktion manipuliert und die resultierende Liste zurückgibt.
+Es handelt sich um eine Funktion namens \texttt{test}, die als ersten Parameter eine Funktion erwartet, die von einem beliebigen
+Typ in einen anderen (oder den gleichen) beliebigen Typen abbildet. Beim zweiten Parameter muss es sich um eine Liste handeln,
+deren Listenelemente vom ersten Typen $a$ sein müssen, also vom Typen, den die übergebene Funktion als Eingabewert nimmt.
 
-Haskell liefert eine solche Funktion in der Prelude, man kennt sie unter dem Namen \texttt{map}. Dass sich \texttt{test} und
-\texttt{map} eine Typsignatur teilen, lässt also Rückschlüsse auf eine ähnliche Funktionsweise zu. Doch diese Ähnlichkeit
-ist nicht auf vage Aussagen beschränkt, man kann ganz systematisch korrekte Aussagen zu beliebigen Typsignaturen
-herleiten, wie \cite{xyz} \todo{cite} zeigt.
+Allein durch diesen Typen lässt sich bereits erahnen, was sich ungefähr hinter dieser Funktion verbirgt. Es ist anzunehmen, dass die
+ Funktion \texttt{test} die Eingabeliste mithilfe der übergebenen Funktion manipuliert und die resultierende Liste zurückgibt.
+ Natürlich kann man nicht einfach davon ausgehen, dass die Funktion in ihrer Implementierung die Funktion des ersten Parameters
+ auf jedes Listenelement des zweiten Parameters anwendet und das Ergebnis zurückgibt, aber eine ähnliche Funktionsweise
+ ist zu erwarten - einfach aus dem Grund, dass die Funktion ``nicht viel anderes'' mit den gegebenen Typen machen kann.
 
-Die Herleitung freier Theoreme ist so generisch, dass sie auch programmtisch erledigt werden kann. Genau das macht
-\cite{bla} \todo{cite} - hierbei handelt es sich um die Bibliothek \textit{free-theorems}, die es ermöglicht, Haskell-Code einzulesen
-und aus beliebigen Typsignaturen Formeln zu generieren, die die entsprechenden freien Theoreme repräsentieren. Zudem gibt es
-mit \cite{x} \todo{cite} eine Webanwendung, die einen Zugriff auf die Funktionen der Bibliothek ermöglicht.
-Leider bietet die Bibliothek \textit{free-theorems} nicht sämtliche Sprachfunktionen von Haskell an. 
+Haskell liefert eine solche Funktion in der Prelude (Haskells Standardbibliothek), man kennt sie unter dem Namen \texttt{map}.
+Dass sich \texttt{test} und
+\texttt{map} eine Typsignatur teilen, lässt also Rückschlüsse auf eine ähnliche Funktionsweise zu. Dass diese Ähnlichkeit
+nicht auf vage Aussagen beschränkt ist, dass sogar ganz systematisch korrekte Aussagen zu beliebigen Typsignaturen
+herleiten kann, das wird thematisiert in Kapitel \ref{sec:freie-theoreme}, in dem es um die sogenannten \textit{freien Theoreme}
+geht - Aussagen, die sich für beliebige Typsignaturen herleiten lassen.
 
-Ein wichtiger Aspekt
-bei der Programmierung in Haskell sind Typklassen. Sie ermöglichen es, Datenstrukturen in Klassen einzuordnen, und für diese
-Klassen Funktionen anzugeben, die pro Datentyp implementiert werden können. Kurz gesagt erlauben Typklassen Ad-Hoc-Polymorphismus in Haskell.
+Da die Herleitung dieser freien Theoreme ganz allgemein ist und immer gleich abläuft, kann sie auch ohne Probleme
+programmatisch erledigt werden. Diese Funktionalität bietet die Bibliothek \textit{free-theorems} \cite{freetheorems}, zu
+der sogar eine Weboberfläche existiert \cite{freetheoremswebui}.
+Diese Bibliothek ermöglicht es, Haskell-Code einzulesen und aus beliebigen Typsignaturen die entsprechenden freien
+Theoreme zu generieren, wobei sogar eigene Datentypen in den Signaturen verwendet werden können. Die Weboberfläche geht
+sogar noch einen Schritt weiter und kennt bereits eine Reihe wichtiger Deklarationen aus der Haskell-Prelude.
 
-Zwar unterstützt die Bibliothek Typklassen, allerdings nur für Datentypen, die keinen Typen als Parameter erwarten. Die
-bekanntere \texttt{Monad}-Klasse beispielsweise ist für Datentypen definiert, die einen Typparameter haben. Eine Verwendung
-mit der \texttt{free-theorems} Bibliothek ist somit nicht möglich, oftmals möchte man aber nicht auf solche Typklassen verzichten.
-Grundsätzlich unterscheidet sich die Verwendung von Typkonstruktorklassen gar nicht gravierend von einfachen Typklassen.
+%Die Herleitung freier Theoreme ist so generisch, dass sie auch programmtisch erledigt werden kann. Genau das macht
+%\cite{bla} \todo{cite} - hierbei handelt es sich um die Bibliothek \textit{free-theorems}, die es ermöglicht, Haskell-Code einzulesen
+%und aus beliebigen Typsignaturen Formeln zu generieren, die die entsprechenden freien Theoreme repräsentieren. Zudem gibt es
+%mit \cite{x} \todo{cite} eine Webanwendung, die einen Zugriff auf die Funktionen der Bibliothek ermöglicht.
+%Leider bietet die Bibliothek \textit{free-theorems} nicht sämtliche Sprachfunktionen von Haskell an. 
 
-Ich habe die Bibliothek um eine entsprechende Funktionalität erweitert. In der vorliegenden Arbeit wird erläutert, wie die Bibliothek
-und insbesondere die Anpassungen für Typkonstruktorklassen aussehen. Dazu wird zunächst auf die Grundlagen eingegangen,
-die benötigt werden, um die Theorie dahinter zu verstehen. Im folgenden Abschnitt geht es um das allgemeine Vorgehen beim
-Herleiten freier Theoreme. Insbesondere wird dabei auch auf Typkonstruktorklassen eingegangen.
+Neben selbstdefinierten Datentypen ist es in \textit{free-theorems} sogar möglich, eigene Typklassen zu definieren und in
+den Typsignaturen zu verwenden. Ein Beispiel für eine Typklasse wäre die Typklasse \texttt{Eq}, die den Gleichheitsoperator
+\texttt{==} zu Datentypen definiert. Typklassen sind ein praktisches Sprachelement von Haskell, weshalb es sinnvoll ist,
+dass sie von \textit{free-theorems} unterstützt werden.
 
-Schließlich wird die Bibliothek \textit{free-theorems} etwas genauer beschrieben, wobei insbesondere auf den Aufbau und die
-grundsätzliche Aufteilung eingegangen wird, um dann im darauf folgenden Abschnitt zu erläutern, an welchen Stellen diese
-Bibliothek erweitert werden muss, um die zusätzliche Funktionalität für Typkonstruktorklassen zu leisten.
+Allerdings unterstützt die Bibliothek lediglich Typklassen für Datentypen, die keine Typparameter haben. Es ist in Haskell aber
+durchaus möglich Datentypen zu definieren, die Typen als Parameter erwarten; und es ist in Haskell ebenso möglich, Typklassen
+für parametrisierte Datentypen zu deklarieren.
+Dass es sich dabei nicht um eine unwichtige Kleinigkeit im Sprachumfang von Haskell handelt, wird spätestens klar, wenn man
+sich in Erinnerung ruft, dass auch die Typklasse \texttt{Monad} eine Typkonstruktorklasse ist - eine der wichtigsten überhaupt
+in Haskell, könnte man argumentieren.
 
-In dieser Arbeit wird dabei größtenteils von einer vereinfachten Sprache ausgegangen, die weder Striktheit noch den Fixpunktoperator kennt.
-Die ursprüngliche \texttt{free-theorems} Bibliothek berücksichtigt die Besonderheiten bereits, die sich durch Verwendung dieser
-speziellen Operatoren ergeben. Die Erweiterungen für Typkonstruktorklassen ignorieren diese Besonderheiten bisher, hier
-sind eventuell noch Anpassungen möglich. In Abschnitt \todo{ref} wird genauer auf diese Problematik eingegangen. \todo{?}
+Es ist also wünschenswert, die Bibliothek derart zu erweitern, dass sie auch mit Typkonstruktorklassen zurecht kommt und
+freie Theoreme für entsprechende Typsignaturen generieren kann. Genau darauf liegt der Fokus der vorliegenden Arbeit. Es wird
+erläutert, wie die Bibliothek und insbesondere die Anpassungen für Typkonstruktorklassen aussehen.
+
+Dazu wird in Kapitel \ref{sec:grundlagen} zunächst auf die mathematischen Grundlagen eingegangen, also Notationen, Definitionen,
+etc., die für das Verständnis der daraufhin folgenden Abschnitte benötigt werden.
+Die allgemeine Herangehensweise zum Herleiten freier Theoreme ist dann das Thema von Kapitel \ref{sec:freie-theoreme}, in dem
+das sogenannte \textit{Parametrizitäts-Theorem} eingeführt wird, das dann zu freien Theoremen führt.
+Am Ende des Kapitels geht es dann um die Erweiterung der Theorie auf Typkonstruktorklassen. Um die Anwendbarkeit dieser
+Theorie zu motivieren, werden daraufhin einige Anwendungsbeispiele gegeben.
+
+%Dazu wird zunächst auf die
+%Grundlagen eingegangen, die benötigt werden, um die Theorie dahinter zu verstehen. Im folgenden Abschnitt geht es um das
+%allgemeine Vorgehen beim Herleiten freier Theoreme. Insbesondere wird dabei auch auf Typkonstruktorklassen eingegangen.
+
+%Ein wichtiger Aspekt
+%bei der Programmierung in Haskell sind Typklassen. Sie ermöglichen es, Datenstrukturen in Klassen einzuordnen, und für diese
+%Klassen Funktionen anzugeben, die pro Datentyp implementiert werden können. Kurz gesagt erlauben Typklassen Ad-Hoc-Polymorphismus in Haskell.
+
+%Zwar unterstützt die Bibliothek Typklassen, allerdings nur für Datentypen, die keinen Typen als Parameter erwarten. Die
+%bekanntere \texttt{Monad}-Klasse beispielsweise ist für Datentypen definiert, die einen Typparameter haben. Eine Verwendung
+%mit der \texttt{free-theorems} Bibliothek ist somit nicht möglich, oftmals möchte man aber nicht auf solche Typklassen verzichten.
+%Grundsätzlich unterscheidet sich die Verwendung von Typkonstruktorklassen gar nicht gravierend von einfachen Typklassen.
+
+%Ich habe die Bibliothek um eine entsprechende Funktionalität erweitert. In der vorliegenden Arbeit wird erläutert, wie die Bibliothek
+%und insbesondere die Anpassungen für Typkonstruktorklassen aussehen. Dazu wird zunächst auf die Grundlagen eingegangen,
+%die benötigt werden, um die Theorie dahinter zu verstehen. Im folgenden Abschnitt geht es um das allgemeine Vorgehen beim
+%Herleiten freier Theoreme. Insbesondere wird dabei auch auf Typkonstruktorklassen eingegangen.
+
+Schließlich wird in Kapitel \ref{sec:free-theorems} die Bibliothek \textit{free-theorems} etwas genauer beschrieben, wobei
+insbesondere auf den Aufbau und die grundsätzliche Aufteilung eingegangen wird. Die nötigen Anpassungen werden
+dann in Kapitel \ref{sec:erweiterung-um-typklassen} beschrieben.
+%um dann im darauf folgenden Abschnitt zu erläutern, an welchen Stellen diese
+%Bibliothek erweitert werden muss, um die zusätzliche Funktionalität für Typkonstruktorklassen zu leisten.
+
+In dieser Arbeit wird dabei größtenteils von einer vereinfachten Teilsprache von Haskell ausgegangen, die weder Striktheit noch
+den Fixpunktoperator kennt. Natürlich entspricht dies nicht immer den realen Begebenheiten, und die Bibliothek
+\texttt{free-theorems} berücksichtigt dies bereits, indem sie unterschiedliche Teilsprachen anbietet, die die entsprechenden
+Sprachfunktionen berücksichtigen.
+
+Die eingeführten Erweiterungen für Typkonstruktorklassen gehen von einer Basissprache ohne diese Besonderheiten aus.
+In Abschnitt \ref{sec:striktheit-und-rekursion} wird kurz erläutert, welche Auswirkungen diese Besonderheiten haben, in der
+Implementierung sind sie noch nicht vorgesehen - hier ist noch Raum für Erweiterungen. \todo{würde man das hier schreiben?}

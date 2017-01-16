@@ -1,3 +1,23 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \section{Zusammenfassung}
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+In dieser Ausarbeitung wurde eine bereits existierende Haskell-Bibliothek zur automatischen Generierung freier Theoreme
+beschrieben und eine Erweiterung dieser Bibliothek vorgestellt, mit der es möglich wird, freie Theoreme auch im Zusammenhang
+mit Typkonstruktorklassen zu generieren.
+
+In Kapitel \ref{sec:freie-theoreme} wurde vorgestellt, wie nach \cite{wadler} die Interpretation von Typen als Typrelationen
+vonstatten geht und wie sich daraus wertvolle Theoreme ableiten lassen. Anhand dieser wurde dann in \ref{sec:free-theorems}
+die Bibliothek \textit{free-theorems} \cite{freetheorems} erläutert und anhand einiger Beispieldaten veranschaulicht.
+
+Da diese Bibliothek vorher nicht mit Typkonstruktorklassen umgehen konnte, lag der Fokus dieser Arbeit darauf, die Bibliothek dermaßen
+zu erweitern, dass sie auch mit Typkonstruktorklassen arbeiten kann. Nebenbei wurden einige Kompatibilitätsprobleme beseitigt,
+die ein Kompilieren der Bibliothek mit aktuellen Versionen des verwendeten GHC \cite{ghc} verhinderte.
+
+Verschiedene Quellen stellen Möglichkeiten vor, freie Theoreme für Typsignaturen zu generieren, die Typkonstruktorklassen
+verwenden. In dieser Arbeit findet die Vorgehensweise von Voigtländer \cite{voigtlander} Anwendung, die die relationale Interpretation
+von Typsignaturen erweitert um eine Interpretation für Typkonstruktorvariablen-Abstraktion: Es wird über Funktionen
+quantifiziert, die ihrerseits Typrelationen auf neue Relationen abbilden.
+
+Mithilfe dieser Erweiterung lässt sich die Bibliothek jetzt auf einen breiteren Rahmen an Haskell-Programmen anwenden, da
+Typsignaturen, die Typkonstruktorklassen verwenden, nicht länger wegfallen.

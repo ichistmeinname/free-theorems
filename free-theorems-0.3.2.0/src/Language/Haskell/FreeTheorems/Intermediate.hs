@@ -192,10 +192,11 @@ interpretM l t = case t of
     -- (thr) create a relation for type constructor variable application
   TypeVarApp v ts -> do
     env <- ask
-    (RelVar ri rv) <- maybeToMonad (Map.lookup v env)
+    rv@(RelVar ri _) <- maybeToMonad (Map.lookup v env) -- (RelVar ri rv)
 
     -- (thr) TODO: The following lines should be moved to a function
     -- TODO: also, doesn't work with Monad m => m (a -> b)
+    -- TODO: ONLY the first is interpreted!
     (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
     let t1 = relationLeftType ri
     let t2 = relationRightType ri
@@ -207,12 +208,17 @@ interpretM l t = case t of
 --    let (TypeExp (TF (Ident t2'))) = relationRightType (relationInfo r)
 --    let newt1 = TypeExp (TF (Ident (t1 ++ " " ++ t1')))
 --    let newt2 = TypeExp (TF (Ident (t2 ++ " " ++ t2')))
-    let newt1 = TypeVarApp (TV (Ident "GLUKU1")) [t1']
-    let newt2 = TypeVarApp (TV (Ident "GLUKU2")) [t2']
+    -- TODO: what if tv1 or tv2 are NOT TypeVariables
+--    let (TypeVar tv1) = t1
+--    let (TypeVar tv2) = t2
+    let newt1 = (TypeExp (TF (Ident $ (show t1) ++ " " ++ (show t1'))))
+    let newt2 = (TypeExp (TF (Ident $ (show t2) ++ " " ++ (show t2'))))
     let newreli = RelationInfo l newt1 newt2
 
-    let (RVar i) = rv
-    return (RelTypeConsApp newreli rv r)
+--    let (RVar i) = rv
+    case rv of
+      (RelVar _ v)  -> return (RelTypeConsApp newreli v r)
+      otherwise -> error "FIXME: Doesn't work"
 
   where
     mkRelationInfo l t = do
@@ -436,13 +442,14 @@ reduceLifts ir =
       RelAbs ri rv ts res r -> RelAbs ri rv ts res (re ok r)
       FunAbs ri fv ts res r -> FunAbs ri fv ts res (re ok r)
       RelTypeConsAbs ri rv ts res rel -> RelTypeConsAbs ri rv ts res (re ok rel)
---      RelTypeConsApp ri (RVar rv) rel' ->
-      --if ok
---                                    then reduceTypeConApp ri (re ok rel')
+      RelTypeConsApp ri (RVar rv) rel' ->
+                                  if ok
+--                                     then reduceTypeConApp ri (re ok rel')
 
                                     -- TODO: cannot reduce (see thesis)
---                                    then reduce (RelLift ri (ConVar (Ident rv)) [(re ok rel')])
---                                    else rel
+                                    then reduce (RelLift ri (ConVar (Ident rv)) [(re ok rel')])
+--                                    then reduce rel
+                                    else rel
       otherwise             -> rel
 
     mk' ok ri r = case theoremType (relationLanguageSubset ri) of
@@ -468,8 +475,9 @@ reduceLifts ir =
     -- This function is applied in a bottom-up manner, therefore the
     -- arguments of the lifted constructor are already reduced.
     reduce rel = case rel of
-      RelLift ri con rs -> maybe rel id (toTerm ri con rs)
-      otherwise         -> rel
+      RelLift ri con rs          -> maybe rel id (toTerm ri con rs)
+--      RelTypeConsApp ri lef rel' -> RelBasic (relationInfo rel)
+      otherwise                  -> rel
 
     -- Tries to transform a lifted relation. If not succesful, Nothing is
     -- returned.
@@ -487,7 +495,7 @@ reduceLifts ir =
     funSymbol con = case con of
       ConList             -> Just . TVar $ "map"
       Con (Ident "Maybe") -> Just . TVar $ "fmap"
-      ConVar (Ident v)    -> Just . TVar $ "fmap" -- TODO: check the variable type
+--      ConVar (Ident v)    -> Just . TVar $ "lift{" ++ v ++ "}" -- TODO: check the variable type
       otherwise           -> Nothing
 
     -- Checks if 'rel' is a 'left' function. If so, its term and type is

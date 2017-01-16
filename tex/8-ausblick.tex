@@ -2,3 +2,13 @@
 \section{Ausblick}
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
+Es wurde bereits in Kapitel \ref{sec:striktheit-und-rekursion} darauf eingegangen, inwiefern Striktheit und der Fixpunktoperator
+eine Rolle bei der Gegnerierung freier Theoreme spielen. In der Erweiterung der Bibliothek wurden diese bisher außer Acht gelassen,
+sie funktioniert nur mit der \texttt{BasicLanguage} korrekt. Aber natürlich wäre es wünschenswert, auch die übrigen
+Teilsprachen zu unterstützen.
+
+%Die umgesetzte Erweiterung basierte zum großen Teil auf einer Arbeit von Voigtländer \cite{voigtlander}, deren Betrach
+
+In der umgesetzten Implementierung ist nur die Typsorte $* \rightarrow *$ vorgesehen. Aktuelle Spracherweiterungen des
+GHC Compilers ermöglichen hingegen sogar benutzerdefinierte Typsorten \cite{yorgey} \cite{atkey} \todo{richtiges zitat?}. Auch
+hier wäre noch Raum für Verbesserungen.

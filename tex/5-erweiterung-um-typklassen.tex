@@ -235,19 +235,45 @@ Durch Anwenden der Funktion \textit{specialize} wird die Formel des Theorems tei
 Aussagen der Form $(x, y) \in \mathcal{R}$ in Gleichungen der Form $f\ x = y$ überführt werden. Es wäre wünschenswert,
 diese Vereinfachungen auch für Ausdrücke mit Typkonstruktorvariablen anzuwenden.
 
-In Abschnitt \ref{sec:specialise-relvars} wurde bereits beschrieben, wie \textit{specialise} in \textit{free-theorems} bisher arbeitet.
+In Abschnitt \ref{sec:specialise-relvars} wurde bereits beschrieben, wie \textit{specialise} in \textit{free-theorems} bisher arbeitete.
 Es liegt die Vorgehensweise nahe, die bisherige Methode auch auf beliebige Typkonstruktorvariablen auszuweiten. Hier tritt nur leider
 das Problem auf, dass man keine Informationen über die konkret verwendete Datenstruktur hat. Alles, was bekannt ist, ist die
-verwendete Typklasse, die natürlich die Existenz gewisser Funktionen voraussetzt.
+verwendete Typklasse, die die Existenz gewisser Funktionen voraussetzt.
 
-Doch selbst wenn diese Funktionen gegeben sind, kann man keine Aussage darüber treffen, was diese Funktion tun, da Typklassen
-Ad-Hoc-Polymorphismus nutzen: Über die tatsächliche Implementierung ist nichts bekannt. Das heißt: Selbst im Falle, dass
+Doch selbst wenn diese Funktionen gegeben sind, kann man keine Aussage darüber treffen, was diese Funktionen tun, da
+Typklassen Ad-Hoc-Polymorphismus nutzen: Über die tatsächliche Implementierung ist nichts bekannt. Das heißt: Selbst im Falle, dass
 die Typvariable auf Instanzen der Typklasse \texttt{Functor} eingeschränkt ist, was bedeutet, dass eine Funktion \texttt{fmap}
 existiert, kann man daraus nicht schließen, dass ein Ausdruck der Art $(x, y) \in lift_{Functor}(\mathcal{R})$ auf den Ausdruck
 $fmap\ f\ x = y$ spezialisiert werden könnte.
 
-Eine erste Implementierung sah diesen Ansatz vor, wurde dann aber wieder entfernt.
+%Eine erste Implementierung sah diesen Ansatz vor, wurde dann aber wieder entfernt.
+Eine erste Implementierung sah die Verwendung unterschiedlicher Funktionsnamen vor, abhängig von der Typklasse der
+Typkonstruktorvariable. Das folgende Beispiel zeigt das freie Theorem für die Typsignatur \texttt{Functor f => a -> f a}.
+
+\begin{align*}
+& \forall t_1, t_2 \in Types, \mathcal{R} : t_1 \Leftrightarrow t_2 \\
+& \forall k_1, k_2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2, \mathcal{K}\ \text{respektiert Functor} \\
+& \forall (x, y) \in \mathcal{R} . (test_{t_1\ k_1}\ x, test_{t_2\ k_2}\ y) \in \mathcal{K}\ \mathcal{R})
+\end{align*}
+
+Spezialisiert man in diesem Beispiel die Relation $\mathcal{R}$ auf eine Funktion $f$, kann man eben auf die Idee kommen, die letzte
+Zeile wie folgt zu transformieren.
+
+\begin{align*}
+& \forall x \in t_1 . \text{fmap}\ f\ (test_{t_1 k_1}\ x) = test_{t_2 k_2} (f\ x)
+\end{align*}
 % TODO: Was ist, wenn Functor-Gesetze gelten?
+
+Aus den oben genannten Gründen muss dies aber nicht immer gelten. Die jeweilige \texttt{fmap}-Funktion könnte beispielsweise
+die Reihenfolge der Daten ändern, die übergebene Funktion ignorieren, etc.
+Aus diesem Grund wird die Zeile transformiert wie folgt:
+
+\begin{align*}
+& \forall x \in t_1 . (test_{t_1 k_1}\ x, test_{t_2 k_2}\ (f\ x)) \in lift_{\mathcal{K}}(f)
+\end{align*}
+
+Hierbei ist $lift_{\mathcal{K}}(f)$ die Relation, die durch das \textit{Lifting} der Funktion $f$ in den $\mathcal{K}$-Kontext
+entsteht.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
