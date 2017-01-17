@@ -20,21 +20,56 @@ Die Bilbiothek definiert drei Untermengen:
    \item SubsetWithSeq
 \end{itemize}
 
-Die erste Untermenge, BasicSubset, entspricht dem Girard-Reynoldschen Lambda-Kalkül \cite{bla}, erweitert um Datentypen und
-Typklassen \cite{freetheorems}. Insbesondere sind aber keine undefinierten Werte erlaubt, die zum Beispiel durch Nichtterminierung,
-Division durch Null oder Pattern Matching Fehler auftreten.
+Die erste Untermenge, BasicSubset, entspricht dem Girard-Reynoldschen Lambda-Kalkül \cite{freetheorems} \todo{Zitat}, erweitert um Datentypen und
+Typklassen \cite{freetheorems}. Insbesondere sind aber keine undefinierten Werte erlaubt, die zum Beispiel durch Nichtterminierung
+oder Pattern Matching Fehler auftreten.
 Das ändert sich in SubsetWithFix. Hier ist zusätzlich der Fixpunktoperator \textit{fix} verfügbar, und es müssen folglich undefinierte
-Werte erlaubt werden. Was noch fehlt, ist die \textit{seq}-Funktion sowie Striktheits-Flags. Letztere können bei selbstdefinierten
-Datentypen an die einzelnen Untertypen \todo{Richtige Bezeichnung für einzelne "Parameter" eines Datentyps?} annotiert werden,
-um eine strikte Auswertung zu erzwingen.
-Die Untermenge SubsetWithSeq ermöglicht schließlich die zuletzt genannten Aspekte: Es wird Striktheit durch \textit{seq}
-eingeführt, dadurch sind dann auch Striktheitsannotationen in Datentypen möglich.
+Werte erlaubt werden. Was noch fehlt, ist die \texttt{seq}-Funktion sowie Striktheits-Flags.
+
+Die Funktion \texttt{seq} hat die folgende Typsignatur.
+
+\begin{minted}{haskell}
+seq :: a -> b -> b
+\end{minted}
+
+Wie zu sehen ist, erwartet die Funktion zwei Parameter. Obwohl sie auf den ersten Blick ganz gewöhnlich scheint, hat sie
+eine bemerkenswerte Eigenschaft, die weitreichende Folgen hat. Der erste Parameter dieser Funktion wird strikt ausgewertet,
+schließlich wird der zweite Ausdruck zurückgegeben. Zur Folge hat das, dass der erste Parameter definitiv zuerst auf die
+Kopf-Normal-Form reduziert wird, unabhängig vom zweiten Parameter.
+
+Handelt es sich beim ersten Parameter also um $\bot$, ergibt sich daraus ein Fehler, obwohl der erste Parameter
+ansonsten möglicherweise gar keine Verwendung findet. Bei den Striktheitsannotationen bei Datentypen handelt es sich
+um angenehmere Schreibweisen, um den Striktheitsoperator zu verwenden. Das folgende Beispiel zeigt eine solche
+Striktheitsannotation.
+
+\begin{minted}{haskell}
+data Test = String !SomeData
+\end{minted}
+
+Die Annotation im Beispiel bewirkt, dass der Parameter vom Datentyp \texttt{SomeData} stets sofort ausgewertet wird und
+folglich auf Kopf-Normal-Form reduziert wird.
+ 
+
+%Letztere können bei selbstdefinierten
+%Datentypen an die einzelnen Untertypen \todo{Richtige Bezeichnung für einzelne "Parameter" eines Datentyps?} annotiert werden,
+%um eine strikte Auswertung zu erzwingen.
+Die Untermenge SubsetWithSeq ist die Sprache, die auch \texttt{seq} und Striktheitsannotationen enthält.
 
 Es wird noch eine weitere Unterscheidung eingeführt: Zu SubsetWithFix und SubsetWithSeq kann noch unterschieden werden,
-ob Gleichungs- oder Ungleichungsresultate gewünscht sind. \todo{equational and inequational results - bessere Übersetzung?}
-Daraus ergeben sich insgesamt fünf Varianten, für die \cite{freetheorems} die folgende Schreibweise einführt, wobei $M$ die Menge
-der verfügbaren \textit{Modelle} ist:
+ob die Theoreme als Gleichungen oder als Ungleichungen erwünscht sind.
+
+Die Idee hinter der Darstellung als Ungleichungen ist die folgende: Durch Einführen von \texttt{seq} bricht die Gültigkeit der
+freien Theoreme auseinander, weil es passieren kann, dass eine Seite der resultierenden Gleichung $\bot$ sein kann.
+Man kann die Aussage jedoch als Ungleichung darstellen, indem man die Typrelationen asymmetrisch konstruiert; sie
+ordnen dann nicht mehr jeweils zwei Ausdrücke als ``gleichwertig'' einander zu, sondern legen eine Ordnung fest, die
+die \textit{Definiertheit} widerspiegelt \cite{johann}. So bleibt es möglich, gültige Aussagen zu treffen, ohne zu starke
+Einschränkungen auf die quantifizierten Relationen festzulegen.
+
+Insgesamt ergeben sich insgesamt fünf Varianten, für die \cite{freetheorems} die folgende Schreibweise einführt,
+wobei $M$ die Menge der verfügbaren \textit{Modelle} ist:
 
 \begin{align}
 M = \{(basic, =), (fix, =), (fix, \sqsubseteq), (seq, =), (seq, \sqsubseteq)\}
 \end{align}
+
+% TODO: zumindest erklären, welche einschränkungen auf die relationen angewendet werden.

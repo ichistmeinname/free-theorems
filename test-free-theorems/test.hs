@@ -109,18 +109,42 @@ main = do
   let s = "free theorems generator"
   putStrLn s
   putStrLn $ replicate (length s)  '*'
-  mainLoop
+  mainLoop BasicSubset False
 
-mainLoop :: IO ()
-mainLoop = do
+toggleVerbose :: LanguageSubset -> Bool -> IO ()
+toggleVerbose l verbose = let verbtxt = if verbose then "off"
+                                                   else "on"
+                           in putStrLn ("Verbose mode " ++ verbtxt ++ ".")
+                              >> mainLoop l (not verbose)
+
+changeSubset :: LanguageSubset -> Bool -> IO ()
+changeSubset l verbose = let ttToStr tt = case tt of
+                                           EquationalTheorem   -> "equational"
+                                           InequationalTheorem -> "inequational"
+                             txt = case l of
+                                    BasicSubset -> "basic subset"
+                                    (SubsetWithFix tt) -> "subset with fix (" ++ ttToStr tt ++ ")"
+                                    (SubsetWithSeq tt) -> "subset with seq (" ++ ttToStr tt ++ ")"
+                  in putStrLn ("Changed language subset to \"" ++ txt ++ "\".")
+                     >> mainLoop l verbose
+
+mainLoop :: LanguageSubset -> Bool -> IO ()
+mainLoop l verbose = do
   putStrLn "\nInput:"
   inp <- getLine
   let s = case inp of
            "teststr" -> teststr
            otherwise -> inp
 
-  if (s /= ":q")
-    then do
+  case s of
+    ":q"       -> return ()
+    ":v"       -> toggleVerbose l verbose
+    ":basic"   -> changeSubset BasicSubset verbose
+    ":fix"     -> changeSubset (SubsetWithFix EquationalTheorem)   verbose
+    ":fix!"    -> changeSubset (SubsetWithFix InequationalTheorem) verbose
+    ":seq"     -> changeSubset (SubsetWithSeq EquationalTheorem)   verbose
+    ":seq!"    -> changeSubset (SubsetWithSeq InequationalTheorem) verbose
+    otherwise -> do
           let (decls, parseErrs) = runWriter $ parse s
           let (valdecls, checkErrs) = runWriter $ checkAgainst knownDeclarations decls
           let allDecls = valdecls ++ knownDeclarations
@@ -130,22 +154,28 @@ mainLoop = do
 
           let sigs = filterSignatures valdecls
           if (null sigs) then putStrLn "No valid signature found."
-                         else case interpret valdecls BasicSubset (head sigs) of
+                         else case interpret valdecls l (head sigs) of
                            Nothing     -> return ()
                            (Just intm) -> do
                              let specIntm = specializeIntermediate intm
                              putStrLn "\nInput:"
                              putStrLn s
-                             putStrLn "\nIntermediate representation:"
-                             putStrLn $ show intm
-                             putStrLn "\nTheorem (formula structure):"
-                             putStrLn $ (describeFormula . asTheorem) intm
+                             if (verbose)
+                               then do
+                                 putStrLn "\nIntermediate representation:"
+                                 putStrLn $ show intm
+                                 putStrLn "\nTheorem (formula structure):"
+                                 putStrLn $ (describeFormula . asTheorem) intm
+                               else return ()
                              putStrLn "\nTheorem:"
                              putStrLn $ show (prettyTheorem [] $ (asTheorem) intm)
-                             putStrLn "\nSpecialized intermediate:"
-                             putStrLn $ show specIntm
-                             putStrLn "\nSpecialized (formula structure):"
-                             putStrLn $ (describeFormula . simplify . asTheorem) specIntm
+                             if (verbose)
+                               then do
+                                 putStrLn "\nSpecialized intermediate:"
+                                 putStrLn $ show specIntm
+                                 putStrLn "\nSpecialized (formula structure):"
+                                 putStrLn $ (describeFormula . simplify . asTheorem) specIntm
+                               else return ()
                              putStrLn "\nSpecialized:"
                              putStrLn $ show (prettyTheorem [] $ (asTheorem) specIntm)
                              putStrLn "\nSpecialized and simplified:"
@@ -156,5 +186,4 @@ mainLoop = do
                              putStrLn "\nUnfolded classes:"
                              let unfclasses = unfoldClasses allDecls intm
                              putStrLn $ (show . hcat) $ map (prettyUnfoldedClass []) unfclasses
-          mainLoop
-    else return ()
+          mainLoop l verbose

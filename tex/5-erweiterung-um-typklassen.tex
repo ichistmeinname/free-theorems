@@ -6,30 +6,34 @@
 
 In den bisherigen Abschnitten wurden die Grundlagen zu freien Theoremen erklärt, es wurde erläutert, wie freie Theoreme
 aussehen, wenn Typkonstruktorklassen eine Rolle spielen, und es wurde ein Einblick in die Bibliothek \textit{free-theorems}
-gegeben. Es sind jetzt alle Werkzeuge vorhanden, um die Bibliothek so zu erweitern, dass auch Klassen möglich sind,
-deren Typparameter von der Sorte $* \rightarrow *$ sind und Typsignaturen zu schreiben, in denen Typvariablen auf
-solche Klassen beschränkt und auf Parameter angewandt werden.
+gegeben. Es sind jetzt alle Werkzeuge vorhanden, um die Bibliothek so zu erweitern, dass auch Typkonstruktorklassen möglich
+sind, deren Typparameter die Sorte $* \rightarrow *$ haben. Und natürlich muss es möglich sein, Typsignaturen zu schreiben,
+in denen Typvariablen auf solche Klassen beschränkt und auf Typparameter angewandt werden.
 
-Dieses Kapitel ist aufgeteilt in die verschiedenen Schritte, die bei der Verwendung der Bibliothek durchlaufen werden. Es
-wird jeweils darauf eingegangen, welche Änderungen notwendig sind und was jeweils zu beachten ist, um Typkonstruktorklassen
-zu unterstützen.
-
-%In diesem Abschnitt soll erläutert werden, welche Änderungen an free-theorems vorgenommen werden müssen, um auch Typklassen und Typkonstruktoren miteinzubeziehen. In
-%Abschnitt 
-%
-%usw.
+Dieses Kapitel ist ähnlich gegliedert wie Kapitel \ref{sec:free-theorems}: Die einzelnen Abschnitte entsprechen den Funktionen,
+die bei der Verwendung der Bibliothek durchlaufen werden. Dabei wird jeweils erläutert, inwiefern sich Funktionsweisen ändern
+bzw. neue Funktionalitäten hinzugefügt werden. Insbesondere wird ein Blick auf die internen Datenstrukturen gegeben,
+die hier eine Rolle spielen.
+%Dieses Kapitel ist aufgeteilt in die verschiedenen Schritte, die bei der Verwendung der Bibliothek durchlaufen werden. Es
+%wird jeweils darauf eingegangen, welche Änderungen notwendig sind und was jeweils zu beachten ist, um Typkonstruktorklassen
+%zu unterstützen.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Erweiterungen der BasicSyntax}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Bevor man mit Typkonstruktorvariablen arbeiten kann, müssen diese natürlich zunächst in der \texttt{BasicSyntax} vorgesehen
-sein. An sich verhalten sich diese ja wie andere Typvariablen auch, mit dem Unterschied, dass sie - ähnlich wie Funktionen -
-auf andere Typausdrücke angewandt werden können. Das folgende Beispiel soll dies verdeutlichen.
+Alles beginnt bei der Syntax. Der Zweck der vereinfachten \texttt{BasicSyntax} war, dass nicht verwendete Sprachkonstrukte
+ignoriert werden können. Typvariablen, die auf andere Typen angewandt werden, gehörten bisher zu diesen vernachlässigbaren
+Konstrukten. Da im Hintergrund aber ein kompletter Haskell-Parser arbeitet, lässt sich diese Erweiterung relativ einfach
+wieder einpflegen.
 
-%Der erste Schritt ist selbsterklärend: Die Syntax um erweitert werden um die Möglichkeit, Typvariablen funktionsähnlich
-%auf weitere Typen anzuwenden. Zu sehen ist das im folgenden Beispiel.
+Rein syntaktisch kann man Typkonstruktorvariablen sehen als Typvariablen, die wie Typkonstruktoren verwendet werden. Das
+soll im folgenden Beispiel verdeutlicht werden.
+
+%Bevor man mit Typkonstruktorvariablen arbeiten kann, müssen diese natürlich zunächst in der \texttt{BasicSyntax} vorgesehen
+%sein. An sich verhalten sich diese ja wie andere Typvariablen auch, mit dem Unterschied, dass sie - ähnlich wie Funktionen -
+%auf andere Typausdrücke angewandt werden können. Das folgende Beispiel soll dies verdeutlichen.
 
 \begin{minted}{haskell}
 test :: Monad m => m a -> (a -> m b) -> m b
@@ -41,10 +45,11 @@ folglich also selbst einen Parameter erwartet. Dementsprechend kommt in der Sign
 d.h. die Typkonstruktorvariable \texttt{f} wird angewandt auf die Typvariable \texttt{a}.
 
 Es ist noch zu beachten, dass eine solche Applikation bei bestimmten Standardtypkonstruktoren bereits vorgesehen ist, diese
-hat mit Typvariablenapplikation aber nichts zu tun. So sind \texttt{[a]} und \texttt{Maybe a} bereits möglich, hier wird aber
-erkannt, dass \texttt{[]} und \texttt{Maybe} keine Typvariablen sondern Standardtypkonstruktoren sind. \todo{nicht sicher}
+haben mit Typvariablenapplikation aber nichts zu tun. So sind \texttt{[a]} und \texttt{Maybe a} bereits möglich. Da es sich
+bei \texttt{[]} und \texttt{Maybe} jedoch nicht um Variablen handelt, sondern um bekannte Typkonstruktoren, wird hier auch ein
+anderer Datentyp verwendet.
 
-Um dieser neuen syntaktischen Möglichkeit Rechnung zu tragen, wird die \texttt{BasicSyntax} um den Konstruktor
+Um also dieser neuen syntaktischen Möglichkeit Rechnung zu tragen, wird die \texttt{BasicSyntax} um den Konstruktor
 \texttt{TypeVarApp} erweitert. Am besten wird das deutlich, wenn man betrachtet, in welchen Ausdruck das obige Beispiel
 in \texttt{BasicSyntax} überführt wird - siehe hierzu Listing \ref{lst:typevarapp}.
 

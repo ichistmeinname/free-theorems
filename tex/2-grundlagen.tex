@@ -9,8 +9,8 @@ von Bedeutung sein werden. Ein großer Teil der Arbeit baut auf dem mathematisch
 grundsätzlichen mathematischen Notationen vor allem Definitionen und Notationen eingeführt werden, die Relationen betreffen.
 
 Des Weiteren sind Haskell-Kenntnisse erforderlich. Es würde an dieser Stelle zu weit führen, sämtliche Sprachkonstrukte von
-Haskell anzuführen, die eine Rolle spielen; dennoch wird zumindest auf Typklassen eingegangen, insbesondere Typkonstruktorklassen,
-da diese eine signifikante Rolle spielen. Zudem bietet es sich an, von Anfang an einige Benennungen einzuführen, die im Laufe der
+Haskell anzuführen, die für die folgenden Abschnitte von Bedeutung sind; dennoch wird zumindest auf Typklassen eingegangen, insbesondere Typkonstruktorklassen,
+da diese für die Arbeit eine signifikante Rolle spielen. Zudem bietet es sich an, von Anfang an einige Benennungen einzuführen, die im Laufe der
 Arbeit immer wieder auftauchen werden.
 
 %Sämtliche sprachliche Konstrukte von
@@ -92,7 +92,7 @@ Wenn $\sqsubseteq_{X}$ ein kleinstes Element besitzt, dann ist $\sqsubseteq_{X}$
 \textit{geordnet}. Dieses kleinste Element wird typischweise als $\bot_{X}$ (\textit{bottom}) bezeichnet.
 
 Sei $\mathcal{R} \subseteq X \times Y$ eine binäre Relation über zwei geordnete Mengen $X$ und $Y$. Man nennt $\mathcal{R}$ \textit{strikt},
-wenn $(\bot, \bot) \in \mathcal{R}$. $\mathcal{R}$ wird \textit{total} genannt, wenn für jedes Paar $(x, y) \in \mathcal{R}$ gilt dass
+wenn $(\bot, \bot) \in \mathcal{R}$. $\mathcal{R}$ wird \textit{total} genannt, wenn für jedes Paar $(x, y) \in \mathcal{R}$ gilt, dass
 aus $y = \bot$ folgt $x = \bot$.
 
 Man nennt $\mathcal{R}$ \textit{bottom-reflecting} \todo{wie soll man das bloß übersetzen?}, wenn sogar für jedes Paar
@@ -115,7 +115,7 @@ Ist Y eine Menge und X eine bezüglich $\sqsubseteq_{X}$ geordnete Menge, dann n
 Das Inverse einer Relation $\mathcal{R} \subseteq X \times Y$ wird definiert als $\mathcal{R}^{-1} = \{(y, x) | (x, y) \in \mathcal{R}\}
 \subseteq Y \times X$. Möchte man $\sqsubseteq^{-1}$ ausdrücken, nutzt man zuweilen auch das umgedrehte Symbol $\sqsupseteq$.
 
-Seien $X$ und $Y$ geordnete Mengen. Man nennt eine Funktion $f$ \textit{monoton}, wenn aus $x \sqsubseteq y$ folgt, dass
+Seien $X$ und $Y$ geordnete Mengen und $f : X \rightarrow Y$ eine Funktion. Man nennt $f$ \textit{monoton}, wenn aus $x \sqsubseteq y$ folgt, dass
 $f(x) \sqsubseteq f(y)$ für alle $x, y \in X$.
 
 %Sei $V$ eine endliche Menge und $\mathcal{E}$ eine binäre Relation auf $V$. Das Tupel $G = (V, \mathcal{E}) bezeichnet einen
@@ -135,9 +135,7 @@ Das unterscheidet sie von einer Funktion, oder anders ausgedrückt: Das macht Fu
 Funktion, ebenfalls auf zwei Mengen definiert, ordnet jedem Element genau ein Ergebnis zu - Eingabewerte mit
 mehreren Funktionswerten sind genausowenig enthalten wie Eingabewerte ohne Ergebnis.
 
-Wir betrachten eine beliebige Funktion $f : T_1 \rightarrow T_2$, d.h. eine Funktion, die Elemente der Menge $T_1$ auf
-Elemente der Menge $T_2$ abbildet. Zu jedem $x \in T_1$ ist also $f(x)$ definiert, wobei $f(x) \in T_2$. Funktionen kann
-man auch wie folgt als Relationen darstellen.
+Wir betrachten eine beliebige Funktion $f : T_1 \rightarrow T_2$. Zu jedem $x \in T_1$ ist also $f(x)$ definiert, wobei $f(x) \in T_2$. Funktionen kann man auch wie folgt als Relationen darstellen.
 
 \begin{align*}
 \{ (x, f(x)) | x \in T_1 \}
@@ -145,18 +143,27 @@ man auch wie folgt als Relationen darstellen.
 
 Man nennt die zu $f$ gehörige Relation auch den \textit{Graphen} zu $f$.
 
-Andererseits bedeutet das, dass es Relationen gibt, die man auch als Funktionen auffassen kann. Hat man beispielsweise
-eine Aussage über beliebige Relationen $\forall \mathcal{R} : T_1 \Leftrightarrow T_2 . A(\mathcal{R})$, wobei A eine
-Aussage ist, die von $\mathcal{R}$ abhängig ist, dann macht es Sinn, aus dieser Aussage eine speziellere Aussage zu folgern,
-die wie folgt aussieht.
+Umgekehrt heißt das natürlich, dass eine Relation unter Umständen auch eine Funktion ist. Das wird besonders interessant, wenn man
+über Relationen allquantifiziert, beispielsweise $\forall \mathcal{R} : T_1 \Leftrightarrow T_2 . A(\mathcal{R})$, wobei $A(\mathcal{R})$
+eine Aussage ist, die von $\mathcal{R}$ abhängt.
+Diese Aussage lässt sich verschärfen, indem man statt über Relationen über Funktionen $\forall f : T_1 \rightarrow T_2$ quantifiziert.
+Eine Aussage wie  $(x, y) \in \mathcal{R}$ wird dann beispielsweise zu $f\ x = y$.
 
-\begin{align*}
-\forall f : T_1 \rightarrow T_2 . A'(f)
-\end{align*}
+Man kann sich leicht klar machen, dass eine solche spezialisierte Aussage aus der ursprünglichen Aussage folgt. Gilt die ursprüngliche
+Aussage, gilt dementsprechend auch die speziellere Aussage.
 
-Hierbei ist A'(f) die auf Funktionen spezialisierte Aussage. Aus jeder Aussage über beliebige Relationen folgt also eine
-Aussage über entsprechende Funktionen. Dies ist für freie Theoreme von Bedeutung, da man sich vor allem für eine vereinfachte
-Darstellung mit Funktionen interessiert.
+%Andererseits bedeutet das, dass es Relationen gibt, die man auch als Funktionen auffassen kann. Hat man beispielsweise
+%eine Aussage über beliebige Relationen $\forall \mathcal{R} : T_1 \Leftrightarrow T_2 . A(\mathcal{R})$, wobei A eine
+%Aussage ist, die von $\mathcal{R}$ abhängig ist, dann macht es Sinn, aus dieser Aussage eine speziellere Aussage zu folgern,
+%die wie folgt aussieht.
+%
+%\begin{align*}
+%\forall f : T_1 \rightarrow T_2 . A'(f)
+%\end{align*}
+%
+%Hierbei ist A'(f) die auf Funktionen spezialisierte Aussage. Aus jeder Aussage über beliebige Relationen folgt also eine
+%Aussage über entsprechende Funktionen. Dies ist für freie Theoreme von Bedeutung, da man sich vor allem für eine vereinfachte
+%Darstellung mit Funktionen interessiert.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -166,14 +173,16 @@ Darstellung mit Funktionen interessiert.
 Die in dieser Ausarbeitung verwendete Bibliothek generiert freie Theoreme für in Haskell geschriebene Programme. In diesem Abschnitt wird noch einmal speziell auf das Sprachkonstrukt der Typkonstruktorklassen eingegangen.
 Eine generelle Beschreibung der Sprache Haskell würde an dieser Stelle zu weit führen, hier sei auf \cite{haskell} verwiesen.
 
+%In dieser Arbeit wird mit einer Teilsprache von Haskell gearbeitet, die ähnlich funktioniert wie der Girard-Reynolds-Kalkül,
+%erweitert um Fixpunkte, algebraische Datentypen und \textit{seq} \cite{johann}. Zu beachten ist, dass keine formelle
+%Semantik für die komplette Programmiersprache Haskell existiert \cite{johann}. \todo{nötig?}
 
 %%% SO ZIEMLICH 1:1 AUS WADLER ÜBERNOMMEN %%%
-Haskell basiert auf dem Hindley/Milner Typsystem, in dem Typen nicht explizit angegeben werden müssen, sondern der allgemeinste
-Typ automatisch anhand der Definition inferiert werden kann \cite{wadler}.
+%Haskell basiert auf dem Hindley/Milner Typsystem, in dem Typen nicht explizit angegeben werden müssen, sondern der allgemeinste
+%Typ automatisch anhand der Definition inferiert werden kann \cite{wadler}.
 %In dieser Arbeit wird, wie auch in \cite{wadler}, das
 %Girard/Reynolds System verwendet, in dem die explizite Angabe von Typen gebundener Funktionsvariablen gefordert ist und
 %Typapplikation bei polymorphen Typen explizit angezeigt werden muss \cite{wadler}.
-
 %Da jedes Programm im Hindley/Milner System automatisch in das Giraard/Reynolds System überführt werden kann, entstehen hier
 %keine Probleme.
 
@@ -186,12 +195,12 @@ Typ automatisch anhand der Definition inferiert werden kann \cite{wadler}.
 %wie genau eine solche Klasse in Haskell definiert wird. Ansonsten wird davon ausgegangen, dass grundsätzliche Kenntnisse der
 %Programmiersprache vorhanden sind, andernfalls sei an dieser Stelle auf \cite{haskell} verwiesen.
 
-Typklassen in Haskell ermöglichen die Umsetzung von Ad-Hoc-Polymorphismus. \todo{zitat} Man kann beliebige Typklassen selbst definieren,
+Typklassen in Haskell ermöglichen die Umsetzung von Ad-Hoc-Polymorphismus. Man kann beliebige Typklassen selbst definieren,
 wobei eine Typklasse immer aus einem Namen, beliebig vielen Funktionssignaturen und gegebenenfalls auch aus vordefinierten
 Standardimplementierungen einzelner Funktionen besteht. Haskell transformiert Programme mit Typklassen intern in Programme
 ohne dieses Konstrukt. \todo{Quelle! (stimmt das überhaupt?)}
 
-Es folgt ein einfaches Beispiel, das auch in der Prelude\footnote{Die Prelude ist Haskells Standardbibliothek und wird automatisch importiert \cite{haskell}} von Haskell enthalten ist.
+Es folgt ein einfaches Beispiel, das auch in der Prelude von Haskell enthalten ist.
 
 %Typklassen in Haskell setzen Ad-Hoc-Polyphormismus um und können beliebig definiert werden. Eine Typklasse besteht aus
 %einem Namen, beliebig vielen Funktionssignaturen und gegebenenfalls aus vordefinierten Implementierungen einzelner
@@ -203,7 +212,7 @@ class Show a where
 \end{minted}
 
 Der Name dieser Beispielklasse ist \texttt{Show}. Man gibt eine Typvariable an, in diesem Fall \texttt{a}, die auch in jeder
-Funktionssignatur vorkommen muss. In dieser Beispielklasse wird genau eine Funktionssignatur angegeben: Die Signatur
+Funktionssignatur vorkommen muss. In dieser Beispielklasse wird genau eine Funktionssignatur eingeführt: Die Signatur
 \texttt{a -> String} für die Funktion \texttt{show}.
 
 Im weiteren Haskellprogramm können nun für beliebige Datentypen Instanzdeklarationen angegeben werden. Der folgende
@@ -218,7 +227,7 @@ instance Show Test where
 
 Kommt nun im Programm in einem Ausdruck der Funktionsaufruf \texttt{show} vor, so wird anhand des Parametertypen
 entschieden, welche Instanz dieser Klasse verwendet wird. Es kann also für jeden Typen eine komplett eigene Implementierung
-angegeben werden.
+programmiert werden.
 
 Nun ist es ja auch möglich, dass ein selbstdefinierter Datentyp einen Typen als Parameter erwartet, wie das folgende Beispiel
 zeigt.
@@ -228,12 +237,12 @@ data Test a = Test a String
 \end{minted}
 
 Beim Ausdruck \texttt{Test} handelt es sich in diesem Fall also nicht um einen Typen, sondern eher um einen funktionsähnlichen Ausdruck, der
-einen Typen als Parameter erwartet und einen Typen zurückgibt. Man spricht hier auch von Sorten (engl. ``kinds''). Haskell
+einen Typen als Parameter erwartet und einen Typen zurückgibt. Man spricht hier auch von \textit{Sorten} (engl. ``kinds''). Haskell
 führt für Sorten eine eigene Notation ein. Alle Basistypen wie \texttt{Int}, \texttt{String}, etc. sind von der Sorte *.
 Typkonstruktoren, die einen Typen als Parameter erwarten und daraus einen neuen Typen konstruieren, sind von der Sorte
 $* \rightarrow *$.
-Kompliziertere Sorten wie zum Beispiel $* \rightarrow (* \rightarrow *) \rightarrow *$ sind ebenfalls möglich (werden aber in dieser
-Arbeit keine Anwendung finden).
+Kompliziertere Sorten wie zum Beispiel $* \rightarrow (* \rightarrow *) \rightarrow *$ sind theoretisch ebenfalls möglich,
+werden aber in dieser Arbeit keine Anwendung finden.
 
 Typklassen können auch für Datentypen definiert werden, die Typparameter erwarten. Das folgende Beispiel zeigt die
 Definition für die Typklasse \texttt{Functor}, die für einen Typen definiert ist, der wiederum einen Typparameter erwartet.
@@ -244,22 +253,23 @@ class Functor f where
 \end{minted}
 
 Hier ist \texttt{f} die Typvariable. Die Signatur für \texttt{fmap} lässt erkennen, dass \texttt{f} auf einen Parameter appliziert
-wird, also muss \texttt{f} von der Sorte $* \rightarrow *$ sein. Zu beachten ist hier, dass es keinen Sinn macht (und auch nicht
-gestattet ist), dass die Typvariable mit unterschiedlichen Anzahlen an Argumenten auftaucht. Ebenso wäre es ungültig,
+wird, $f$ muss also von der Sorte $* \rightarrow *$ sein. Zu beachten ist hier, dass es keinen Sinn macht (und auch nicht
+gestattet ist), dass die Typvariable mit unterschiedlichen Argumentzahlen auftaucht. Ebenso wäre es ungültig,
 eine Instanz von \texttt{Functor} zu definieren für einen Datentyp, der keine Typparameter erwartet.
 
 %Wie nutzt man diese Typklassen, nachdem man sie definiert hat? Man kann für beliebige Typvariablen in Signaturen einen Kontext
 %angeben, das heißt man schränkt die Typvariablen auf bestimmte Typklassen ein. Zu sehen ist das im folgenden Beispiel.
-Hat man eine Typklasse definiert, kann man Typvariablen 
+Hat man eine Typklasse definiert, kann man im Folgenden in beliebigen Typsignaturen einen Kontext angeben, der
+bestimmte Typvariablen auf bestimmte Klassen festlegt, wie es das folgende Beispiel zeigt.
 
 \begin{minted}{haskell}
 test :: Functor f => f Int -> f Int
 \end{minted}
 
-Hier ist \texttt{f} eine freie Typvariable, für die jedoch ein Kontext angegeben ist, der besagt, dass sie auf Instanzen
-der Typklasse \texttt{Functor} beschränkt ist. Für die Implementierung heißt das, dass Funktionen auf die entsprechenden
-Parameter angewandt werden können, die für die Typklasse \texttt{Functor} definiert sind. Das folgende Beispiel ist also
-eine mögliche Implementierung des obigen Beispiels.
+Hier ist \texttt{f} eine freie Typvariable, für die jedoch ein Kontext angegeben ist, der besagt, dass für $f$ nur Instanzen
+der Typklasse \texttt{Functor} infrage kommen. Im Gegenzug für diese Einschränkung ist es in der Implementierung möglich,
+die Funktionen dieser Klasse zu nutzen, da sichergestellt ist, dass Implementierungen dieser Funktionen
+existieren. Die folgende Funktionsdefinition ist also eine mögliche Implementierung der obigen Beispielsignatur.
 
 \begin{minted}{haskell}
 test x = fmap (+1) x
