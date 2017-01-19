@@ -4,66 +4,115 @@
 
 \label{sec:freie-theoreme}
 
-% % % % % % % % % % % % % % % %
-% TODOs                                                      %
-% % % % % % % % % % % % % % % %
+Betrachtet man eine Typsignatur in Haskell, dann hat man intuitiv eine Vorstellung davon, was diese Funktion ungefähr
+macht. Je nach Typ kann die Funktion in ihrer Funktionsweise stark eingeschränkt sein, was Haskells Typsystem zu verdanken
+ist, genauer: dem parametrischen Polymorphismus. Nicht nur verringert dieses Typsystem die Fehleranfälligkeit von
+produziertem Code, es vereinfacht auch Rückschlüsse auf die Funktionsweise und Korrektheitsbeweise.
 
-% Typklassen: Erklären, wie Typklassen behandelt werden.
+Wie in der Einleitung bereits angedeutet wurde, lässt sich diese Intuition in Formeln ausdrücken. In diesem Abschnitt
+wird erklärt, wie diese so genannten freien Theoreme aussehen. Es wird erläutert, wie man sie herleitet und warum
+das möglich ist. Am Ende des Abschnittes wird insbesondere darauf eingegangen, welche Rolle Typkonstruktorklassen
+für die Generierung von freien Theoremen spielen.
 
-
-Einleitend wurde bereits das mächtige Typsystem Haskells angesprochen. Dieses Typsystem ist komplett statisch und
-unterstützt parametrischen Polymorphismus, wie in den Grundlagen erläutert wurde. Nicht nur verringert ein solches Typsystem
-die Fehleranfälligkeit von produziertem Code, es vereinfacht auch Rückschlüsse auf die Funktionsweise und Korrektheitsbeweise.
-In dieser Arbeit geht es vor allem um die bereits angesprochenen freien Theoreme. Diese lassen sich herleiten, ohne dass man
-überhaupt die konkrete Implementierung in Betracht ziehen muss. Man nennt sie ``freie Theoreme'', weil man sie gewissermaßen
-``geschenkt'' bekommt. Wie genau man diese Theoreme herleitet, soll in diesem Abschnitt genauer erläutert werden.
+%Einleitend wurde bereits das mächtige Typsystem Haskells angesprochen. Dieses Typsystem ist komplett statisch und
+%unterstützt parametrischen Polymorphismus, wie in den Grundlagen erläutert wurde. Nicht nur verringert ein solches Typsystem
+%die Fehleranfälligkeit von produziertem Code, es vereinfacht auch Rückschlüsse auf die Funktionsweise und Korrektheitsbeweise.
+%In dieser Arbeit geht es vor allem um die bereits angesprochenen freien Theoreme. Diese lassen sich herleiten, ohne dass man
+%überhaupt die konkrete Implementierung in Betracht ziehen muss. Man nennt sie ``freie Theoreme'', weil man sie gewissermaßen
+%``geschenkt'' bekommt. Wie genau man diese Theoreme herleitet, soll in diesem Abschnitt genauer erläutert werden.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Beispiel}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Zunächst bietet es sich an, die Vorgehensweise an einem konkreten Beispiel vorzuführen. Bevor es um die theoretische
-Herangehensweise geht, soll das Vorgehen erst einmal intuitiv motiviert werden. Wir betrachten die folgende Haskell-Funktion.
+Bevor die theoretische Herangehensweise beschrieben wird, bietet es sich zunächst an, die Vorgehensweise an einem Beispiel
+intuitiv zu erklären. Erst danach wird das Vorgehen konkretisiert und in Formeln dargestellt.
+Als Beispiel soll die folgende Haskell-Typsignatur dienen.
+%Zunächst bietet es sich an, die Vorgehensweise an einem konkreten Beispiel vorzuführen. Bevor es um die theoretische
+%Herangehensweise geht, soll das Vorgehen erst einmal intuitiv motiviert werden. Wir betrachten die folgende Haskell-Funktion.
 
-\begin{align}
+\begin{align*}
 f :: [a] \rightarrow [a]
-\end{align}
+\end{align*}
 
 Gegeben ist also eine Funktion $f$, die von einer Liste auf eine Liste abbildet. Das Besondere an dieser Funktion ist, dass sie
-nicht für einen konkreten Typen definiert ist, sondern für jeden beliebigen Typen, der für die Typvariable a eingesetzt werden
-kann. Es handelt sich also um eine polymorphe Funktion.
+nicht für einen konkreten Typ wie beispielsweise $[Integer] \rightarrow [Integer]$ definiert ist, sondern dass man sie für jeden
+beliebigen Typsignatur instanziieren kann, indem man für die Typvariable $a$ einen Typausdruck einsetzt. Es handelt sich
+um eine \textit{polymorphe Funktion}. Instanziierung einer polymorphen Funktion auf einen bestimmten Typ wird im Folgenden
+durch eine Index-Schreibweise dargestellt. $f_{Integer}$ wäre also eine Funktion mit dem Typen $[Integer] \rightarrow [Integer]$,
+$f_{Bool}$ wäre die gleiche Funktion für den Typen $[Bool] \rightarrow [Bool]$.
+%3sie für jeden beliebigen Typen,
+%der für die Typvariable a eingesetzt werden
+%kann. Es handelt sich also um eine polymorphe Funktion.
 
-Bei Polymorphismus ist zwischen Ad-Hoc Polymorphismus und parametrischem Poly\-mor\-phis\-mus zu unterscheiden. In diesem Fall handelt es sich um parametrischen Polymorphismus, d.h. die Funktion arbeitet für sämtliche Typen nach dem gleichen Prinzip.
+Bei Polymorphismus ist zwischen Ad-Hoc Polymorphismus und parametrischem Poly\-mor\-phis\-mus zu unterscheiden. Typvariablen
+in Haskell entsprechen dem parametrischen Polymorphismus, das heißt die entsprechende Funktion arbeitet für sämtliche
+eingesetzten Typen nach demselben Prinzip.
+%In diesem Fall handelt es sich um parametrischen Polymorphismus, d.h. die Funktion arbeitet für sämtliche Typen nach dem gleichen Prinzip.
 
-Das ist deswegen etwas Besonderes, weil es dadurch ermöglicht wird, allgemeine Aussagen zu treffen. Vergleicht man diese
-Methode mit Ad-Hoc-Polymorphismus, wird der Vorteil klar. Unter letzterem versteht man, dass eine Funktion zwar für verschiedene Typen definiert wird, diese Typen jedoch jeweils eine konkrete, typspezifische Implementierung haben. Diese
-Implementierungen können also komplett unterschiedlich funktionieren und kennen den konkreten Typen, für den sie implementiert
-sind, können also auf typspezifische Eigenschaften zugreifen. Man kann sich denken, dass das allgemeine Aussagen unmöglich
-macht.
+Das ist deswegen etwas Besonderes, weil es dadurch ermöglicht wird, allgemeine Aussagen zu treffen, die für sämtliche
+Typinstanziierungen gelten. Vergleicht man diese Methode mit Ad-Hoc-Polymorphismus, wird der Vorteil klar: Unter Letzterem
+versteht man, dass eine Funktion zwar für verschiedene Typen definiert wird, diese jedoch jeweils eine konkrete,
+typspezifische Implementierung haben.
 
-Die vorliegende Funktion des Beispiels ist also für jeden beliebigen Typen $a$ definiert. Das hat Konsequenzen für
-deren Funktionsweise. Man muss sich an dieser Stelle fragen: Wie kann die Funktion die Ergebnisliste erzeugen? Sie kennt den konkreten Typen nicht, sie kann lediglich auf die Elemente der Eingabeliste zurückgreifen. Die einzige Möglichkeit für die Funktion,
-die Liste zu ändern, besteht in einer Umsortierung der Listenelemente.
+Es handelt sich also eigentlich um verschiedene Funktionen, die sich einen Namen teilen, weil anhand der Typen entschieden
+werden kann, welche der Funktionen jeweils angewandt werden muss.
+Diese Implementierungen können also komplett unterschiedlich funktionieren und kennen den konkreten Typen, für den sie
+implementiert sind, können also auf typspezifische Eigenschaften zugreifen. Man kann sich denken, dass das allgemeine Aussagen
+unmöglich macht.
 
-Doch auch für eine Neusortierung der Liste hat die Funktion wenig Anhaltspunkte. Sie kennt zwar die Länge der Liste, doch ohne Kenntnis des Typen kann sie keine weiteren Aussagen über den Inhalt der einzelnen Listenelemente treffen (und da die Klasse Eq nicht
-gegeben ist, nicht mal über deren Gleichheit). Sie wird also für zwei Listen gleicher Länge $l$ und $l'$ exakt das Gleiche tun.
+Die vorliegende Funktion des Beispiels ist also für jeden beliebigen Typ $a$ definiert. Das hat Konsequenzen für
+deren Funktionsweise. Man kann sich an dieser Stelle die Frage stellen: Wie kann die
+Funktion die Ergebnisliste erzeugen? Sie kennt den konkreten Typ nicht, das heißt sie kann keine neuen Elemente ``erfinden''.
+Eine Möglichkeit hat sie aber dennoch: Sie kann die Elemente der Eingabeliste wiederverwenden.
+%sie kann lediglich auf die Elemente der Eingabeliste zurückgreifen. Die
+Die einzige Möglichkeit für die Funktion, die Liste zu ändern, besteht also in einer Umsortierung der Listenelemente.
 
-Die Haskell-Funktion \texttt{$map :: (a \rightarrow b) \rightarrow [a] \rightarrow [b]$} wendet eine Funktion auf jedes Element einer Liste an und gibt die resultierende Liste zurück. Da Haskell Currying für Funktionsapplikation verwendet, kann man
-diese Funktion auch auf eine andere Weise interpretieren: $map$, angewandt auf eine Funktion, liftet diese in den Listen-Kontext,
-gibt also eine Funktion zurück, die dieselbe Funktionalität für Listen bietet. Betrachten wir nun eine beliebige Funktion $g :: a \rightarrow a$. Es lassen sich jetzt Aussagen über $map\ g$, angewandt auf Listen, treffen. Zum einen wird jede Liste, auf die man $map\ g$ anwendet, die gleiche Länge haben wie vorher - das liegt einfach in der Natur von $map$.
+Doch auch für eine Neusortierung der Liste hat die Funktion wenig Anhaltspunkte. Sie kennt zwar die Länge der Liste, doch ohne Kenntnis des Typen kann sie keine weiteren Aussagen über den Inhalt der einzelnen Listenelemente treffen (und da die Klasse Eq
+nicht gegeben ist, nicht mal über deren Gleichheit).
+Sie wird also gezwungenermaßen je zwei Listen gleicher Länge stets gleich behandeln.
+%Sie wird also für zwei Listen gleicher Länge $l$ und $l'$ exakt das Gleiche tun.
 
-Darüber hinaus müssen jeweils zwei Elemente, die an der gleichen Position stehen, auf die gleiche Weise entstanden sein, nämlich
-durch Anwenden von $g$ auf das entsprechende Listenelement.
-Es ist nun logisch, dass es egal ist, ob man zuerst die Funktion f auf eine Liste anwendet und dann die Funktion g auf die
-resultierende Liste mappt, oder ob man in umgekehrter Reihenfolge vorgeht.
+Bevor weiter argumentiert werden kann, soll an dieser Stelle eine bekannte Funktion aus Haskell eingeführt werden. Die Funktion
+\texttt{$map :: (a \rightarrow b) \rightarrow [a] \rightarrow [b]$} erwartet eine Funktion als ersten Parameter und eine Liste als
+zweiten Parameter. Sie erzeugt aus der Liste eine neue gleicher Länge, indem jedes Element mit der übergebenen Funktion in
+ein neues Element überführt wird.
 
-\begin{align}
+Haskell verwendet für Funktionsapplikation das Prinzip des Currying, das heißt, dass eine Funktion mit $n$ Parametern, die auf ein
+Argument angewandt wird, eine neue Funktion zurückgibt, die noch $n-1$ Parameter erwartet. \todo{quote} Man kann die
+die $map$-Funktion also auch anders interpretieren: $map$, angewandt auf eine Funktion, gibt eine Funktion zurück, die
+die Funktionalität der Eingabefunktion für Listen bietet, sie also in den Listen-Kontext \textit{liftet}.
+%Da Haskells Funktionsapplikation das Prinzip des Currying verwendet, \todo{quote?} kann man diese Funktion auch auf eine andere
+%Weise interpretieren: $map$, angewandt auf eine Funktion, \textit{liftet} diese in den Listen-Kontext, gibt also eine Funktion zurück,
+%die dieselbe Funktionalität für Listen bietet.
+
+Wir betrachten jetzt eine beliebige nicht-polymorphe Funktion $g$, die auf dem konkreten Typ arbeitet, auf den die
+Beispielfunktion $f$ instanziiert wurde. $map\ g$ liefert folglich eine Funktion, die $g$ auf sämtliche Elemente einer Eingabeliste
+anwendet. Jede Liste, die durch Anwendung von $map\ g$ entsteht, wird die gleiche Anzahl an Elementen haben wie vorher.
+Darüber hinaus vertauscht $map\ g$ die Listenelemente nicht, jedes neue Element wird an derselben Stelle stehen wie
+sein Ursprungselement.
+
+Auf dieser Argumentation aufbauend kann man erkennen, dass es unerheblich für die Ergebnisliste ist, ob man zuerst die
+Funktion $f$ auf eine Liste appliziert und dann auf die resultierende Liste die Funktion $map\ g$ anwendet, oder ob man
+in umgekehrter Reihenfolge vorgeht. Die folgende Formel fasst diese Aussage mathematisch zusammen.
+
+
+%Die Haskell-Funktion \texttt{$map :: (a \rightarrow b) \rightarrow [a] \rightarrow [b]$} wendet eine Funktion auf jedes Element einer Liste an und gibt die resultierende Liste zurück. Da Haskell Currying für Funktionsapplikation verwendet, kann man
+%diese Funktion auch auf eine andere Weise interpretieren: $map$, angewandt auf eine Funktion, liftet diese in den Listen-Kontext,
+%gibt also eine Funktion zurück, die dieselbe Funktionalität für Listen bietet. Betrachten wir nun eine beliebige Funktion $g :: a \rightarrow a$. Es lassen sich jetzt Aussagen über $map\ g$, angewandt auf Listen, treffen. Zum einen wird jede Liste, auf die man $map\ g$ anwendet, die gleiche Länge haben wie vorher - das liegt einfach in der Natur von $map$.
+
+%Darüber hinaus müssen jeweils zwei Elemente, die an der gleichen Position stehen, auf die gleiche Weise entstanden sein, nämlich
+%durch Anwenden von $g$ auf das entsprechende Listenelement.
+%Es ist nun logisch, dass es egal ist, ob man zuerst die Funktion f auf eine Liste anwendet und dann die Funktion g auf die
+%resultierende Liste mappt, oder ob man in umgekehrter Reihenfolge vorgeht.
+
+\begin{align*}
 f (map\ g\ l) = map\ g\ (f\ l)
-\end{align}
+\end{align*}
 
 Diese Aussage ist ein Theorem, das für beliebige Funktionen g und beliebige Listen l gilt. Doch nicht nur das: Wir haben für
-die Herleitung kein Wissen über die konkrete Implementierung der Funktion f benötigt; das einzig bekannte war die Typsignatur.
+die Herleitung kein Wissen über die konkrete Implementierung der Funktion f benötigt; das einzig Bekannte war die Typsignatur.
 Das Theorem gilt also insbesondere für alle Funktionen mit der Typsignatur $[a] \rightarrow [a]$. Da man dieses Theorem
 aus der Typsignatur ``geschenkt'' bekommt, wird es auch ``freies Theorem'' genannt.
 Natürlich war die vorangegangene Herleitung sehr unkonkret und nicht wirklich mathematischer Natur. Daher soll im Folgenden
@@ -82,24 +131,33 @@ der booleschen Werte auffassen mit $\mathbb{B} = \{ tt, ff \}$, der Typ \texttt{
 $\mathbb{Z}$ usw. Komplexere Typen ergeben sich dann durch Zusammensetzung aus einzelnen Basistypen, beispielsweise
 würde man den Typen \texttt{$Integer \rightarrow Integer$} auffassen als die Menge $(\mathbb{Z} \rightarrow \mathbb{Z})$ aller Funktionen von den ganzen Zahlen in die ganzen Zahlen.
 
-Für die Herleitung von freien Theoremen ist diese Repräsentation nicht ganz ausreichend, da sie spätestens bei polymorphen
-Typen auf beweistechnische Probleme stößt \todo{?}. Daher greift man auf eine etwas andere Repräsentation zurück: Man
-betrachtet Typen als Relationen.
+Die grundsätzliche Idee hinter freien Theoremen basiert auf der Erkenntnis von Reynolds, dass die Semantik eines beliebigen
+Ausdrucks verwandte Umgebungen auf verwandte Werte abbildet \cite{reynolds}. Dieses Theorem, von Reynolds das
+\textit{Abstraktionstheorem} genannt, wird von Wadler umformuliert zum sogenannten \textit{Parametrizitätstheorem} \cite{wadler},
+das im Folgenden erläutert werden soll. Entscheidend ist, dass man Typen nicht als Mengen sondern als Relationen ausdrückt,
+um dieses Theorem anwenden zu können.
 
-Man kann zu einem Typen nun systematisch eine Relation konstruieren, die diesen Typen repräsentiert. Dazu geht man
-folgendermaßen vor:
+%Für die Herleitung von freien Theoremen ist diese Repräsentation nicht ganz ausreichend, da sie spätestens bei polymorphen
+%Typen auf beweistechnische Probleme stößt \todo{?}. Daher greift man auf eine etwas andere Repräsentation zurück: Man
+%betrachtet Typen als Relationen.
+
+%Man kann zu einem Typen nun systematisch eine Relation konstruieren, die diesen Typen repräsentiert. Dazu geht man
+%folgendermaßen vor:
+
+Man kann zu einem beliebigen Typ eine Relation konstruieren, die diesen Typ repräsentiert. Dazu geht man folgendermaßen vor.
 
 \begin{itemize}
-\item Zu jedem Basistypen $T$ (Int, Bool, etc.) ist die zugehörige Relation die Identitätsrelation $\mathcal{R} = \{ (x, x) | x \in T\}$.
-\item Sind $\mathcal{R} : R_1 \Leftrightarrow R_2$ und $\mathcal{S} : S_1 \Leftrightarrow S_2$ Typrelationen, so ist $\mathcal{R} \rightarrow \mathcal{S} = \{ (f, g) | f \in (R_1 \rightarrow R_2), g \in (S_1 \rightarrow S_2), \forall x \in R_1, y \in R_2: (f x, g y) \in \mathcal{S} \}$ die zugehörige Funktionstyprelation.
+\item Zu jedem Basistyp $T$ (Int, Bool, etc.) ist die zugehörige Relation die Identitätsrelation $\mathcal{R} = \{ (x, x) | x \in T\}$.
+\item Sind $\mathcal{R} : R_1 \Leftrightarrow R_2$ und $\mathcal{S} : S_1 \Leftrightarrow S_2$ Typrelationen, so ist $\mathcal{R} \rightarrow \mathcal{S} = \{ (f, g) | f \in (R_1 \rightarrow R_2), g \in (S_1 \rightarrow S_2), \forall x \in R_1, y \in R_2: (f\ x, g\ y) \in \mathcal{S} \}$ die zugehörige Funktionstyprelation.
 \item Ist $\mathcal{F}(\mathcal{X})$ eine Typrelation, die von einer Typrelation $\mathcal{X}$ abhängt, dann definiert man
 $\forall \mathcal{X} . \mathcal{F}(\mathcal{X}) = \{ (x, y) | \forall A_1, A_2 \in Typen, \mathcal{A} : A_1 \Leftrightarrow A_2: 
-(x_{A_1}, y_{A_2}) \in \mathcal{F}(\mathcal{A}) \}$. Hierbei sind $x$ und $y$ polymorphe Elemente, die durch $x_{A_1}$ und $y_{A_2}$
-auf einen bestimmten Typ instanziiert werden.
+(x_{A_1}, y_{A_2}) \in \mathcal{F}(\mathcal{A}) \}$. Hierbei sind $x$ und $y$ polymorphe Elemente, die durch $x_{A_1}$ und
+$y_{A_2}$ auf einen bestimmten Typ instanziiert werden.
 \end{itemize}
 
 Zudem lassen sich bestimmte Typkonstruktoren, wie beispielsweise der Listenkonstruktor $[a]$, durch Lifting der betreffenden
-Relation umsetzen. Man kann beispielsweise für Typrelation $\mathcal{R} : T_1 \Leftrightarrow T_2$ rekursiv definieren:
+Relation umsetzen. Man kann beispielsweise für eine gegebene Typrelation $\mathcal{R} : T_1 \Leftrightarrow T_2$ folgenes
+Lifting definieren.
 
 \begin{align}
 [\mathcal{R}] = \{ ([], []) \} \cup \{ (a : as, b : bs) | (a, b) \in \mathcal{R}, (as, bs) \in [\mathcal{R}] \}

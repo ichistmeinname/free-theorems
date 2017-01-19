@@ -46,7 +46,6 @@ Arbeit immer wieder auftauchen werden.
 \subsection{Relationen}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
- \todo{Mathematische Grundlagen mit Quellen? Teilweise von Böhme übernommen}
 Die mathematische Grundlage und das wichtigste Werkzeug beim Erzeugen von freien Theoremen sind Relationen.
 
 %Sie werden im Zusammenhang mit freien Theoremen verwendet, um Ausdrücke einander zuzuordnen, die durch Polymorphie einander
@@ -54,7 +53,7 @@ Die mathematische Grundlage und das wichtigste Werkzeug beim Erzeugen von freien
 
 Eine \textit{binäre Relation} ist auf zwei Mengen definiert, deren Elemente sie einander zuordnet. Die Schreibweise
 $\mathcal{R} : T_1 \Leftrightarrow T_2$ sagt, dass $\mathcal{R}$ eine auf den Mengen $T_1$ und $T_2$ definierte
-Relation ist. Man kann die Relation auffassen als eine Menge von Paaren, wobei jedes Paar aus einem Element aus $T_1$ und einem
+Relation ist. Man kann die Relation als eine Menge von Paaren auffassen, wobei jedes Paar aus einem Element aus $T_1$ und einem
 Element aus $T_2$ besteht.
 %Sie ordnet den Elementen der ersten Menge beliebig viele Elemente der zweiten Menge zu. Man kann die Relation
 %auffassen als eine Menge von Paaren, wobei jedes Paar aus einem Element aus $T_1$ und einem Element aus $T_2$ besteht.
@@ -77,7 +76,7 @@ Ist $X$ eine Menge, dann ist durch $\mathcal{P}(X)$ die Potenzmenge von $X$ gege
 %$rank : A \rightarrow \mathbb{N}$ eine Funktion, die jedem Element der Menge einen Rang zuordnet. Man bezeichnet mit
 %$A^{(n)}$ die Menge $\{a \in A | rank(a) = n \}$, $n \in \mathbb{N}$.
 
-Eine partielle Ordnung $\sqsubseteq : M \Leftrightarrow M$ ist eine Relation, die \textit{reflexiv}, \textit{antisymmetrisch} und \textit{transitiv} ist \todo{das kommt von wikipedia!}, d.h. es gelten die folgenden Aussagen für alle $x, y, z \in M$.
+Eine partielle Ordnung $\sqsubseteq : M \Leftrightarrow M$ ist eine Relation, die \textit{reflexiv}, \textit{antisymmetrisch} und \textit{transitiv} ist, d.h. es gelten die folgenden Aussagen für alle $x, y, z \in M$.
 
 \begin{align*}
 & x \sqsubseteq x & \text{(Reflexivität)} \\
@@ -91,7 +90,7 @@ eine \textit{monotone Sequenz} über $X$, wenn $\bar{x}(i) \sqsubseteq_{X} \bar{
 Wenn $\sqsubseteq_{X}$ ein kleinstes Element besitzt, dann ist $\sqsubseteq_{X}$ eine komplette Partialordnung und man nennt $X$
 \textit{geordnet}. Dieses kleinste Element wird typischweise als $\bot_{X}$ (\textit{bottom}) bezeichnet.
 
-Sei $\mathcal{R} \subseteq X \times Y$ eine binäre Relation über zwei geordnete Mengen $X$ und $Y$. Man nennt $\mathcal{R}$ \textit{strikt},
+Sei $\mathcal{R} \subseteq X \times Y$ eine binäre Relation über zwei geordneten Mengen $X$ und $Y$. Man nennt $\mathcal{R}$ \textit{strikt},
 wenn $(\bot, \bot) \in \mathcal{R}$. $\mathcal{R}$ wird \textit{total} genannt, wenn für jedes Paar $(x, y) \in \mathcal{R}$ gilt, dass
 aus $y = \bot$ folgt $x = \bot$.
 
@@ -99,7 +98,7 @@ Man nennt $\mathcal{R}$ \textit{bottom-reflecting} \todo{wie soll man das bloß 
 $(x, y) \in \mathcal{R}$ gilt: $y = \bot \Leftrightarrow x = \bot$.
 
 Wenn für alle monotonen Sequenzen $\bar{x}$ über $X$ und $\bar{y}$ über $Y$, die $(\bar{x}(i), \bar{y}(i)) \in \mathcal{R}$
-erfüllen, jeweils das Paar der Suprema ($\sqcup{\bar{x}}, \sqcup{\bar{y}})$ \todo{Latex-Notation für Supremum?} in $\mathcal{R}$ ist, dann nennt man $\mathcal{R}$ \textit{stetig}. Eine Relation ist \textit{zulässig}, wenn sie strikt und stetig ist.
+erfüllen, jeweils das Paar der Suprema ($\bigsqcup{\bar{x}}, \bigsqcup{\bar{y}})$ in $\mathcal{R}$ ist, dann nennt man $\mathcal{R}$ \textit{stetig}. Eine Relation ist \textit{zulässig}, wenn sie strikt und stetig ist.
 
 Sind drei Mengen $X$, $Y$ und $Z$ und zwei binäre Relationen $\mathcal{R} \subseteq X \times Y$ und $\mathcal{R} \subseteq Y
 \times Z$ gegeben, dann definiert man die \textit{Komposition} von $\mathcal{R}$ und $\mathcal{S}$,
@@ -198,7 +197,7 @@ Eine generelle Beschreibung der Sprache Haskell würde an dieser Stelle zu weit 
 Typklassen in Haskell ermöglichen die Umsetzung von Ad-Hoc-Polymorphismus. Man kann beliebige Typklassen selbst definieren,
 wobei eine Typklasse immer aus einem Namen, beliebig vielen Funktionssignaturen und gegebenenfalls auch aus vordefinierten
 Standardimplementierungen einzelner Funktionen besteht. Haskell transformiert Programme mit Typklassen intern in Programme
-ohne dieses Konstrukt. \todo{Quelle! (stimmt das überhaupt?)}
+ohne dieses Konstrukt, auch Wörterbuchtransformation (engl. ``dictionary translation'') genannt \cite{jones}.
 
 Es folgt ein einfaches Beispiel, das auch in der Prelude von Haskell enthalten ist.
 
@@ -227,7 +226,26 @@ instance Show Test where
 
 Kommt nun im Programm in einem Ausdruck der Funktionsaufruf \texttt{show} vor, so wird anhand des Parametertypen
 entschieden, welche Instanz dieser Klasse verwendet wird. Es kann also für jeden Typen eine komplett eigene Implementierung
-programmiert werden.
+angegeben werden.
+
+Hat man eine Typklasse definiert, kann man im Folgenden in beliebigen Typsignaturen einen Kontext angeben, der
+bestimmte Typvariablen auf bestimmte Klassen festlegt, wie es das folgende Beispiel zeigt.
+
+\begin{minted}{haskell}
+test :: Functor f => f Int -> f Int
+\end{minted}
+
+Hier ist \texttt{f} eine freie Typvariable, für die jedoch ein Kontext angegeben ist, der besagt, dass für $f$ nur Instanzen
+der Typklasse \texttt{Functor} infrage kommen. Im Gegenzug für diese Einschränkung ist es in der Implementierung möglich,
+die Funktionen dieser Klasse zu nutzen, da sichergestellt ist, dass Implementierungen dieser Funktionen
+existieren. Die folgende Funktionsdefinition ist also eine mögliche Implementierung der obigen Beispielsignatur.
+
+\begin{minted}{haskell}
+test x = fmap (+1) x
+\end{minted}
+
+Haskell erkennt, dass \texttt{x} ein Typ sein muss, für den eine \texttt{Functor}-Instanz deklariert ist, weshalb eine
+\texttt{fmap}-Implementierung existiert.
 
 Nun ist es ja auch möglich, dass ein selbstdefinierter Datentyp einen Typen als Parameter erwartet, wie das folgende Beispiel
 zeigt.
@@ -255,25 +273,7 @@ class Functor f where
 Hier ist \texttt{f} die Typvariable. Die Signatur für \texttt{fmap} lässt erkennen, dass \texttt{f} auf einen Parameter appliziert
 wird, $f$ muss also von der Sorte $* \rightarrow *$ sein. Zu beachten ist hier, dass es keinen Sinn macht (und auch nicht
 gestattet ist), dass die Typvariable mit unterschiedlichen Argumentzahlen auftaucht. Ebenso wäre es ungültig,
-eine Instanz von \texttt{Functor} zu definieren für einen Datentyp, der keine Typparameter erwartet.
+eine Instanz von \texttt{Functor} zu definieren für einen Datentyp, der keine Typparameter erwartet. \todo{Beispiel mit GHCi-Fehlermeldung}
 
 %Wie nutzt man diese Typklassen, nachdem man sie definiert hat? Man kann für beliebige Typvariablen in Signaturen einen Kontext
 %angeben, das heißt man schränkt die Typvariablen auf bestimmte Typklassen ein. Zu sehen ist das im folgenden Beispiel.
-Hat man eine Typklasse definiert, kann man im Folgenden in beliebigen Typsignaturen einen Kontext angeben, der
-bestimmte Typvariablen auf bestimmte Klassen festlegt, wie es das folgende Beispiel zeigt.
-
-\begin{minted}{haskell}
-test :: Functor f => f Int -> f Int
-\end{minted}
-
-Hier ist \texttt{f} eine freie Typvariable, für die jedoch ein Kontext angegeben ist, der besagt, dass für $f$ nur Instanzen
-der Typklasse \texttt{Functor} infrage kommen. Im Gegenzug für diese Einschränkung ist es in der Implementierung möglich,
-die Funktionen dieser Klasse zu nutzen, da sichergestellt ist, dass Implementierungen dieser Funktionen
-existieren. Die folgende Funktionsdefinition ist also eine mögliche Implementierung der obigen Beispielsignatur.
-
-\begin{minted}{haskell}
-test x = fmap (+1) x
-\end{minted}
-
-Haskell erkennt, dass \texttt{x} ein Typ sein muss, für den eine \texttt{Functor}-Instanz deklariert ist, weshalb eine
-\texttt{fmap}-Implementierung existiert.
