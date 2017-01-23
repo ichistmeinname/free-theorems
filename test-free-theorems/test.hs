@@ -25,6 +25,11 @@ hello = undefined
 
 teststr :: String
 
+testman a b = a : b
+
+gluku :: String -> String
+gluku s = testman s "ey"
+
 describeFormula :: Formula -> String
 describeFormula (ForallRelations (RVar rv) (t1, t2) rss f)
    = "(ForallRelations (RVar \"" ++ rv ++ "\") (\"" ++ (show t1) ++ "\", \"" ++ show t2 ++ "\")"

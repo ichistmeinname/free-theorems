@@ -273,7 +273,29 @@ class Functor f where
 Hier ist \texttt{f} die Typvariable. Die Signatur für \texttt{fmap} lässt erkennen, dass \texttt{f} auf einen Parameter appliziert
 wird, $f$ muss also von der Sorte $* \rightarrow *$ sein. Zu beachten ist hier, dass es keinen Sinn macht (und auch nicht
 gestattet ist), dass die Typvariable mit unterschiedlichen Argumentzahlen auftaucht. Ebenso wäre es ungültig,
-eine Instanz von \texttt{Functor} zu definieren für einen Datentyp, der keine Typparameter erwartet. \todo{Beispiel mit GHCi-Fehlermeldung}
+eine Instanz von \texttt{Functor} zu definieren für einen Datentyp, der keine Typparameter erwartet.
+
+Nachfolgend ist ein Beispiel zu sehen, in dem ein Datentyp namens \texttt{Test} deklariert wird und in einer \texttt{instance}-Deklaration
+eine Instanz für die Typklasse \texttt{Functor} beschrieben wird.
+
+\begin{minted}{haskell}
+data Test = Test String Int
+
+instance Functor Test where
+   fmap = undefined
+\end{minted}
+
+Davon abgesehen, dass \texttt{fmap} als undefined deklariert ist (eine sinnvolle Implementierung ist hier ohnehin nicht wirklich
+möglich), ergibt diese Deklaration bereits zur Kompilierzeit den folgenden Fehler.
+
+\begin{minted}{text}
+    The first argument of `Functor' should have kind `* -> *',
+      but `Test' has kind `*'
+    In the instance declaration for `Functor Test'
+\end{minted}
+
+Haskell meldet also, dass der Datentyp \texttt{Test} von der falschen Sorte ist: Statt der erwarteten Sorte $* \rightarrow *$
+wird die Sorte $*$ vorgefunden und es kommt zum Kompilierfehler.
 
 %Wie nutzt man diese Typklassen, nachdem man sie definiert hat? Man kann für beliebige Typvariablen in Signaturen einen Kontext
 %angeben, das heißt man schränkt die Typvariablen auf bestimmte Typklassen ein. Zu sehen ist das im folgenden Beispiel.

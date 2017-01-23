@@ -32,7 +32,26 @@ dass Haskell Ausdrücke auf einmal als völlig andere Typen interpretiert. Vielm
 Benutzer manuell angegeben hat, ebenfalls akzeptiert, sofern es sich dabei um Spezialisierungen des allgemeinsten Typs handelt\footnote{Manchmal können Typannotationen einen Unterschied machen, beispielsweise in Verbindung mit Typklassen.}.
 Das bietet vor allem den Vorteil, dass Haskell weiß, was der Entwickler erwartet. Es ist durchaus möglich, dass Haskell trotz eines
 Denkfehlers des Entwicklers einen Typ herleiten kann, der zur Funk\-tions\-de\-kla\-rati\-on passt -- mit dem man aber nicht rechnet.
-\todo{Beispiel angeben} Das Typsystem ist also ein wichtiger Faktor bezüglich Fehleranfälligkeit und -prävention.
+Das folgende Beispiel soll veranschaulichen, wie ein solcher Fehler zustande kommen kann.
+
+\begin{minted}{haskell}
+concatStrings a b = a : b
+\end{minted}
+
+\todo{Da gibt es sicherlich bessere Beispiele}
+
+Die angegebene Funktion soll zwei Zeichenketten konkatenieren, verwendet aber statt des Konkatenationsoperatoren \texttt{++} fälschlicherweise den
+Listenkonstruktor \texttt{:}. Das hat zur Folge, dass Haskell als ersten Parameter $a$ ein Listenelement statt einer Liste erwartet,
+es ergeben sich jedoch keine Probleme mit der Typsignatur. Problematisch wird es erst, wenn versucht wird, die Funktion
+aufzurufen, beispielsweise mit \texttt{concatStrings "Test" b}, wobei b eine Zeichenkette ist. Haskell erkennt, dass der
+Funktionsaufruf nicht mit der (automatisch ermittelten) Funktionssignatur kompatibel ist und erzeugt einen Kompilierfehler. Die
+Fehlermeldung besagt allerdings, dass der Typ \texttt{[Char]} nicht mit dem erwarteten Typ \texttt{Char} übereinstimmt,
+und zwar beim Funktionsaufruf.
+
+Hätte der Entwickler die erwartete Typsignatur \texttt{String -> String -> String} angegeben, dann hätte bereits die Typsignatur
+einen Fehler erzeugt, da sie kein Spezialfall der automatisch hergeleiteten Signatur \texttt{a -> [a] -> [a]} ist.
+
+ Das Typsystem ist also ein wichtiger Faktor bezüglich Fehleranfälligkeit und -prävention.
 %Durch Typsignaturen hat Haskell jedoch einen Anhaltspunkt, was der Entwickler erwartet. Es ist ja durchaus
 %möglich, dass Haskell trotz eines Denkfehlers des Entwicklers einen Typen herleiten kann, der auf die Funk\-tions\-de\-kla\-rati\-on passt, mit dem man aber nicht rechnet.
 %Das Typsystem ist also ein wichtiger Faktor bezüglich Fehleranfälligkeit und -prävention.
