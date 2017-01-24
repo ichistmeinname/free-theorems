@@ -4,15 +4,27 @@
 
 \label{sec:freie-theoreme}
 
-Betrachtet man eine Typsignatur in Haskell, dann hat man intuitiv eine Vorstellung davon, was diese Funktion ungefähr
-macht. Je nach Typ kann die Funktion in ihrer Funktionsweise stark eingeschränkt sein, was Haskells Typsystem zu verdanken
-ist, genauer: dem parametrischen Polymorphismus. Nicht nur verringert dieses Typsystem die Fehleranfälligkeit von
-produziertem Code, es vereinfacht auch Rückschlüsse auf die Funktionsweise und Korrektheitsbeweise.
+In der Einleitung wurde bereits kurz thematisiert, dass man allein durch Betrachten der Typsignatur einer Funktion bereits
+eine grundlegende, intuitive Vorstellung davon erhalten kann, welche Funktionalität sich ungefähr hinter dieser Funktion
+verbirgt. Haskells Typsystem sorgt dafür, dass Funktionen in ihren Implementierungsmöglichkeiten
+teilweise stark eingeschränkt sind. Der Grund hierfür ist der parametrische Polymorphismus, der in Haskellfunktionen
+mit freien Typvariablen Anwendung findet. Nicht nur verringert das Typsystem die Fehleranfälligkeit von produziertem
+Code, es vereinfacht auch Rückschlüsse auf die Funktionsweise und Korrektheitsbeweise.
 
-Wie in der Einleitung bereits angedeutet wurde, lässt sich diese Intuition in Formeln ausdrücken. In diesem Abschnitt
-wird erklärt, wie diese so genannten freien Theoreme aussehen. Es wird erläutert, wie man sie herleitet und warum
-das möglich ist. Am Ende des Abschnittes wird insbesondere darauf eingegangen, welche Rolle Typkonstruktorklassen
-für die Generierung von freien Theoremen spielen.
+Außerdem wurde bereits angedeutet, dass es eine Möglichkeit gibt, systematisch Theoreme zu gegebenen Typsignaturen
+herzuleiten. Diese sogenannten \textit{freien Theoreme}, ihre Herleitung und ihre Verwendung sind Thema dieses Kapitels.
+Zunächst wird an einem Beispiel
+erläutert, wie die Vorgehensweise intuitiv zu erklären ist. Der darauf folgende Abschnitt behandelt die formale Herleitung
+eines freien Theorems zu einer beliebigen Typsignatur nach Wadler \cite{wadler}.
+
+Daraufhin wird die Erweiterung des Vorgehens um Typkonstruktorklassen thematisiert, wie sie
+auch verwendet wird von Voigtländer in \cite{voigtlander}. Am Ende des Kapitels wird schließlich an einem
+praktischen Beispiel gezeigt, wie ein freies Theorem für einen Beweis verwendet werden kann.
+
+%Wie in der Einleitung bereits angedeutet wurde, lässt sich diese Intuition in Formeln ausdrücken. In diesem Abschnitt
+%wird erklärt, wie diese so genannten freien Theoreme aussehen. Es wird erläutert, wie man sie herleitet und warum
+%das möglich ist. Am Ende des Abschnittes wird insbesondere darauf eingegangen, welche Rolle Typkonstruktorklassen
+%für die Generierung von freien Theoremen spielen.
 
 %Einleitend wurde bereits das mächtige Typsystem Haskells angesprochen. Dieses Typsystem ist komplett statisch und
 %unterstützt parametrischen Polymorphismus, wie in den Grundlagen erläutert wurde. Nicht nur verringert ein solches Typsystem
@@ -26,9 +38,14 @@ für die Generierung von freien Theoremen spielen.
 \subsection{Beispiel}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Bevor die theoretische Herangehensweise beschrieben wird, bietet es sich zunächst an, die Vorgehensweise an einem Beispiel
-intuitiv zu erklären. Erst danach wird das Vorgehen konkretisiert und in Formeln dargestellt.
-Als Beispiel soll die folgende Haskell-Typsignatur dienen.
+Bevor die theoretische Herangehensweise beschrieben wird, bietet es sich zunächst an, die Vorgehensweise intuitiv an einem
+Beispiel zu erklären. Dabei werden noch keine Definitionen eingeführt oder Formeln aufgestellt, es geht vielmehr darum,
+ein Gefühl dafür zu vermitteln, warum es überhaupt möglich sein soll, Theoreme allein aus der Signatur eines Ausdrucks
+abzuleiten. Im nächsten Abschnitt wird dieses Vorgehen dann konkretisiert und für beliebige Typsignaturen verallgemeinert.
+
+%Als Beispiel soll die folgende Haskell-Typsignatur dienen.
+Als einfaches Beispiel dient die Funktion mit der folgenden Typsignatur.
+
 %Zunächst bietet es sich an, die Vorgehensweise an einem konkreten Beispiel vorzuführen. Bevor es um die theoretische
 %Herangehensweise geht, soll das Vorgehen erst einmal intuitiv motiviert werden. Wir betrachten die folgende Haskell-Funktion.
 
@@ -37,17 +54,24 @@ f :: [a] \rightarrow [a] \label{eq:fsig}
 \end{align}
 
 Gegeben ist also eine Funktion $f$, die von einer Liste auf eine Liste abbildet. Das Besondere an dieser Funktion ist, dass sie
-nicht für einen konkreten Typ wie beispielsweise $[Integer] \rightarrow [Integer]$ definiert ist, sondern dass man sie für jeden
-beliebigen Typsignatur instanziieren kann, indem man für die Typvariable $a$ einen Typausdruck einsetzt. Es handelt sich
-um eine \textit{polymorphe Funktion}.
+nicht für einen konkreten Typ wie beispielsweise $[Integer] \rightarrow [Integer]$ deklariert ist, sondern dass man sie für jeden
+beliebigen Typ instanziieren kann, indem man die Typvariable $a$ durch einen Typausdruck einsetzt. Die Funktion ist also für
+einen beliebigen Typ deklariert, es handelt sich um eine \textit{polymorphe Funktion}.
 
-Die Instanziierung dieser Funktion auf einen konkreten Typ wird im Folgenden beschrieben, indem man den Typ in den Index
-schreibt. $f_{Integer}$ ist dann beispielsweise die Funktion $f$, konkretisiert auf den Typ Integer, d.h. es wird Integer
+Bei der Typvariable $a$ handelt es sich erst einmal um eine ungebundene, \textit{freie} Variable. Man kann sich aber einen impliziten
+Allquantor vor der eigentlichen Signatur denken. Tatsächlich existiert dieser Allquantor sogar explizit als Schlüsselwort \texttt{forall} in Haskell,
+im Normalfall wird es jedoch nicht explizit benötigt und deshalb meistens weggelassen. Immer, wenn
+freie Typvariablen in einer Signatur vorkommen, lässt sich diese Signatur also \textit{schließen}, indem für jede freie Typvariable
+ein entsprechender Allquantor an den Anfang gesetzt wird.
+
+Die Instanziierung einer polymorphen Funktion auf einen konkreten Typ wird im weiteren Verlauf der Arbeit beschrieben, indem der
+polymorphe Ausdruck mit einem Index versehen wird, der dem Typ entspricht, auf den der Ausdruck instanziiert wird.
+$f_{Integer}$ ist dann beispielsweise die Funktion $f$, konkretisiert auf den Typ Integer, d.h. es wird Integer
 für $a$ in die Funktionssignatur eingesetzt. $f_{Bool \rightarrow Bool}$ wäre folglich die gleiche Funktion instanziiert auf den Typ
-$Bool \rightarrow Bool$, sie hat also die Signatur $[Bool \rightarrow Bool] \rightarrow [Bool \rightarrow Bool]$.
+$Bool \rightarrow Bool$, sie hätte also die Signatur $[Bool \rightarrow Bool] \rightarrow [Bool \rightarrow Bool]$.
 
 Hat die Funktion mehrere verschiedene Typvariablen, so werden die einzelnen Typen
-in der Reihenfolge des Auftretens der Typvariablen angegeben. Eine Funktion mit der Signatur \texttt{g :: a -> b} instanziiert man
+in der Reihenfolge des Auftretens der zu ersetzenden Typvariablen angegeben. Eine Funktion mit der Signatur \texttt{g :: a -> b} instanziiert man
 folglich mit $g_{Integer\ String}$ auf den Typ $Integer \rightarrow String$.
 
 %Instanziierung einer polymorphen Funktion auf einen bestimmten Typ wird im Folgenden
@@ -57,34 +81,40 @@ folglich mit $g_{Integer\ String}$ auf den Typ $Integer \rightarrow String$.
 %der für die Typvariable a eingesetzt werden
 %kann. Es handelt sich also um eine polymorphe Funktion.
 
-Bei Polymorphismus ist zwischen Ad-Hoc Polymorphismus und parametrischem Poly\-mor\-phis\-mus zu unterscheiden. Bei Typvariablen
-in Haskell spricht man von parametrischem Polymorphismus, das heißt die entsprechende Funktion arbeitet für sämtliche
+Ein entscheidendes Detail bei polymorphen Funktionen in Haskell ist die Art des Polymorphismus.
+Man unterscheidet zwischen Ad-Hoc Polymorphismus und parametrischem Poly\-mor\-phis\-mus \todo{cite}. Bei Typvariablen
+in Haskell handelt es sich um parametrischen Polymorphismus, das heißt die entsprechende Funktion arbeitet für sämtliche
 eingesetzten Typen nach demselben Prinzip.
+
+Erst einmal klingt das nicht besonders außergewöhnlich, es zieht aber wichtige
+Konsequenzen mit sich. ``Dasselbe Prinzip'' heißt hier nämlich, dass unabhängig vom eingesetzten Typ die gleichen
+Berechnungen stattfinden. Die Funktion kann nicht einmal
+durch Fallunterscheidung ermitteln, um welchen konkreten Typ es sich im jeweiligen Fall handelt.
 %In diesem Fall handelt es sich um parametrischen Polymorphismus, d.h. die Funktion arbeitet für sämtliche Typen nach dem gleichen Prinzip.
 
 Das ist deswegen etwas Besonderes, weil es dadurch ermöglicht wird, allgemeine Aussagen zu treffen, die für sämtliche
-Typinstanziierungen gelten. Vergleicht man diese Methode mit Ad-Hoc-Polymorphismus, wird der Vorteil klar: Unter Letzterem
-versteht man, dass eine Funktion zwar für verschiedene Typen definiert wird, diese jedoch jeweils eine konkrete,
-typspezifische Implementierung haben.
+Typinstanziierungen gelten. Vergleicht man diese Methode mit der zweiten Art von Polymorphismus, dem \textit{Ad-Hoc-Polymorphismus},
+wird der Vorteil klar: Unter Letzterem versteht man, dass eine Funktion zwar für verschiedene Typen definiert wird, diese jedoch
+jeweils eine konkrete, typspezifische Implementierung haben.
 
-Es handelt sich also eigentlich um verschiedene Funktionen, die sich einen Namen teilen, weil anhand der Typen entschieden
-werden kann, welche der Funktionen jeweils angewandt werden muss. Ein Beispiel für Ad-Hoc-Polymorphismus bietet die
-Programmiersprache \textit{C++}: Hier ist es möglich, mehrere Funktionen mit gleichem Namen in einer Klasse zu deklarieren,
-solange sie unterschiedliche Signaturen besitzen, wie das folgende Beispiel zeigt.
+Es handelt sich also technisch gesehen um verschiedene Funktionen, die sich einen Namen teilen können, weil anhand der Typsignatur
+und der Typen der Parameter, mit denen die Funktion aufgerufen wird, entschieden werden kann, welche der Funktionen jeweils gemeint ist.
+Ein Beispiel für Ad-Hoc-Polymorphismus bietet die Programmiersprache \textit{C++}: Hier ist es möglich, mehrere Funktionen mit gleichem
+Namen in einer Klasse zu deklarieren, solange sie unterschiedliche Signaturen besitzen, wie das folgende Beispiel zeigt.
 
 \begin{minted}{cpp}
 class Log
 {
 public:
-   void log(Model* t);
+   void log(TextObject* t);
    void log(Image* t);
    void log(Test* t);
 }
 \end{minted}
 
-Hier wurden drei Methoden deklariert, die alle den Namen \texttt{log} haben, sich jedoch durch den Typ des Parameters
-unterscheiden. Auch Haskell bietet mit sogenannten \texttt{Typklassen} Ad-Hoc-Polymorphismus. Darauf wird später noch genauer
-eingegangen.
+Hier werden drei Methoden deklariert, die alle den Namen \texttt{log} haben, sich jedoch durch den Typ des Parameters
+unterscheiden. Die jeweilige Implementierung, die hier nicht zu sehen ist, kann sich von Funktion zu Funktion komplett unterscheiden.
+Auch Haskell bietet mit sogenannten \texttt{Typklassen} Ad-Hoc-Polymorphismus. Darauf wird später noch genauer eingegangen.
 
 Beim Ad-Hoc-Polymorphismus kann also jede Funktion eine eigene Implementierung haben, außerdem ist jeder Funktion
 bekannt, auf welchem Typ sie arbeitet, was es ihr ermöglicht, typspezifische Operationen anzuwenden. Es liegt nahe, dass dies
@@ -97,13 +127,17 @@ allgemeingültige Aussagen über solche Funktionen unmöglich macht.
 Wir betrachten wieder die Beispielfunktion $f$ aus (\ref{eq:fsig}). Durch parametrischen Polymorphismus ist sie also für jeden beliebigen
 Typ $a$ definiert. Das hat Konsequenzen für die Funktionsweise dieser Funktion.
 
-Man kann sich an dieser Stelle die Frage stellen: Wie kann die Funktion die Ergebnisliste erzeugen? Sie kennt den konkreten Typ nicht,
-das heißt sie kann keine neuen Elemente ``erfinden''.
+Man kann sich an dieser Stelle die Frage stellen: Wie kann die Funktion die Liste erzeugen, die sie zurückgeben muss? Sie kennt den konkreten Typ nicht,
+das heißt sie kann keine neuen Elemente ``erfinden'', weil sie keine Informationen darüber hat, welchen Typ die Listenelemente haben müssen.
+Und Ausdrücke, die zu jedem beliebigen Typ passen, gibt es in Haskell
+nicht\footnote{Tatsächlich kann man undefinierte Werte als Ausdrücke ansehen, die zu einem beliebigen Typ generiert werden können --
+diese werden jedoch erst einmal außen vor gelassen. In Kapitel \ref{sec:striktheit-und-rekursion} wird etwas genauer darauf eingegangen.}.
 Eine Möglichkeit hat sie aber dennoch: Sie kann die Elemente der Eingabeliste wiederverwenden.
 Die einzige Möglichkeit für die Funktion, die Liste zu ändern, besteht also in einer Umsortierung der Listenelemente.
 
 Doch auch für eine Neusortierung der Liste hat die Funktion wenige Anhaltspunkte. Sie kennt zwar die Länge der Liste, doch ohne Kenntnis des Typen kann sie keine weiteren Aussagen über den Inhalt der einzelnen Listenelemente treffen (und da die Klasse Eq
-nicht gegeben ist, nicht mal über deren Gleichheit).
+nicht gegeben ist, nicht mal über deren Gleichheit). Auch hat sie aufgrund der referenziellen Transparenz %\todo{kann man das hier einfach so einstreuen?}
+in Haskell keinen globalen Kontext oder ähnliches, anhand dessen sie Entscheidungen treffen könnte.
 Sie wird also gezwungenermaßen je zwei Listen gleicher Länge stets gleich behandeln.
 %Sie wird also für zwei Listen gleicher Länge $l$ und $l'$ exakt das Gleiche tun.
 
@@ -116,22 +150,36 @@ anwendet und eine Liste gleicher Länge zurückgibt, in dem jedes Element durch 
 %ein neues Element überführt wird.
 
 Haskell verwendet für Funktionsapplikation das Prinzip des Currying, das heißt, dass eine Funktion mit $n$ Parametern, die auf ein
-Argument angewandt wird, eine neue Funktion zurückgibt, die noch $n-1$ Parameter erwartet. \todo{quote} Man kann die
-die $map$-Funktion also auch anders interpretieren: $map$, angewandt auf eine Funktion, gibt eine Funktion zurück, die
+Argument angewandt wird, eine neue Funktion zurückgibt, in der dieses Argument fest gesetzt ist, die also nur noch $n-1$ Parameter erwartet. \todo{quote}
+Man kann die die $map$-Funktion also auch anders interpretieren: $map$, angewandt auf eine Funktion, gibt eine Funktion zurück, die
 die Funktionalität der Eingabefunktion für Listen bietet, sie also in den Listen-Kontext \textit{liftet}.
 %Da Haskells Funktionsapplikation das Prinzip des Currying verwendet, \todo{quote?} kann man diese Funktion auch auf eine andere
 %Weise interpretieren: $map$, angewandt auf eine Funktion, \textit{liftet} diese in den Listen-Kontext, gibt also eine Funktion zurück,
 %die dieselbe Funktionalität für Listen bietet.
 
-Wir betrachten jetzt eine beliebige nicht-polymorphe Funktion $g$, die auf dem konkreten Typ arbeitet, auf den die
-Beispielfunktion $f$ instanziiert wurde. $map\ g$ liefert folglich eine Funktion, die $g$ auf sämtliche Elemente einer Eingabeliste
-anwendet. Jede Liste, die durch Anwendung von $map\ g$ entsteht, wird die gleiche Anzahl an Elementen haben wie vorher.
+Im Folgenden nehmen wir an, dass die Funktion $f$ auf einen beliebigen konkreten Typ instanziiert wurde.
+Wir betrachten jetzt eine beliebige nicht-polymorphe Funktion $g$, die auf diesem konkreten Typ arbeitet. $map\ g$ liefert folglich eine Funktion,
+die $g$ auf sämtliche Elemente einer Eingabeliste
+anwendet. Jede Liste, die durch Anwendung von $map\ g$ entsteht, wird die gleiche Anzahl an Elementen haben wie die ursprüngliche Liste.
 Darüber hinaus vertauscht $map\ g$ die Listenelemente nicht, jedes neue Element wird an derselben Stelle stehen wie
 sein Ursprungselement.
 
 Auf dieser Argumentation aufbauend kann man erkennen, dass es unerheblich für die Ergebnisliste ist, ob man zuerst die
 Funktion $f$ auf eine Liste appliziert und dann auf die resultierende Liste die Funktion $map\ g$ anwendet, oder ob man
-in umgekehrter Reihenfolge vorgeht. Die folgende Formel fasst diese Aussage mathematisch zusammen.
+in umgekehrter Reihenfolge vorgeht. Abbildung \ref{fig:fmapg} veranschaulicht dies für eine Beispielfunktion $f$, die Listen
+umkehrt, und eine Funktion $g$, die zu jedem Listenelement den Wert $1$ hinzuaddiert. Hervorgehoben ist die Position
+eines Elements in dieser Liste. Im linken Teil der Abbildung wird zunächst die Funktion $f$ appliziert und als zweites
+$map\ g$, im rechten Teil wird $map\ g$ zuerst angewendet und dann erst $f$.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=430px]{fmapg}
+\caption{Die Reihenfolge der Anwendung von $f$ und $map\ g$ spielt keine Rolle für die Ergebnisliste.}
+\label{fig:fmapg}
+\end{figure}
+
+%Die folgende Formel fasst diese Aussage mathematisch zusammen.
+Die folgende Formel fasst die Aussage der obigen Argumentation als mathematische Aussage zusammen.
 
 
 %Die Haskell-Funktion \texttt{$map :: (a \rightarrow b) \rightarrow [a] \rightarrow [b]$} wendet eine Funktion auf jedes Element einer Liste an und gibt die resultierende Liste zurück. Da Haskell Currying für Funktionsapplikation verwendet, kann man
@@ -147,10 +195,15 @@ in umgekehrter Reihenfolge vorgeht. Die folgende Formel fasst diese Aussage math
 f (map\ g\ l) = map\ g\ (f\ l)
 \end{align*}
 
-Diese Aussage ist ein Theorem, das für beliebige Funktionen g und beliebige Listen l gilt. Doch nicht nur das: Wir haben für
-die Herleitung kein Wissen über die konkrete Implementierung der Funktion f benötigt; das einzig Bekannte war die Typsignatur.
-Das Theorem gilt also insbesondere für alle Funktionen mit der Typsignatur $[a] \rightarrow [a]$. Da man dieses Theorem
-aus der Typsignatur gwissermaßen ``geschenkt'' bekommt, nennt man es auch ``freies Theorem''.
+Diese Aussage ist ein Theorem, das für beliebige Funktionen g und beliebige Listen l gilt. Doch nicht nur das: Überlegt man sich
+einmal, anhand welcher Informationen diese Schlussfolgerung getroffen wurde, wird klar: Das einzige Wissen, das für diese Herleitung
+benötigt wurde, ist die Typsignatur der Funktion $f$. Insbesondere wurde die Funktion nicht auf einen konkreten Typ instanziiert,
+die Aussage gilt für beliebige Typen -- sie gilt sogar für beliebige Funktionen mit der Typsignatur $[a] \rightarrow [a]$.
+
+%Wir haben für
+%die Herleitung kein Wissen über die konkrete Implementierung der Funktion f benötigt; das einzig Bekannte war die Typsignatur.
+%Das Theorem gilt also insbesondere für alle Funktionen mit der Typsignatur $[a] \rightarrow [a]$. Da man dieses Theorem
+%aus der Typsignatur gwissermaßen ``geschenkt'' bekommt, nennt man es auch ``freies Theorem''.
 
 Natürlich war die vorangegangene Herleitung sehr unkonkret und nicht wirklich mathematischer Natur. Im Folgenden wird dieser
 intuitive Ansatz nun mathematisch konkretisiert.
@@ -176,7 +229,7 @@ Ausdrucks verwandte Umgebungen auf verwandte Werte abbildet \cite{reynolds}. Die
 das diese Erkenntnis für polymorphe Funktionssignaturen nutzbar macht und die Herleitung von Theoremen ermöglicht --
 vorausgesetzt, die Typen werden als Relationen aufgefasst statt als Mengen.
 
-Um Typen als Relationen aufzufassen, definiert man relationale Aktionen, mit denen zu jedem Typ eine entsprechende Relation
+Um Typen als Relationen aufzufassen, definiert man sogenannte \textit{relationale Aktionen}, mit denen zu jedem Typ eine entsprechende Relation
 konstruiert werden kann \cite{johann2006}.
 
 \begin{mydef}[Relationale Aktion]
@@ -196,7 +249,7 @@ Diese Abbildung nennt man relationale Aktion.
 %folgendermaßen vor:
 
 Man kann also zu einem beliebigen Typ eine Relation konstruieren, die diesen Typ repräsentiert, indem man zu jedem Typkonstruktor
-die entsprechende relationale Aktion anwendet. Die einzelnen Relationen werden folgendermaßen konstruiert.
+die entsprechende relationale Aktion anwendet. Die einzelnen Relationen werden folgendermaßen konstruiert \cite{voigtlander}.
 
 \begin{itemize}
 \item Zu jedem Basistyp $T$ (Int, Bool, etc.) ist die zugehörige Relation die Identitätsrelation $\mathcal{R} = \{ (x, x) | x \in T\}$.
@@ -220,15 +273,15 @@ relationale Aktion definiert, wenn eine Typrelation $\mathcal{R} : T_1 \Leftrigh
 
 Andere Standardtypkonstruktoren lassen sich auf ähnliche Weise beschreiben. Nun haben wir die Mittel, zu jeder vorhandenen
 Typsignatur eine Relation zu konstruieren. Eine entscheidende Erkenntnis von \cite{wadler}, aufbauend auf
-\cite{reynolds}, ist nun das Parametrizitätstheorem.
+\cite{reynolds}, ist nun das Parametrizitätstheorem. Hierzu muss noch der Begriff \textit{geschlossener Term} definiert werden.
 
 \begin{mytheorem}[Parametrizität]
 Ist t ein geschlossener Term von Typ T und $\mathcal{T}$ die zugehörige konstruierte Typrelation, dann gilt $(t, t) \in \mathcal{T}$.
 \end{mytheorem}
 
+Ein Term ist dabei geschlossen, wenn er keine freien Variablen enthält.
 %folgende: Ist t ein geschlossener Term von Typ T und $\mathcal{T}$ die zugehörige konstruierte
 %Typrelation, dann gilt $(t, t) \in \mathcal{T}$ (dieser Satz wird von \cite{wadler} auch Parametrizität, \textit{Parametricity}, genannt).
-
 Damit ist alles gegeben, was man zur Herleitung des freien Theorems benötigt. Wir untersuchen wieder das Beispiel
 $f :: [a] \rightarrow [a]$. Durch Parametrizität ist gegeben:
 
@@ -236,8 +289,10 @@ $f :: [a] \rightarrow [a]$. Durch Parametrizität ist gegeben:
 (f, f) \in \forall \mathcal{R} . [\mathcal{R}] \rightarrow [\mathcal{R}]
 \end{align*}
 
-Dabei ist zu bemerken, dass in Haskellsyntax typischerweise die Allquantifizierung über die Typvariable weggelassen wird.
-Implizit ist $[a] \rightarrow [a]$ aber gleichbedeutend mit $\forall a . [a] \rightarrow [a]$.
+%Dabei ist zu bemerken, dass in Haskellsyntax typischerweise die Allquantifizierung über die Typvariable weggelassen wird.
+Es wurde bereits zu Beginn des Kapitels erwähnt, dass freie Typvariablen in Signaturen mit einem impliziten Allquantor
+quantifiziert werden, weshalb hier die entsprechende relationale Aktion Anwendung findet.
+%Implizit ist $[a] \rightarrow [a]$ aber gleichbedeutend mit $\forall a . [a] \rightarrow [a]$.
 Wir können nun Schritt für Schritt die Definitionen der einzelnen Relationskonstruktionen anwenden, wodurch die Formel
 abgerollt wird:
 
@@ -259,27 +314,34 @@ abgerollt wird:
 %Zur Erinnerung: $\mathcal{A} : A_1 \Leftrightarrow A_2$ bedeutet, dass $\mathcal{A}$ eine Relation auf den Mengen $A_1$ und $A_2$ ist.
 
 An diesem Punkt haben wir eine Aussage über beliebige Typrelationen $\mathcal{A}$, anschaulicher wäre aber eine Aussage
-über beliebige Funktionen. Da man Funtktionen als Spezialfall von Relationen betrachten kann, können wir die Aussage
-spezifizieren für den Fall, dass es sich bei $\mathcal{A}$ um eine Funktion handelt.
-Eine Funktion $f : S \rightarrow T$ kann man auch betrachten als Relation $\{ (x, f x) | x \in S \}$. Anders gesagt: Ist
-$\mathcal{F} : T_1 \Leftrightarrow T_2$ eine Relation zu einer Funktion f, dann gilt für alle $(x, y) \in \mathcal{F}: f x = y$.
+über beliebige Funktionen. Da man Funktionen als Spezialfall von Relationen betrachten kann, können wir die Aussage
+spezifizieren für den Fall, dass es sich bei $\mathcal{A}$ um eine Funktion handelt. Wir quantifizieren dazu statt
+über alle Relationen $\mathcal{A} : A_1 \Leftrightarrow A_2$ über alle Funktionen $g : A_1 \rightarrow A_2$.
 
-Schränken wir also unsere Aussage auf Funktionen ein, können wir über alle Funktionen $g : A_1 \rightarrow A_2$ quantifizieren.
-Wir wissen, dass für alle Parameter $l, l' \in lift_{[]}(\mathcal{A})$ die Aussage $(f_{A_1} l, f_{A_2} l') \in lift_{[]}(\mathcal{A})$
-gilt. Als Funktion geschrieben heißt das, es gilt:
+%Wie in den Grundlagen erläutert wurde, kann man eine Allquantifizierung über Relationen spezialisieren auf Funktionen,
+%das heißt wir können uns auf alle $g : A_1 \rightarrow A_2$ beschränken.
+%Eine Funktion $f : S \rightarrow T$ kann man auch betrachten als Relation $\{ (x, f x) | x \in S \}$. Anders gesagt: Ist
+%$\mathcal{F} : T_1 \Leftrightarrow T_2$ eine Relation zu einer Funktion f, dann gilt für alle $(x, y) \in \mathcal{F}: f x = y$.
+%Schränken wir also unsere Aussage auf Funktionen ein, können wir über alle Funktionen $g : A_1 \rightarrow A_2$ quantifizieren. 
+Aus dem abgerollten Parametrizitätstheorem haben wir ja bisher die Aussage abgeleitet, dass für alle Parameter $l, l' \in lift_{[]}(\mathcal{A})$
+die Aussage $(f_{A_1} l, f_{A_2} l') \in lift_{[]}(\mathcal{A})$ gilt. Als Funktion geschrieben heißt das, es gilt folgende Aussage.
 
 \begin{align*}
 lift_{[]}(g) (f_{A_1}\ l) = f_{A_2}\ l'
 \end{align*}
 
-Das Lifting von Funktionen in den Listenkontext ist ganz einfach das Mapping dieser Funktionen auf Listen, sprich: die Haskell-Funktion
-$map$, angewandt auf die entsprechende Funktion:
+Das Lifting von Funktionen in den Listenkontext ist nun ganz einfach das Mapping dieser Funktionen auf Listen, sprich: die Haskell-Funktion
+$map$, angewandt auf die entsprechende Funktion.
 
 \begin{align*}
 map\ g\ (f_{A_1}\ l) = f_{A_2}\ l'
 \end{align*}
 
-Da $(l, l') \in [A]$, können wir $l'$ auch anders ausdrücken als $map\ g\ l = l'$. Man erhält also:
+Hierbei ist zu bemerken, dass nun nicht mehr über alle Paare $(l, l') \in lift_{[]}(\mathcal{A})$
+quantifiziert werden muss, da es zu jedem $l \in [A_1]$ nur genau ein $l' \in [A_2]$ geben kann, für das gilt $map\ g\ l = l'$. Folglich kann man die Variable $l'$
+weglassen und stets den Ausdruck $map\ g\ l$ verwenden.
+%Da $(l, l') \in [A]$, können wir $l'$ auch anders ausdrücken als $map\ g\ l = l'$. Man erhält also:
+Ersetzt man die Variable $l'$ also entsprechend, so erhält man die folgende Aussage.
 
 \begin{align*}
 map\ g\ (f_{A_1} l) = f_{A_2} (map\ g\ l)
@@ -295,29 +357,50 @@ dass sie gültig ist, da Parametrizität gilt. Und ein Theorem dieser Art lässt
 
 \label{sec:typkonstruktorklassen}
 
-Eine Sache, die bisher nur kurz angerissen wurde, ist die relationale Interpretation von Typkonstruktoren.
-Für den Listentypkonstruktor wurde eine Formel gegeben, mit der eine Relation in den Listenkontext geliftet wird.
-Ähnlich kann man auch bei anderen Typen vorgehen, beispielsweise $Maybe$.
+Die bisherige Theorie basierte auf \cite{wadler} und sah kein Auftreten von Typklassen oder Typkonstruktorklassen vor.
+Es wurde angegeben, wie beispielsweise der Listendatentyp in eine Relationaldarstellung überführt werden kann. Ähnliches
+ist für beliebige Datentypen möglich, beispielsweise $Maybe$.
 
-Was aber völlig ignoriert wurde ist die Tatsache, dass man in Haskell auch über Typvariablen allquantifizieren kann, die ihrerseits
-nicht Platzhalter für speziellele Typen, sondern nur für Typkonstruktoren sind. Hier noch einmal das Beispiel aus der Einleitung:
+Dass in Typsignaturen aber nicht nur über Typvariablen, sondern auch über Variablen allquantifiziert werden kann, die
+ihrerseits nicht Platzhalter für spezielle Typen, sondern für Typkonstruktoren sind, wurde bisher außer Acht gelassen. In diesem
+Abschnitt geht es nun also um Typkonstruktorvariablen von der Sorte $* \rightarrow *$, wie es von Voigtländer in \cite{voigtlander}
+vorgestellt wird. In der Einleitung wurde bereits die Funktion $fmap$ als Beispiel angegeben, die die folgende Typsignatur besitzt.
+%Es wurden jetzt 
+
+%Eine Sache, die bisher nur kurz angerissen wurde, ist die relationale Interpretation von Typkonstruktoren.
+%Für den Listentypkonstruktor wurde eine Formel gegeben, mit der eine Relation in den Listenkontext geliftet wird.
+%Ähnlich kann man auch bei anderen Typen vorgehen, beispielsweise $Maybe$.
+
+%Was aber völlig ignoriert wurde ist die Tatsache, dass man in Haskell auch über Typvariablen allquantifizieren kann, die ihrerseits
+%nicht Platzhalter für speziellele Typen, sondern nur für Typkonstruktoren sind. In der Einleitung wurde bereits die Funktion $fmap$
+%als Beispiel angegeben, die die folgende Typsignatur besitzt.
+%Hier noch einmal das Beispiel aus der Einleitung:
 
 \begin{minted}{haskell}
 fmap :: Functor f => (a -> b) -> f a -> f b
 \end{minted}
 
-Es wird angegeben, dass $f$ eine Variable der Typklasse Functor ist. Functor ist von der \textit{Sorte} $* \rightarrow *$,
-das heißt es handelt sich um einen Typkonstruktor, der einen Typ auf einen neuen Typ abbildet.
-Daher kann $f$ in der Typsignatur in $f a$ und $f b$ auf Parameter angewandt werden.
-Zwei Dinge müssen zum bisherigen Ansatz hinzugefügt werden: Allquantifizierung über Typkonstruktorvariablen muss separat betrachtet werden, und Klasseneinschränkungen müssen beachtet werden, im obigen Beispiel $Functor f$ \cite{voigtlander}.
+Die Variable $f$ wird über den Kontext auf die Typklasse \texttt{Functor} eingeschränkt. Letztere ist von der Sorte $* \rightarrow *$,
+es handelt sich also um einen Typkonstruktor, der einen Typ auf einen neuen Typ abbildet.
+%Es wird angegeben, dass $f$ eine Variable der Typklasse Functor ist. Functor ist von der \textit{Sorte} $* \rightarrow *$,
+%das heißt es handelt sich um einen Typkonstruktor, der einen Typ auf einen neuen Typ abbildet.
+Daher ist es in der Typsignatur legitim, diese Variable auf Typparameter anzuwenden, in diesem Beispiel also in $f\ a$ und $f\ b$.
+Zwei Dinge müssen zum bisherigen Ansatz hinzugefügt werden: Allquantifizierung über Typkonstruktorvariablen muss separat betrachtet werden,
+und Klasseneinschränkungen müssen beachtet werden, im obigen Beispiel $Functor f$ \cite{voigtlander}.
 
 Die Allquantifizierung über Typkonstruktorvariablen funktioniert an sich ähnlich wie die Allquantifizierung über gewöhnliche
 Typvariablen. Statt beliebigen Relationen über beliebig gewählten Typen interpretiert man freie Typkonstruktorvariablen als
-Funktionen über Relationen mit beliebig gewählten Typkonstruktoren \cite{voigtlander}.
+Funktionen über beliebigen Typkonstruktoren $k_1, k_2$, die eine Relation auf eine neue abbilden, indem sie die Typkonstruktoren
+auf die Typmengen der Relation anwenden.
+%die die Typmengen der Relation jeweils auf Typmengen abbildet,
+%die durch Anwenden eines beliebigen
+% mit beliebig gewählten Typkonstruktoren \cite{voigtlander}.
 
-Dazu kommt noch die Beschränkung auf bestimmte Klassen. In einer Klassendefinition legt man Typparameter sowie
-Klassenfunktionen fest. Als Beispiel bietet sich die Klassendefinition von Functor an, hier beschränkt auf die interessante Funktion
-$fmap$:
+Dazu kommt noch die Beschränkung auf bestimmte Klassen. Hierzu bietet es sich an, die Funktion $fmap$ im Zusammenhang der
+Typklasse \texttt{Functor} zu betrachten.
+%In einer Klassendefinition legt man Typparameter sowie
+%Klassenfunktionen fest. Als Beispiel bietet sich die Klassendefinition von Functor an, hier beschränkt auf die interessante Funktion
+%$fmap$:
 
 \begin{minted}{haskell}
 class Functor f where
@@ -328,7 +411,9 @@ Wie man sieht, hat die Klasse Functor einen Typparameter $f$ und definiert die T
 einer Typsignatur auf eine Klassenbeschränkung wie $Functor f$ (ohne die Typkonstruktorvariablen wenig Sinn machen),
 muss man die Allquantifizierung über Typkonstruktoren weiter einschränken.
 
-Sei $\mathcal{F}(\mathcal{X})$ wieder eine Typrelation, die von Typrelation $\mathcal{X}$ abhängt, und sei C eine Typklasse. Wir definieren Allquantifizierung über Typkonstruktorvariablen als:
+Sei $\mathcal{F}(\mathcal{X})$ wieder eine Typrelation, die von Typrelation $\mathcal{X}$ abhängt, und sei C eine Typklasse.
+%Wir definieren Allquantifizierung über Typkonstruktorvariablen
+Dann definiert man die Allquantifizierung über Typkonstruktorvariablen wie folgt.
 
 \begin{align*}
 \forall^{\{C\}} \mathcal{K} . \mathcal{F}(\mathcal{K}) = \{ 
@@ -339,7 +424,7 @@ Sei $\mathcal{F}(\mathcal{X})$ wieder eine Typrelation, die von Typrelation $\ma
 
 Was ist nun mit Typkonstruktoren gemeint, die die Klasse C \textit{einhalten}? Es werden nur jene Typkonstruktoren in Betracht gezogen,
 für die jede Klassenfunktion bezüglich ihrer Typrelation mit sich selbst verwandt ist. Für unser Beispiel bedeutet das, es werden nur
-Funktionen $\mathcal{F} : k_1 \Leftrightarrow k_2$ betrachtet, für die gilt:
+Funktionen $\mathcal{F} : k_1 \Leftrightarrow k_2$ betrachtet, für die die folgende Aussage gilt.
 
 \begin{align*}
 (fmap_{k_1}, fmap_{k_2}) \in \forall \mathcal{R} . (\mathcal{R} \rightarrow \mathcal{S}) \rightarrow \mathcal{F} \mathcal{R}
@@ -359,6 +444,8 @@ Relation - mit dem Unterschied, dass wir erstmal keine genauen Aussagen über di
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Anwendung}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\todo{Dieser Abschnitt zeigt einen Beweis von schoolofhaskell.com -- ist aber merkwürdig}
 
 %In den vorangehenden Abschnitten wurde beschrieben, wie freie Theoreme hergeleitet werden. Um zu zeigen, welchen
 %Nutzen diese Technik hat und was man damit herleiten kann, werden in diesem Abschnitt einige Beispiele gegeben,
