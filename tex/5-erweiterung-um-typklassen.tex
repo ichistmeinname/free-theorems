@@ -261,7 +261,7 @@ Typkonstruktorvariable. Das folgende Beispiel zeigt das freie Theorem für die T
 & \forall (x, y) \in \mathcal{R} . (test_{t_1\ k_1}\ x, test_{t_2\ k_2}\ y) \in \mathcal{K}\ \mathcal{R})
 \end{align*}
 
-Spezialisiert man in diesem Beispiel die Relation $\mathcal{R}$ auf eine Funktion $f$, kann man eben auf die Idee kommen, die letzte
+Spezialisiert man in diesem Beispiel die Relation $\mathcal{R}$ auf eine Funktion $f$, kann man auf die Idee kommen, die letzte
 Zeile wie folgt zu transformieren.
 
 \begin{align*}
@@ -278,7 +278,17 @@ Aus diesem Grund wird die Zeile transformiert wie folgt:
 \end{align*}
 
 Hierbei ist $lift_{\mathcal{K}}(f)$ die Relation, die durch das \textit{Lifting} der Funktion $f$ in den $\mathcal{K}$-Kontext
-entsteht.
+entsteht. Das ist in diesem Fall notwendig, da $\mathcal{K}$ als Funktion auf Relationen eingeführt wurde. Zwar werden
+Funktionen hier als spezielle Relationen behandelt, rein formal betrachtet kann man an dieser Stelle jedoch nicht
+einfach die Relationsfunktion $\mathcal{K}$ auf eine Funktion $f$ anwenden.
+
+Die \texttt{specialise}-Funktion überführt an dieser Stelle die \texttt{RelTypeConsApp}-Struktur in eine \texttt{RelLift}-Struktur,
+die eine geliftete Relation darstellt. Normalerweise wird diese Struktur mit einer Angabe darüber gefüllt, um welchen speziellen
+Typkonstruktor es sich handelt, beispielsweise der Listenkonstruktor, der Tupelkonstruktor oder einfach der Name eines
+definierten Datentyps.
+
+Für den Fall einer Typkonstruktorvariable wurde \texttt{ConVar} als weitere Möglichkeit eingeführt. Diesem Konstruktor wird
+der Name der Typkonstruktorvariablen übergeben \todo{ist das nicht auch einfach nur die relationsfunktion, angewandt auf relation?}
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -310,17 +320,28 @@ Der Ausdruck $\mathcal{F} \mathcal{R}$ aus diesem Beispiel wird als \texttt{Rela
 (RelTypeConsApp ("k1 t1", "k2 t2") "F" (RelVar "R"))
 \end{minted}
 
-Dieser Ausdruck wird nun überführt in ...
+%Die Typausdrücke in Klammern sind die Typen für den gesamten Ausdruck. Zwar handelt es sich hierbei mit \texttt{TypeExpression}
+%um einen \texttt{BasicSyntax}-Datentyp, dieser enthält jedoch einen speziellen Typkonstruktor namens \texttt{TypeExp}, mit
+%dem beliebige Typen als Zeichenketten dargestellt werden können. 
 
+Wie im vorangegangenen Abschnitt bereits erläutert wurde, wird der \texttt{RelTypeConsApp}-Konstruktor bei einer Spezialisierung
+zu einem \texttt{RelLift}-Ausdruck, sofern er die entsprechende Relationsvariable beinhaltet, auf die spezialisiert wird.
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Beispieldurchlauf}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Um die Funktionsweise der Erweiterungen zu verdeutlichen und einen Einblick in die Änderungen zu geben, wird in diesem Abschnitt
-ein kompletter Durchlauf der erweiterten Bibliothek erläutert, wobei sämtliche Zwischendarstellungen der Daten angegeben werden.
+Es wurden nun sämtliche Modifikationen an der Bibliothek erläutert, doch um das Zusammenspiel der einzelnen Änderungen
+einmal im Zusammenhang zu sehen, wird in diesem Abschnitt ein kompletter Durchlauf für eine Signatur dargestellt, die eine
+Typkonstruktorvariable beinhaltet.
 
-Wir verwenden dabei das Beispiel, das bereits in Abschnitt \ref{sec:typkonstruktorklassen} betrachtet wurde.
+Es soll hier nicht noch einmal bis ins kleinste Detail das Parsing vorgeführt werden, das in Kapitel \ref{sec:free-theorems-beispiel} bereits
+veranschaulicht wurde.
+
+%Um die Funktionsweise der Erweiterungen zu verdeutlichen und einen Einblick in die Änderungen zu geben, wird in diesem Abschnitt
+%ein kompletter Durchlauf der erweiterten Bibliothek erläutert, wobei sämtliche Zwischendarstellungen der Daten angegeben werden.
+
+Wir verwenden das Beispiel, das bereits in Abschnitt \ref{sec:typkonstruktorklassen} betrachtet wurde.
 
 \begin{minted}{haskell}
 fmap :: Functor f => (a -> b) -> f a -> f b

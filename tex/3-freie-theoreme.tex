@@ -21,6 +21,10 @@ Daraufhin wird die Erweiterung des Vorgehens um Typkonstruktorklassen thematisie
 auch verwendet wird von Voigtländer in \cite{voigtlander}. Am Ende des Kapitels wird schließlich an einem
 praktischen Beispiel gezeigt, wie ein freies Theorem für einen Beweis verwendet werden kann.
 
+Die Bibliothek \textit{free-theorems}, deren Erweiterung um Typkonstruktorvariablen der Fokus dieser Arbeit ist, spielt
+in diesem Kapitel noch keine Rolle. Ihre Implementierung wird im nächsten Kapitel erläutert, wo dann die Theorie hinter
+freien Theoremen und deren Implementierung in Haskell zusammenspielen.
+
 %Wie in der Einleitung bereits angedeutet wurde, lässt sich diese Intuition in Formeln ausdrücken. In diesem Abschnitt
 %wird erklärt, wie diese so genannten freien Theoreme aussehen. Es wird erläutert, wie man sie herleitet und warum
 %das möglich ist. Am Ende des Abschnittes wird insbesondere darauf eingegangen, welche Rolle Typkonstruktorklassen
@@ -55,19 +59,25 @@ f :: [a] \rightarrow [a] \label{eq:fsig}
 
 Gegeben ist also eine Funktion $f$, die von einer Liste auf eine Liste abbildet. Das Besondere an dieser Funktion ist, dass sie
 nicht für einen konkreten Typ wie beispielsweise $[Integer] \rightarrow [Integer]$ deklariert ist, sondern dass man sie für jeden
-beliebigen Typ instanziieren kann, indem man die Typvariable $a$ durch einen Typausdruck einsetzt. Die Funktion ist also für
+beliebigen Typ instanziieren kann, indem man die Typvariable $a$ durch einen Typausdruck ersetzt. Die Funktion ist also für
 einen beliebigen Typ deklariert, es handelt sich um eine \textit{polymorphe Funktion}.
 
 Bei der Typvariable $a$ handelt es sich erst einmal um eine ungebundene, \textit{freie} Variable. Man kann sich aber einen impliziten
-Allquantor vor der eigentlichen Signatur denken. Tatsächlich existiert dieser Allquantor sogar explizit als Schlüsselwort \texttt{forall} in Haskell,
-im Normalfall wird es jedoch nicht explizit benötigt und deshalb meistens weggelassen. Immer, wenn
+Allquantor vor der eigentlichen Signatur denken. Tatsächlich existiert dieser Allquantor sogar als spezielles Schlüsselwort \texttt{forall} in Haskell,
+wie die folgende Schreibweise zeigt.
+
+\begin{minted}{haskell}
+f :: forall a. [a] -> [a]
+\end{minted}
+
+Im Normalfall wird dieses Schlüsselwort jedoch nicht explizit benötigt und deshalb meistens weggelassen. Immer, wenn
 freie Typvariablen in einer Signatur vorkommen, lässt sich diese Signatur also \textit{schließen}, indem für jede freie Typvariable
 ein entsprechender Allquantor an den Anfang gesetzt wird.
 
-Die Instanziierung einer polymorphen Funktion auf einen konkreten Typ wird im weiteren Verlauf der Arbeit beschrieben, indem der
+Die Instanziierung einer polymorphen Funktion auf einen konkreten Typ wird im weiteren Verlauf der Arbeit notiert, indem der
 polymorphe Ausdruck mit einem Index versehen wird, der dem Typ entspricht, auf den der Ausdruck instanziiert wird.
 $f_{Integer}$ ist dann beispielsweise die Funktion $f$, konkretisiert auf den Typ Integer, d.h. es wird Integer
-für $a$ in die Funktionssignatur eingesetzt. $f_{Bool \rightarrow Bool}$ wäre folglich die gleiche Funktion instanziiert auf den Typ
+für $a$ in die Funktionssignatur eingesetzt. $f_{Bool \rightarrow Bool}$ wäre folglich die gleiche Funktion, instanziiert auf den Typ
 $Bool \rightarrow Bool$, sie hätte also die Signatur $[Bool \rightarrow Bool] \rightarrow [Bool \rightarrow Bool]$.
 
 Hat die Funktion mehrere verschiedene Typvariablen, so werden die einzelnen Typen
@@ -99,7 +109,7 @@ jeweils eine konkrete, typspezifische Implementierung haben.
 
 Es handelt sich also technisch gesehen um verschiedene Funktionen, die sich einen Namen teilen können, weil anhand der Typsignatur
 und der Typen der Parameter, mit denen die Funktion aufgerufen wird, entschieden werden kann, welche der Funktionen jeweils gemeint ist.
-Ein Beispiel für Ad-Hoc-Polymorphismus bietet die Programmiersprache \textit{C++}: Hier ist es möglich, mehrere Funktionen mit gleichem
+Ein Beispiel für Ad-Hoc-Polymorphismus bietet die Programmiersprache \textit{C++} \todo{wahrscheinlich noch was ziteren}: Hier ist es möglich, mehrere Funktionen mit gleichem
 Namen in einer Klasse zu deklarieren, solange sie unterschiedliche Signaturen besitzen, wie das folgende Beispiel zeigt.
 
 \begin{minted}{cpp}
@@ -358,8 +368,9 @@ dass sie gültig ist, da Parametrizität gilt. Und ein Theorem dieser Art lässt
 \label{sec:typkonstruktorklassen}
 
 Die bisherige Theorie basierte auf \cite{wadler} und sah kein Auftreten von Typklassen oder Typkonstruktorklassen vor.
-Es wurde angegeben, wie beispielsweise der Listendatentyp in eine Relationaldarstellung überführt werden kann. Ähnliches
-ist für beliebige Datentypen möglich, beispielsweise $Maybe$.
+In Abschnitt \ref{sec:free-theorems-param} wurde angegeben, wie beispielsweise der Listendatentyp in eine Relationaldarstellung
+überführt werden kann, und auf dieselbe Art und Weise lassen sich entsprechende Repräsentationen für beliebige Datentypen
+herleiten, so zum Beispiel $Maybe$.
 
 Dass in Typsignaturen aber nicht nur über Typvariablen, sondern auch über Variablen allquantifiziert werden kann, die
 ihrerseits nicht Platzhalter für spezielle Typen, sondern für Typkonstruktoren sind, wurde bisher außer Acht gelassen. In diesem
@@ -431,8 +442,18 @@ Funktionen $\mathcal{F} : k_1 \Leftrightarrow k_2$ betrachtet, für die die folg
 \rightarrow \mathcal{F} \mathcal{S}
 \end{align*}
 
-Die Anwendung von Typkonstruktorfunktionen auf Typrelationen ist nun nichts anderes als wiederum ein Lifting dieser
-Relation - mit dem Unterschied, dass wir erstmal keine genauen Aussagen über dieses Lifting treffen können.
+%Die Anwendung von Typkonstruktorfunktionen auf Typrelationen ist nun nichts anderes als wiederum ein Lifting dieser
+%Relation - mit dem Unterschied, dass wir erstmal keine genauen Aussagen über dieses Lifting treffen können.
+
+Wird nun eine Typkonstruktorvariable auf einen Typ angewandt, handelt es sich nicht um eine relationale Aktion, die Anwendung findet.
+Bei letzterer handelt es sich ja um eine Konstruktion von Relationen aus Typen, basierend auf existierenden Relationen.
+Typkonstruktorvariablen sind aber keine Relationen, es handelt sich um Funktionen -- und die Applikation dieser Funktionen auf
+Typrelationen ist auch tatsächlich einfach eine Funktionsanwendung, deren Ergebnis wieder eine Relation ist.
+
+Die Erweiterung um Typkonstruktorvariablen ist also alles in allem nicht besonders komplex oder tiefgreifend, sie betrifft aber sämtliche
+Teile der zu erweiternden Bibliothek. Bevor jedoch die Implementierung betrachtet wird, soll zunächst noch einmal an
+einem Beispiel gezeigt werden, wozu man freie Theoreme -- insbesondere erweitert auf Typkonstruktorklassen -- verwenden kann.
+
 
 %Eine Frage, die sich nun stellt, ist: Inwiefern kann man dann überhaupt mit diesen Relationsfunktionen arbeiten? An sich ist ja nur
 %bekannt, dass sie Typrelationen auf andere Typrelationen abbilden. Mit der Klassenbeschränkung ist aber zumindest ein
