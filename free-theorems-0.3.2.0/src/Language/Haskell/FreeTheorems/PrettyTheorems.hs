@@ -345,6 +345,9 @@ prettyRelation _ _ (RelBasic ri) =
 prettyRelation pc _ (RelTypeConsApp _ (RVar i) rels) =
   text i <+> (prettyRelation pc False) rels
 
+--prettyRelation pc _ (RelTypeConsFunApp _ (TVar i) rels) =
+--  text i <+> (prettyRelation pc False) rels
+
 prettyRelation pc omitOrder (RelLift ri con rs) =
   let pl = case relationLanguageSubset ri of
              BasicSubset -> text "lift"

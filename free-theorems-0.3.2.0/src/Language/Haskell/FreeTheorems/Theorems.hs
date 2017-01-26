@@ -117,6 +117,9 @@ data Relation
   = RelVar RelationInfo RelationVariable
         -- ^ A relation variable.
 
+  | RelConsFunVar RelationInfo RelationVariable
+        -- ^ (thr) A relation function representing a type construction variable
+
   | FunVar RelationInfo (Either Term Term)
         -- ^ A function variable.
         --   It might be either a function to be applied on the left side (in
@@ -162,13 +165,21 @@ data Relation
         --   is not a valid type.
 
   | RelTypeConsAbs RelationInfo RelationVariable (TypeExpression, TypeExpression) [Restriction] Relation
-        -- ^ (thr) A relation corresponding to a type constructor abstraction.
+        -- ^ (thr) Relation corresponding to a type constructor abstraction.
         --   This isn't really a difference in haskell syntax, but the
         --   resulting relational structures are different.
+
+--  | RelTypeConsFunAbs RelationInfo TermVariable (TypeExpression, TypeExpression) [Restriction] Relation
+        -- ^ (thr) The same as RelTypeConsAbs, but specialised to the case
+        --   where the function works on functions instead of relations
 
   | RelTypeConsApp RelationInfo RelationVariable Relation -- (thr) TODO: shouldn't be RelationVariable,
                                                           --       should be Relation (?)
         -- ^ (thr) Relation corresponding to type constructor application
+
+--  | RelTypeConsFunApp RelationInfo TermVariable Relation
+        -- ^ (thr) Function corresponding to type constructor application,
+        --         specialised to the case where the function works on functions
 
   | FunAbs RelationInfo (Either TermVariable TermVariable)
            (TypeExpression, TypeExpression) [Restriction] Relation
@@ -182,16 +193,19 @@ data Relation
 
 relationInfo :: Relation -> RelationInfo
 relationInfo rel = case rel of
-  RelVar ri _               -> ri
-  FunVar ri _               -> ri
-  RelBasic ri               -> ri
-  RelLift ri _ _            -> ri
-  RelFun ri _ _             -> ri
-  RelFunLab ri _ _          -> ri
-  RelAbs ri _ _ _ _         -> ri
-  RelTypeConsAbs ri _ _ _ _ -> ri
-  RelTypeConsApp ri _ _   -> ri
-  FunAbs ri _ _ _ _         -> ri
+  RelVar ri _                  -> ri
+  RelConsFunVar ri _           -> ri
+  FunVar ri _                  -> ri
+  RelBasic ri                  -> ri
+  RelLift ri _ _               -> ri
+  RelFun ri _ _                -> ri
+  RelFunLab ri _ _             -> ri
+  RelAbs ri _ _ _ _            -> ri
+  RelTypeConsAbs ri _ _ _ _    -> ri
+  RelTypeConsApp ri _ _        -> ri
+--  RelTypeConsFunAbs ri _ _ _ _ -> ri
+--  RelTypeConsFunApp ri _ _     -> ri
+  FunAbs ri _ _ _ _            -> ri
 
 
 

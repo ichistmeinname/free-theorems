@@ -31,18 +31,21 @@ instance Show Term where
   show = prettyTerm
 
 getRelStr :: Relation -> String
-getRelStr (RelVar _ (RVar s)) = "(RelVar \"" ++ s ++ "\")"
-getRelStr (FunVar _ term) = "(FunVar \"" ++ (prettyTerm . fromEither $ term) ++ "\")"
-getRelStr (RelBasic _) = "RelBasic"
-getRelStr (RelLift ri tc rels) = "(RelLift (\"" ++ (show $ relationLeftType ri) ++ "\", \"" ++ (show $ relationRightType ri) ++ "\") " ++ getTypeConsStr tc ++ " " ++ (unwords $ map getRelStr rels) ++ ")"
-getRelStr (RelFun _ r1 r2) = "(RelFun " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
-getRelStr (RelFunLab _ r1 r2) = "(RelFunLab " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
-getRelStr (RelAbs _ (RVar rv) (t1, t2) _ rel) = "(RelAbs \"" ++ rv ++ "\" (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
-getRelStr (RelTypeConsAbs _ _ (t1, t2) _ rel) = "(RelTypeConsAbs (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
-getRelStr (RelTypeConsApp ri (RVar rv) rel) = "(RelTypeConsApp (\"" ++ (show $ relationLeftType ri) ++ "\", \"" ++ (show $ relationRightType ri) ++ "\") \""
+getRelStr (RelVar ri (RVar s)) = "(RelVar " ++ getRelInfStr ri ++ " \"" ++ s ++ "\")"
+getRelStr (FunVar ri term) = "(FunVar " ++ getRelInfStr ri ++ " \"" ++ (prettyTerm . fromEither $ term) ++ "\")"
+getRelStr (RelBasic ri) = "(RelBasic" ++ getRelInfStr ri ++ ")"
+getRelStr (RelLift ri tc rels) = "(RelLift " ++ getRelInfStr ri ++ " (\"" ++ (show $ relationLeftType ri) ++ "\", \"" ++ (show $ relationRightType ri) ++ "\") " ++ getTypeConsStr tc ++ " " ++ (unwords $ map getRelStr rels) ++ ")"
+getRelStr (RelFun ri r1 r2) = "(RelFun " ++ getRelInfStr ri ++ " " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
+getRelStr (RelFunLab ri r1 r2) = "(RelFunLab " ++ getRelInfStr ri ++ " " ++ (getRelStr r1) ++ " " ++ (getRelStr r2) ++ ")"
+getRelStr (RelAbs ri (RVar rv) (t1, t2) _ rel) = "(RelAbs " ++ getRelInfStr ri ++ " \"" ++ rv ++ "\" (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
+getRelStr (RelTypeConsAbs ri _ (t1, t2) _ rel) = "(RelTypeConsAbs " ++ getRelInfStr ri ++ " (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
+getRelStr (RelTypeConsApp ri (RVar rv) rel) = "(RelTypeConsApp " ++ getRelInfStr ri ++ " \""
                                         ++ rv ++ "\" " ++ (getRelStr rel) ++ ")"
-getRelStr (FunAbs _ n (t1, t2) res rel) = let (TVar v) = fromEither n
-                                           in "(FunAbs \"" ++ v ++ "\" (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
+getRelStr (FunAbs ri n (t1, t2) res rel) = let (TVar v) = fromEither n
+                                           in "(FunAbs " ++ getRelInfStr ri ++ " \"" ++ v ++ "\" (\"" ++ (show t1) ++ "\", \"" ++ (show t2) ++ "\") " ++ (getRelStr rel) ++ ")"
+
+getRelInfStr :: RelationInfo -> String
+getRelInfStr (RelationInfo _ t1 t2) = "(RelationInfo _ \"" ++ show t1 ++ "\", \"" ++ show t2 ++ "\")"
 
 fromEither :: Either a a -> a
 fromEither = either id id

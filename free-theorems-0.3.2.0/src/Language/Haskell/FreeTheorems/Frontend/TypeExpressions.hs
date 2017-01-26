@@ -87,7 +87,14 @@ substituteTypeVariables env t =
     -- contained in the environment.
     substitute env t = case t of
       TypeVar v -> maybe t id (Map.lookup v env)
+      TypeVarApp v es -> maybe t (conv es) (Map.lookup v env)
+--      TypeVarApp v@(TV (Ident v')) es -> maybe t (error $ v' ++ " to " ++ show t ++ ".") (Map.lookup v env)
+--      TypeVarApp (TV (Ident v)) es -> error $ v ++ " to " ++ show t ++ "."
+      --maybe t (\t -> (TypeVarApp t es)) (Map.lookup v env)
       otherwise -> t
+
+      where
+        conv es t = TypeVarApp (TV (Ident (show t))) es
 
 
 

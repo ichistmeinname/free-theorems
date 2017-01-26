@@ -274,21 +274,27 @@ die Reihenfolge der Daten ändern, die übergebene Funktion ignorieren, etc.
 Aus diesem Grund wird die Zeile transformiert wie folgt:
 
 \begin{align*}
-& \forall x \in t_1 . (test_{t_1 k_1}\ x, test_{t_2 k_2}\ (f\ x)) \in lift_{\mathcal{K}}(f)
+& \forall x \in t_1 . (test_{t_1 k_1}\ x, test_{t_2 k_2}\ (f\ x)) \in \mathcal{K}\ f
 \end{align*}
 
-Hierbei ist $lift_{\mathcal{K}}(f)$ die Relation, die durch das \textit{Lifting} der Funktion $f$ in den $\mathcal{K}$-Kontext
-entsteht. Das ist in diesem Fall notwendig, da $\mathcal{K}$ als Funktion auf Relationen eingeführt wurde. Zwar werden
-Funktionen hier als spezielle Relationen behandelt, rein formal betrachtet kann man an dieser Stelle jedoch nicht
-einfach die Relationsfunktion $\mathcal{K}$ auf eine Funktion $f$ anwenden.
+Da Funktionen spezielle Relationen sind, kann man umgekehrt aus der Funktion $f$ wiederum eine Relation erzeugen, indem
+man die Relationsfunktion $\mathcal{K}$ auf $f$ anwendet. Es ist natürlich unglücklich, dass dadurch die Spezialisierung
+der Relation prinzipiell wieder ``umgekehrt'' wird und wieder nur eine Aussage über Relationen getroffen wird, andererseits
+kann man nicht davon ausgehen, dass jede Funktion, die durch die Relationsfunktion transformiert wird, wieder eine Funktion ist;
+man muss also bei der Relationaldarstellung bleiben.
 
-Die \texttt{specialise}-Funktion überführt an dieser Stelle die \texttt{RelTypeConsApp}-Struktur in eine \texttt{RelLift}-Struktur,
-die eine geliftete Relation darstellt. Normalerweise wird diese Struktur mit einer Angabe darüber gefüllt, um welchen speziellen
-Typkonstruktor es sich handelt, beispielsweise der Listenkonstruktor, der Tupelkonstruktor oder einfach der Name eines
-definierten Datentyps.
+%Hierbei ist $lift_{\mathcal{K}}(f)$ die Relation, die durch das \textit{Lifting} der Funktion $f$ in den $\mathcal{K}$-Kontext
+%entsteht. Das ist in diesem Fall notwendig, da $\mathcal{K}$ als Funktion auf Relationen eingeführt wurde. Zwar werden
+%Funktionen hier als spezielle Relationen behandelt, rein formal betrachtet kann man an dieser Stelle jedoch nicht
+%einfach die Relationsfunktion $\mathcal{K}$ auf eine Funktion $f$ anwenden.
 
-Für den Fall einer Typkonstruktorvariable wurde \texttt{ConVar} als weitere Möglichkeit eingeführt. Diesem Konstruktor wird
-der Name der Typkonstruktorvariablen übergeben \todo{ist das nicht auch einfach nur die relationsfunktion, angewandt auf relation?}
+%Die \texttt{specialise}-Funktion überführt an dieser Stelle die \texttt{RelTypeConsApp}-Struktur in eine \texttt{RelLift}-Struktur,
+%die eine geliftete Relation darstellt. Normalerweise wird diese Struktur mit einer Angabe darüber gefüllt, um welchen speziellen
+%Typkonstruktor es sich handelt, beispielsweise der Listenkonstruktor, der Tupelkonstruktor oder einfach der Name eines
+%definierten Datentyps.
+
+%Für den Fall einer Typkonstruktorvariable wurde \texttt{ConVar} als weitere Möglichkeit eingeführt. Diesem Konstruktor wird
+%der Name der Typkonstruktorvariablen übergeben \todo{ist das nicht auch einfach nur die relationsfunktion, angewandt auf relation?}
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -322,10 +328,23 @@ Der Ausdruck $\mathcal{F} \mathcal{R}$ aus diesem Beispiel wird als \texttt{Rela
 
 %Die Typausdrücke in Klammern sind die Typen für den gesamten Ausdruck. Zwar handelt es sich hierbei mit \texttt{TypeExpression}
 %um einen \texttt{BasicSyntax}-Datentyp, dieser enthält jedoch einen speziellen Typkonstruktor namens \texttt{TypeExp}, mit
-%dem beliebige Typen als Zeichenketten dargestellt werden können. 
+%dem beliebige Typen als Zeichenketten dargestellt werden können.
+
+Ähnlich wie Datentypen, die auf eine Typvariable angewandt werden, wird auch die Typkonstruktorvariablenapplikation
+behandelt. Zur Erinnerung: Datentypkonstruktoren, angewandt auf allquantifizierte Typvariablen, werden durch eine
+\textit{lift}-Funktion als Relation ausgedrückt, deren Definition durch die \texttt{unfoldLifts}-Funktion erzeugt wird.
+
+Bei Typkonstruktorvariablen wird eine solche explizite Lifting-Funktion nicht benötigt, da sie nicht als Relationen repräsentiert
+werden, sondern als Funktionen auf Relationen. Da keine weiteren Aussagen zu einem Ausdruck wie $\mathcal{F}\ \mathcal{R}$
+gemacht werden können, wird dieser Ausdruck bei Anwendung von \texttt{asTheorem} beibehalten.
+
+Im vorangegangenen Abschnitt wurde gezeigt, dass bei Anwendung von \texttt{specialise} Funktionsvariablenapplikation
+durch 
 
 Wie im vorangegangenen Abschnitt bereits erläutert wurde, wird der \texttt{RelTypeConsApp}-Konstruktor bei einer Spezialisierung
 zu einem \texttt{RelLift}-Ausdruck, sofern er die entsprechende Relationsvariable beinhaltet, auf die spezialisiert wird.
+
+% TODO: noch ein bisschen genauer!
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Beispieldurchlauf}
@@ -335,9 +354,6 @@ Es wurden nun sämtliche Modifikationen an der Bibliothek erläutert, doch um da
 einmal im Zusammenhang zu sehen, wird in diesem Abschnitt ein kompletter Durchlauf für eine Signatur dargestellt, die eine
 Typkonstruktorvariable beinhaltet.
 
-Es soll hier nicht noch einmal bis ins kleinste Detail das Parsing vorgeführt werden, das in Kapitel \ref{sec:free-theorems-beispiel} bereits
-veranschaulicht wurde.
-
 %Um die Funktionsweise der Erweiterungen zu verdeutlichen und einen Einblick in die Änderungen zu geben, wird in diesem Abschnitt
 %ein kompletter Durchlauf der erweiterten Bibliothek erläutert, wobei sämtliche Zwischendarstellungen der Daten angegeben werden.
 
@@ -346,5 +362,74 @@ Wir verwenden das Beispiel, das bereits in Abschnitt \ref{sec:typkonstruktorklas
 \begin{minted}{haskell}
 fmap :: Functor f => (a -> b) -> f a -> f b
 \end{minted}
+
+Dieser Ausdruck wird durch \texttt{parse} in die \texttt{BasicSyntax}-Struktur überführt und es ergibt sich, vereinfacht dargestellt,
+der Ausdruck in Listing \ref{lst:fmap-ast}.
+
+\begin{listing}[ht]
+\begin{minted}{haskell}
+(TypeSig
+   (Signature {
+      signatureName = (Ident "fmap"),
+      signatureType =
+         (TypeAbs (TV (Ident "a"))
+            []
+            (TypeAbs (TV (Ident "b"))
+               []
+               (TypeAbs (TV (Ident "f"))
+                  [(TypeClass (Ident "Functor"))]
+                  (TypeFun
+                     (TypeFun
+                        (TypeVar (TV (Ident "a")))
+                        (TypeVar (TV (Ident "b")))
+                     )
+                     (TypeFun
+                        (TypeVarApp (TV (Ident "f"))
+                         [(TypeVar (TV (Ident "a")))])
+                        (TypeVarApp (TV (Ident "f"))
+                        [(TypeVar (TV (Ident "b")))]))
+                     ))))}))
+\end{minted}
+\caption{BasicSyntax-Syntaxbaum für das fmap-Beispiel}
+\label{lst:fmap-ast}
+\end{listing}
+
+Man kann den neu hinzgekommenen Konstruktor \texttt{TypeVarApp} sehen, der eine Liste von Ausdrücken erwartet, auf
+die die entsprechende Typvariable angewandt wird. Zu beachten ist auch, dass auf Syntax-Ebene sowohl Typvariablen als auch
+Typkonstruktorvariablen über denselben Ausdruck \texttt{TypeAbs} allquantifiziert werden. Unterschieden wird hier erst im
+nächsten Schritt.
+
+Die Liste, die der \texttt{TypeAbs}-Konstruktor als zweiten Parameter erwartet, ist die Liste der Einschränkungen -- auf Syntaxebene
+sind dies die im Kontext angegebenen Typklassen.
+
+Der nächste Schritt besteht wieder darin, die Funktion $interpret$ aufzurufen. Was im Beispiel nicht zu sehen ist, ist die
+Deklaration der \texttt{Functor}-Klasse. Natürlich muss die $interpret$-Funktion wissen, welche vordefinierten Funktionen,
+Datentypen und Klassen gegeben sind. In der Implementierung der Webui \cite{freetheoremswebui} werden zum Beispiel bereits
+geparste BasicSyntax-Ausdrücke vieler Deklarationen der Prelude aus einem separaten Modul importiert und der
+\texttt{interpret}-Funktion zusätzlich zur eigentlichen Signatur übergeben, sodass sie dieser bekannt sind.
+Außerdem wird ein Eingabefeld angezeigt, in dem es möglich ist, zusätzliche Deklarationen anzugeben.
+
+Wir gehen im Folgenden davon aus, dass die typische Deklaration der \texttt{Functor}-Klasse gegeben ist, wie sie auch schon
+mehrfach verwendet wurde in dieser Arbeit. \todo{?} \texttt{interpret} überführt die \texttt{BasicSyntax} nun also in die
+\texttt{Intermediate}-Darstellung, die im Folgenden zu sehen ist.
+
+\begin{minted}{haskell}
+(Intermediate "fmap" BasicSubset
+   (RelAbs "R" ("t1", "t2")
+      (RelAbs "S" ("t3", "t4")
+         (RelTypeConsAbs ("k1", "k2")
+            (RelFun
+               (RelFun
+                  (RelVar "R")
+                  (RelVar "S"))
+                  (RelFun
+                     (RelTypeConsApp ("k1 t1", "k2 t2") "R1" (RelVar "R"))
+                     (RelTypeConsApp ("k1 t3", "k2 t4") "R1" (RelVar "S"))
+                  ))))) ...)
+\end{minted}
+
+Dieser Schritt ist wieder relativ selbsterklärend, da lediglich jede Typkonstruktion in die entsprechende Relationskonstruktion
+überführt wird. Die \texttt{RelTypeConsApp}-Ausdrücke entsprechen dabei der Applikation einer Relationsfunktion auf
+eine Relation. Die Typen sind dabei die Typkonstruktoren, angewandt auf die Typvariablen.
 
 % TODO: Beispieldurchlauf zuende schreiben

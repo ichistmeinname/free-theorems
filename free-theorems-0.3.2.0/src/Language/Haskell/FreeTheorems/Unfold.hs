@@ -180,6 +180,8 @@ unfoldFormula x y rel = case rel of
   -- (thr) Additional cases for type constructor variables
   RelTypeConsAbs ri v ts res r -> unfoldTypeConsAbs x y ri v ts res r
   RelTypeConsApp ri v rs -> return . Predicate . IsMember x y $ rel
+--  RelTypeConsFunAbs ri (TVar tv) ts res r -> unfoldTypeConsAbs x y ri (RVar tv) ts res r -- TODO: create new function
+--  RelTypeConsFunApp ri v rs -> return . Predicate . IsMember x y $ rel -- TODO: return a = b
 
 
 
@@ -282,8 +284,11 @@ unfoldFun x y ri rel1 rel2 =
     FunAbs _ _ _ _ _    -> unfoldFunVars x y ri rel1 rel2
     -- (thr) Special constructors for type constructor variables
     -- TODO: what has to be done here?
-    RelTypeConsApp _ _ _ -> unfoldFunPairs x y ri rel1 rel2 -- TODO: special case for specialised fun?
+    RelTypeConsApp _ rv r -> unfoldFunPairs x y ri rel1 rel2
     RelTypeConsAbs _ _ _ _ _ -> unfoldFunVars x y ri rel1 rel2
+--    RelTypeConsFunApp _ (TVar t) _ -> unfoldFunOneVar x y ri (Left (TermApp (TermVar . TVar $ "(S " ++ t ++ ")"))) rel1 rel2 -- TODO: special case for specialised fun?
+--    RelTypeConsFunApp _ t r -> unfoldFun x y ri r rel2
+--    RelTypeConsFunAbs _ _ _ _ _ -> unfoldFunVars x y ri rel1 rel2
 
 -- | Unfolding operation for relational actions of function type constructors.
 
@@ -387,6 +392,7 @@ unfoldFunVars x y ri rel1 rel2 = do
 
   let f = ForallVariables x' t1 (ForallVariables y' t2 (Implication l r))
   addRestriction x y (relationLanguageSubset ri) f
+--  error $ "left: " ++ show t1 ++ ", right: " ++ show t2
 --  return f
 
 

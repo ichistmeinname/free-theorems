@@ -25,6 +25,9 @@ hello = undefined
 
 teststr :: String
 
+getRelVarString :: RelationVariable -> String
+getRelVarString (RVar s) = s
+
 describeFormula :: Formula -> String
 describeFormula (ForallRelations (RVar rv) (t1, t2) rss f)
    = "(ForallRelations (RVar \"" ++ rv ++ "\") (\"" ++ (show t1) ++ "\", \"" ++ show t2 ++ "\")"
@@ -164,6 +167,8 @@ mainLoop l verbose = do
                                then do
                                  putStrLn "\nIntermediate representation:"
                                  putStrLn $ show intm
+                                 putStrLn $ "\nSpecialisable relation variables and type constructor:"
+                                 putStrLn $ (intercalate ", " . map getRelVarString) (relationVariables intm)
                                  putStrLn "\nTheorem (formula structure):"
                                  putStrLn $ (describeFormula . asTheorem) intm
                                else return ()
@@ -182,8 +187,14 @@ mainLoop l verbose = do
                              putStrLn $ show (prettyTheorem [] $ (simplify . asTheorem) specIntm)
                              putStrLn "\nUnfolded lifts:"
                              let unflifts = unfoldLifts allDecls intm
+                             let specunlifts = unfoldLifts allDecls specIntm
                              putStrLn $ (show . hcat) $ map (prettyUnfoldedLift [] . simplifyUnfoldedLift) unflifts
+                             putStrLn "\nSpecialized unfolded lifts:"
+                             putStrLn $ (show . hcat) $ map (prettyUnfoldedLift [] . simplifyUnfoldedLift) specunlifts
                              putStrLn "\nUnfolded classes:"
                              let unfclasses = unfoldClasses allDecls intm
+                             let specunfclasses = unfoldClasses allDecls specIntm
                              putStrLn $ (show . hcat) $ map (prettyUnfoldedClass []) unfclasses
+                             putStrLn "\nSpecialized unfolded classes:"
+                             putStrLn $ (show . hcat) $ map (prettyUnfoldedClass []) specunfclasses
           mainLoop l verbose

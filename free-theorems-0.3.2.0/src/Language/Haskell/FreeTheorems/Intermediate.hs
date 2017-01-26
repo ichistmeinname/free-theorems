@@ -173,11 +173,19 @@ interpretM l t = case t of
                               then newTypeConstRelationVariable
                               else newRelationVariable -- create a new variable
 
-    let rvar = RelVar (RelationInfo l t1 t2) rv
-    r  <- local (Map.insert v rvar) $ interpretM l t'  -- subrelations
     let res = relRes l ++ (if null cs then [] else [RespectsClasses cs])
-    return $ if (isUsedAsTypeConstructor i t') then (RelTypeConsAbs ri rv (t1,t2) res r)
-                                               else (RelAbs ri rv (t1,t2) res r)
+    if (isUsedAsTypeConstructor i t')
+      then do
+            let rvar = RelConsFunVar (RelationInfo l t1 t2) rv
+--            error $ "Inserting into map: " ++ show v ++ " = (RelConsFunVar (RelationInfo " ++ show t1 ++ ", " ++ show t2 ++ ")) rv"
+            r  <- local (Map.insert v rvar) $ interpretM l t'  -- subrelations
+            let res = relRes l ++ (if null cs then [] else [RespectsClasses cs])
+            return $ RelTypeConsAbs ri rv (t1,t2) res r
+      else do
+            let rvar = RelVar (RelationInfo l t1 t2) rv
+            r  <- local (Map.insert v rvar) $ interpretM l t'  -- subrelations
+            let res = relRes l ++ (if null cs then [] else [RespectsClasses cs])
+            return $ RelAbs ri rv (t1,t2) res r
 
     -- create a second relation for type abstractions (used only for language
     -- subset with seq and the equational setting
@@ -192,16 +200,20 @@ interpretM l t = case t of
     -- (thr) create a relation for type constructor variable application
   TypeVarApp v ts -> do
     env <- ask
-    rv@(RelVar ri _) <- maybeToMonad (Map.lookup v env) -- (RelVar ri rv)
+    rv <- maybeToMonad (Map.lookup v env) -- (RelVar ri rv)
+    let rvname = case rv of
+                    (RelConsFunVar _ name) -> name
+                    (RelVar _ name) -> name
+
+    genri <- mkRelationInfo l t
 
     -- (thr) TODO: The following lines should be moved to a function
-    -- TODO: also, doesn't work with Monad m => m (a -> b)
     -- TODO: ONLY the first is interpreted!
     (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
-    let t1 = relationLeftType ri
-    let t2 = relationRightType ri
-    let t1' = relationLeftType (relationInfo r)
-    let t2' = relationRightType (relationInfo r)
+--    let t1 = relationLeftType ri
+--    let t2 = relationRightType ri
+--    let t1' = relationLeftType (relationInfo r)
+--    let t2' = relationRightType (relationInfo r)
 --    let (TypeExp (TF (Ident t1))) = relationLeftType ri
 --    let (TypeExp (TF (Ident t2))) = relationRightType ri
 --    let (TypeExp (TF (Ident t1'))) = relationLeftType (relationInfo r)
@@ -211,16 +223,22 @@ interpretM l t = case t of
     -- TODO: what if tv1 or tv2 are NOT TypeVariables
 --    let (TypeVar tv1) = t1
 --    let (TypeVar tv2) = t2
-    let newt1 = (TypeExp (TF (Ident $ (show t1) ++ " " ++ (show t1'))))
-    let newt2 = (TypeExp (TF (Ident $ (show t2) ++ " " ++ (show t2'))))
-    let newreli = RelationInfo l newt1 newt2
+
+--    let newt1 = (TypeExp (TF (Ident $ concatTypeStr t1 t1')))
+--    let newt2 = (TypeExp (TF (Ident $ concatTypeStr t2 t2')))
+--    let newreli = RelationInfo l newt1 newt2
 
 --    let (RVar i) = rv
-    case rv of
-      (RelVar _ v)  -> return (RelTypeConsApp newreli v r)
-      otherwise -> error "FIXME: Doesn't work"
+--    case rv of
+--      (RelVar _ v)  -> return (RelTypeConsApp genri v r)
+--      otherwise -> error "FIXME: Doesn't work"
+--    let (TV (Ident v')) = v
+    return (RelTypeConsApp genri rvname r)
 
   where
+--    concatTypeStr t1 t2 = show t1 ++ case t2 of
+--                                        (TypeVar v) -> show t2
+--                                        otherwise   -> " (" ++ show t2 ++ ")"
     mkRelationInfo l t = do
       env <- ask
         -- create the 'left' and 'right' type expression of 't',
@@ -322,7 +340,6 @@ newTypeConstRelationVariable = do
 
 ------- Instantiation of relation variables -----------------------------------
 
-
 -- | Creates a list of all bound relation variables in an intermediate
 --   structure, which can be specialised to a function.
 
@@ -330,12 +347,14 @@ relationVariables :: Intermediate -> [RelationVariable]
 relationVariables (Intermediate _ _ rel _ _ _ _) = getRVar True rel
   where
     getRVar ok rel = case rel of
-      RelLift _ _ rs    -> concatMap (getRVar ok) rs
-      RelFun _ r1 r2    -> getRVar (not ok) r1 ++ getRVar ok r2
-      RelFunLab _ r1 r2 -> getRVar (not ok) r1 ++ getRVar ok r2
-      RelAbs _ rv _ _ r -> (if ok then [rv] else []) ++ getRVar ok r
-      FunAbs _ _ _ _ r  -> getRVar ok r
-      otherwise         -> []
+      RelLift _ _ rs           -> concatMap (getRVar ok) rs
+      RelTypeConsAbs _ _ _ _ r -> getRVar ok r
+      RelTypeConsApp _ _ r     -> getRVar ok r
+      RelFun _ r1 r2           -> getRVar (not ok) r1 ++ getRVar ok r2
+      RelFunLab _ r1 r2        -> getRVar (not ok) r1 ++ getRVar ok r2
+      RelAbs _ rv _ _ r        -> (if ok then [rv] else []) ++ getRVar ok r
+      FunAbs _ _ _ _ r         -> getRVar ok r
+      otherwise                -> []
 
 
 
@@ -345,8 +364,6 @@ relationVariables (Intermediate _ _ rel _ _ _ _) = getRVar True rel
 -- TODO: (thr) replaceRelVar: should RelVarApp (?) be replaced?
 specialise :: Intermediate -> RelationVariable -> Intermediate
 specialise ir rv = reduceLifts (replaceRelVar ir rv Left)
-
-
 
 -- | Specialises a relation variable to an inverse function variable.
 --   This function does not modify intermediate structures in subsets with
@@ -447,8 +464,9 @@ reduceLifts ir =
 --                                     then reduceTypeConApp ri (re ok rel')
 
                                     -- TODO: cannot reduce (see thesis)
-                                    then reduce (RelLift ri (ConVar (Ident rv)) [(re ok rel')])
+--                                    then reduce (RelLift ri (ConVar (Ident rv)) [(re ok rel')])
 --                                    then reduce rel
+                                    then rel
                                     else rel
       otherwise             -> rel
 
