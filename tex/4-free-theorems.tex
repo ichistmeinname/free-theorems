@@ -10,8 +10,9 @@ Prozess zu automatisieren, und genau das macht die Bibliothek \textit{free-theor
 beinhaltet die Werkzeuge, die nötig sind, um freie Theoreme aus Haskell-Programmcode zu generieren.
 
 In diesem Kapitel wird näher darauf eingegangen, welche Werkzeuge dies sind und wie sie zusammenspielen. Es wird erläutert,
-welche Schritte notwendig sind, um aus Quellcode eine Formel herzuleiten, die das entsprechende freie Theorem beinhaltet.
-Abgeschlossen wird diese Übersicht dann mit einem kleinen Beispiel.
+welche Schritte notwendig sind, um aus Quellcode eine Formel herzuleiten, die das entsprechende freie Theorem darstellt.
+Abgeschlossen wird diese Übersicht dann mit einem kleinen Beispiel, anhand dessen das Zusammenspiel der einzelnen
+Datentypen zwischen den verschiedenen Funktionen veranschaulicht wird.
 
 %In \cite{freetheorems} wird eine Implementierung vorgestellt, die die automatisierte Generierung von freien Theoremen aus
 %Haskell-Code ermöglicht und die Grundlage darstellt, auf die die vorliegende Arbeit aufbaut.
@@ -27,10 +28,15 @@ Abgeschlossen wird diese Übersicht dann mit einem kleinen Beispiel.
 \subsection{Aufbau}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Die Bibliothek lässt sich grundsätzlich in drei Teile untergliedern: Frontend, Core und Pretty Printer \cite{freetheorems}. Die
-Teile werden in dieser Reihenfolge durchlaufen \todo{vgl abbildung}.
+Die Bibliothek lässt sich grundsätzlich in drei Teile untergliedern: Frontend, Core und Pretty Printer \cite{freetheorems}, wobei
+die Bibliothek auch in dieser Reihenfolge durchlaufen wird, zu sehen in Abbildung \ref{fig:overview}.
 
+\begin{figure}[ht]
+\centering
 \includegraphics[height=300px]{overview-free-theorems}
+\caption{Überblick über die Bibliothek free-theorems}
+\label{fig:overview}
+\end{figure}
 
 Das Frontend ist der Teil, der den Haskell-Code entgegennimmt. Hier wird zunächst der Programmcode geparst und in einen
 abstrakten Syntaxbaum übersetzt. Außerdem ist das Frontend dafür zuständig, Fehlerprüfungen durchzuführen und
@@ -39,7 +45,7 @@ ungültige Definitionen herauszufiltern, bevor der Syntaxbaum dann weiter an den
 %Zunächst werden im Frontend Parser bereitgestellt, um den Haskellcode aus einer Zeichenkette in eine passende Syntaxbaumstruktur umzuwandeln. Mithilfe einer check-Funktion
 %wird diese Datenstruktur auf Gültigkeit überprüft, insbesondere in Bezug auf spezielle Anforderungen, die an die Definitionen gestellt wird, um Theoreme zu generieren.
 
-Im Core findet dann die eigentliche Arbeit statt: Hier wird der Syntaxbaum in die entsprechende Relationaldarstellung
+Im Core findet die eigentliche Arbeit statt: Hier wird der Syntaxbaum in die entsprechende Relationaldarstellung
 überführt und in eine Zwischendarstellung abgelegt, \texttt{Intermediate} genannt. Im nächsten Schritt wird diese
 Relationaldarstellung dann Schritt für Schritt abgerollt und in eine Formel überführt. Diese Formel wird schließlich zurückgegeben.
 
@@ -87,32 +93,77 @@ Ein paar kleine Beispiele sollen ein Gefühl dafür vermitteln, wie der \texttt{
 eine Funktionssignatur gegeben und dahinter die Haskell-Darstellung des resultierenden BasicSyntax-Ausdrucks.
 
 \begin{listing}[ht]
-\inputminted[tabsize=2]{haskell}{ast.hs}
+%\inputminted[tabsize=2]{haskell}{ast.hs}
+\begin{minted}{haskell}
+test :: a -> b
+
+[TypeSig
+   (Signature {
+      signatureName = Ident "test" ,
+      signatureType =
+         TypeFun
+            (TypeVar (TV (Ident "a")))
+            (TypeVar (TV (Ident "b")))
+   )
+]
+
+\end{minted}
 \caption{Beispiel}
 \label{lst:ast}
 \end{listing}
 
 Listing \ref{lst:ast} zeigt die Datenstruktur am Beispiel \texttt{test :: [a] $\rightarrow$ [a]}. Die \texttt{parse}-Funktion des Parser-Moduls von \textit{free-theorems} liefert eine Liste sämtlicher relevanter Definitionen als \texttt{BasicSyntax} zurück.
 In diesem Beispiel ist nur eine Typsignatur gegeben, \texttt{parse} gibt also eine einelementige Liste zurück, bestehend aus
-genau einem Konstruktor \texttt{TypeSig}.
+genau einem Konstruktor \texttt{TypeSig}, der eine Typsignatur repräsentiert. Der Datentyp erwartet einen
+\texttt{Signature}-Konstruktor, der as dem Namen der Signatur sowie einem Typausdruck besteht.
+
+In diesem Fall ist der Typausdruck eine Funktion zwischen zwei Typvariablen, der Konstrktor \texttt{TypeFun} wird also
+auf zwei \texttt{TypeVar}-Konstruktoren angewandt, die jeweils die Variablennamen beinhalten.
 
 Da man freie Theoreme aus den Typsignaturen von Funktionen herleitet, könnte man sich überlegen, dass man auf alles andere
-als Typsignaturen verzichten kann und der Rest des Programms irrelevant ist. Während dies für Implementierungen der Funktionen,
-also die jeweiligen Funktionsrümpfe, zutrifft, gibt es dennoch andere Deklarationen, an denen man ebenfalls interessiert ist.
+als Typsignaturen verzichten kann und der Rest des Programms irrelevant ist. Während Funktionsrümpfe, also die Implementierungen
+der Funktionen, tatsächlich keinerlei Relevanz für freie Theoreme haben, gibt es dennoch Deklarationen neben Typsignaturen, an
+denen man ebenfalls interessiert ist.
 
-Man bekommt nämlich genau dann ein Problem, wenn der Entwickler im Programm eigene Datentypen deklariert und diese in
-den Funktionssignaturen verwendet. Neben Funktionssignaturen werden also zusätzlich auch Datentypdeklarationen benötigt.
+%Während dies für Implementierungen der Funktionen,
+%also die jeweiligen Funktionsrümpfe, zutrifft, gibt es dennoch andere Deklarationen, an denen man ebenfalls interessiert ist.
+
+Problematisch wird es nämlich sonst, wenn der Anwender der Bibliothek in seinem Programm eigene Datentypen deklariert und
+diese in der zu Funktionssignatur verwendet. Neben Funktionssignaturen werden also zusätzlich auch Datentypdeklarationen
+benötigt.
+%Man bekommt nämlich genau dann ein Problem, wenn der Entwickler im Programm eigene Datentypen deklariert und diese in
+%den Funktionssignaturen verwendet. Neben Funktionssignaturen werden also zusätzlich auch Datentypdeklarationen benötigt.
 Hierzu gehören sowohl die \texttt{data}- als auch \texttt{type}- und \texttt{newtype}-Deklarationen (die semantischen Unterschiede
 zwischen diesen verschiedenen Deklarationen spielen dabei keine Rolle). Listing \ref{lst:ast-data} zeigt ein Beispiel für eine
 \texttt{data}-Deklaration und deren entsprechende Darstellung als \texttt{BasicSyntax}.
 
-An diesem Beispiel kann man ebenfalls sehen, dass die Konstruktorparameter in die \texttt{Unbanged}-Struktur eingebettet sind.
-Es gibt \texttt{Unbanged} und \texttt{Banged}, was einfach sagt, ob eine Striktheitsannotation vor dem entsprechenden
-Parameter steht oder nicht. Es soll hier nicht näher darauf eingegangen werden, wozu diese Annotation verwendet wird, in
-Kapitel \ref{sec:striktheit-und-rekursion} wird noch ein bisschen näher darauf eingegangen.
+\texttt{DataDecl} ist dabei ein weiterer Konstruktor des \texttt{Declaration}-Datentyps. Er erwartet den \texttt{Data}-Konstruktor,
+der für einen Datentyp den Namen, die übergebenen Typvariablen und die unterschiedlichen Konstruktoren, jeweils mit Name
+und Typausdruck. Eine Besonderheit ist dabei, dass die Typausdrücke eingekapselt sind in die \texttt{BangTypeExpression}-Struktur.
+Diese bietet die Konstruktoren \texttt{Unbanged} und \texttt{Banged} und erwarten ansonsten lediglich den entsprechenden
+Typausdruck. Der Grund für diese Unterscheidung ist das in Haskell erlaubte Striktheitsflag.
 
-Klassendeklarationen werden insbesondere in Kapitel \ref{sec:erweiterung-um-typklassen} benötigt. Sie werden aber auch schon
-von \texttt{free-theorems} beachtet und in die \texttt{BasicSyntax} mit aufgenommen. Der Grund dafür ist der, dass ja auch
+Es ist möglich, in Datentypdeklarationen das besondere Symbol \texttt{!} vor Datentypen eines Konstruktors zu setzen. Das hat
+zur Folge, dass dieses Argument des Datentyps stets strikt ausgewertet wird \cite{haskell}. Folgender Ausdruck sei als Beispiel
+gegeben.
+
+\begin{minted}{haskell}
+data CompInt = String !Int
+\end{minted}
+
+Tritt nun ein Ausdruck auf, in dem \texttt{CompInt} auf Argumente angewandt wird, beispielsweise
+\texttt{(CompInt "Result"\ (7 `div` 0))}, so wird das zweite Argument, das in der \texttt{data}-Deklaration mit einem Striktheitsflag
+versehen wurde, strikt ausgewertet -- was in diesem Fall zu einem Fehler führen würde, der bei einer Lazy-Auswertung nicht
+zwingend auftreten müsste.
+
+%An diesem Beispiel kann man ebenfalls sehen, dass die Konstruktorparameter in die \texttt{Unbanged}-Struktur eingebettet sind.
+%Es gibt \texttt{Unbanged} und \texttt{Banged}, was einfach sagt, ob eine Striktheitsannotation vor dem entsprechenden
+%Parameter steht oder nicht. Es soll hier nicht näher darauf eingegangen werden, wozu diese Annotation verwendet wird, in
+%Kapitel \ref{sec:striktheit-und-rekursion} wird noch ein bisschen näher darauf eingegangen.
+
+Klassendeklarationen werden insbesondere in Kapitel \ref{sec:erweiterung-um-typklassen} benötigt, wenn es darum geht,
+Typkonstruktorklassen einzuführen. Sie werden aber auch schon von \texttt{free-theorems} beachtet und in die \texttt{BasicSyntax}
+mit aufgenommen. Der Grund dafür ist, dass ja auch
 Typvariablen in Typsignaturen auftreten können, die auf eine bestimmte Klasse eingeschränkt sind. Die aus der Allquantifizierung
 resultierenden Relationen dürfen also nicht über alle Typen quantifiziert sein, sondern nur über solche, die zur entsprechenden
 Klasse passen.
@@ -122,50 +173,92 @@ Klasse passen.
 %Das Beispiel in Listing \ref{lst:ast-data} zeigt eine data-Deklaration.
 
 \begin{listing}[ht]
-\inputminted[tabsize=2]{haskell}{ast2.hs}
+\begin{minted}{haskell}
+data Annotated a = Annotated String a
+
+[DataDecl
+   (Data {
+      dataName =
+         Ident "Annotated",
+      dataVars = [
+         TV (Ident "a")
+      ],
+      dataCons = [
+         DataCon {
+            dataConName = Ident "Annotated",
+            dataConTypes = [
+               Unbanged {
+                  withoutBang =
+                     TypeCon (Con (Ident "String")) []},
+               Unbanged {
+                  withoutBang =
+                     TypeVar (TV (Ident "a"))}]}]})]
+\end{minted}
 \caption{Beispiel}
 \label{lst:ast-data}
 \end{listing}
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-\subsection{check}
+\subsection{Fehlerprüfung}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 \label{sec:check}
 
-An dieser Stelle liegt das Eingabeprogramm also in einem vereinfachten abstrakten Syntaxbaum vor. Da der Parser das Programm
-erfolgreich geparst hat, können Parserfehler ab hier ausgeschlossen werden. Der Haskell-Parser ist aber wirklich nur dazu da,
-Haskell-Code in einen Syntaxbaum zu überführen, über Syntax hinausgehende Fehler werden nicht erkannt. Aus diesem Grund
-muss der Syntaxbaum jetzt auf semantische Fehler überprüft werden, was in der \texttt{check}-Funktion geschieht.
+An dieser Stelle liegt das Eingabeprogramm also in einem vereinfachten abstrakten Syntaxbaum vor, sofern der Parser nicht mit
+einem Fehler abgebrochen hat. Parserfehler können ab jetzt ausgeschlossen werden.
+Nun reicht es leider nicht, syntaktische Korrektheit sicherzustellen, es können auch Fehler im Eingabecode enthalten sein,
+die über bloße Syntax hinausgehen und dafür sorgen, dass Deklarationen ungültig sind. Diese semantischen Fehler werden
+in der \texttt{check}-Funktion gesucht.
+%Haskell-Code in einen Syntaxbaum zu überführen, über Syntax hinausgehende Fehler werden nicht erkannt. Aus diesem Grund
+%muss der Syntaxbaum jetzt auf semantische Fehler überprüft werden, was in der \texttt{check}-Funktion geschieht.
 
 Fehlerhafte Deklarationen werden aus der Liste der Deklarationen gefiltert, und es werden entsprechende Fehlermeldungen
-generiert. Fehler führen hier nicht automatisch zum Abbruch, es ist ja durchaus möglich, dass die Fehler in Deklarationen
+generiert. Fehler müssen hier nicht automatisch zum Abbruch führen, es ist ja durchaus möglich, dass die Fehler in Deklarationen
 auftreten, die für die betrachtete Funktionssignatur keine Rolle spielen.
 
 Es wird zwischen lokaler und globaler Fehlerprüfung unterschieden. Lokale Prüfungen werden pro Deklaration durchgeführt,
 ohne den globalen Kontext zu betrachten. Hier werden lediglich solche Fehler betrachtet, die sich anhand der Deklaration selbst
 erkennen lassen. Ein Beispiel sind \texttt{data}-Deklarationen: Hier müssen auf der rechten Seite auftretende Typvariablen
-auch auf der linken Seite vorkommen; einen Fehler würde beispielsweise folgender Code erzeugen.
+auch auf der linken Seite vorkommen; einen Fehler würde beispielsweise folgender Code erzeugen, der vom Parser erst einmal
+fehlerfrei erkannt wird.
 
 \begin{minted}{haskell}
 data Test = Test a
 \end{minted}
 
-Außerdem müssen alle Variablennamen auf der linken Seite paarweise verschieden sein, primitive Datentypen dürfen nicht
+Die Typvariable $a$, die auf der rechten Seite der Gleichung verwendet wird, hat auf der linken Seite der Gleichung keine
+Entsprechung -- es liegt also an der \texttt{check}-Funktion, diesen Fehler zu erkennen. Weitere Beispiele für lokale Prüfungen
+sind, dass alle Variablennamen auf der linken Seite paarweise verschieden sein müssen, primitive Datentypen dürfen nicht
 neu deklariert werden, usw.
+%Außerdem müssen alle Variablennamen auf der linken Seite paarweise verschieden sein, primitive Datentypen dürfen nicht
+%neu deklariert werden, usw.
 
-Nach den lokalen Überprüfungen finden die globalen Checks statt. Hier geht es um solche Prüfungen, bei denen stets das komplette
-Programm betrachtet werden muss, zum Beispiel um sicherzustellen, dass alle Funktionsnamen im Programm deklariert sind,
+Nach den lokalen Überprüfungen finden die globalen Fehlerprüfungen statt. Hier geht es um solche Prüfungen, bei denen stets das
+komplette Programm betrachtet werden muss, zum Beispiel um sicherzustellen, dass alle Funktionsnamen im Programm deklariert sind,
 pro Funktionsname nur eine Deklaration existiert, Typkonstruktoren die korrekte Anzahl an Parametern haben etc.
+Als Beispiel seien hier die folgenden Deklarationen gegeben.
+
+\begin{minted}{haskell}
+calcValues :: Int -> Int -> [Int]
+calcValues :: Int -> [Int]
+\end{minted}
+
+Dieser Code, syntaktisch absolut korrekt, würde von \texttt{check} als fehlerhaft erkannt werden, da es zwei Signaturen mit
+demselben Namen \texttt{calcValues} gibt. Lokale Überprüfungen reichen hier nicht aus, da man innerhalb einer Deklaration
+nicht erkennen kann, dass es an einer anderen Stelle noch eine Funktion mit diesem Namen gibt.
 
 Eine besondere Aufgabe der globalen Überprüfung ist es auch, sämtliche Typausdrücke zu \textit{schließen}; es ist in Haskell
-erlaubt, freie Typvariablen in Funktionssignaturen zu verwenden - diese werden implizit als allquantifiziert angesehen.
+erlaubt, freie Typvariablen in Funktionssignaturen zu verwenden - diese werden implizit als allquantifiziert angesehen, wie bereits
+in der Einleitung erläutert wurde.
 Das Schließen eines Typausdrucks besteht nun darin, sämtliche freien Typvariablen zu beseitigen, indem eine entsprechende
 explizite Allquantifizierung davorgesetzt wird.
 
-So kann im weiteren Programmverlauf davon ausgegangen werden, dass keine freien Typvariablen mehr vorkommen, was die
-Verarbeitung erleichtert.
+Das ist nicht unbedingt notwendig, vereinfacht aber die spätere Verarbeitung, da so im weiteren Programmverlauf davon ausgegangen
+werden kann, dass Typvariablen nicht mehr frei vorkommen, sondern jedes Vorkommen einer Typvariablen von einer entsprechenden
+Allquantifizierung umschlossen wird.
+%So kann im weiteren Programmverlauf davon ausgegangen werden, dass keine freien Typvariablen mehr vorkommen, was die
+%Verarbeitung erleichtert.
 %Dabei wird dafür gesorgt, dass keine freien Typvariablen mehr in Typsignaturen vorkommen, indem die entsprechenden Variablen durch einen
 
 
@@ -184,7 +277,9 @@ Verarbeitung erleichtert.
 %
 %Am Ende schließt \texttt{check} noch alle Typausdrücke, dh. bei frei vorkommenden Typvariablen werden entsprechende Typabstraktionen um den Ausdruck geschlossen. Das ist wichtig, da in der weiteren Implementierung davon ausgegangen wird, dass alle Typausdrücke geschlossen sind und entsprechende Typabstraktionen zu jeder implizit allquantifizierten Variable vorhanden sind.
 
-Tabelle \ref{tab:global-checks} zeigt eine Übersicht aller globalen Überprüfungen.
+Tabelle \ref{tab:global-checks} zeigt eine Übersicht aller globalen Überprüfungen. Am Anfang werden alle Deklarationen in einer
+Liste an die erste Prüfung übergeben, jede Prüfung reicht dann die Liste der übrig bleibenden Deklarationen an die nachfolgenden
+Fehlerprüfungen weiter.
 
 \begin{table}[th]
 \centering
@@ -193,7 +288,8 @@ Tabelle \ref{tab:global-checks} zeigt eine Übersicht aller globalen Überprüfu
 Name&Prüfung\\
 \hline
   checkUnique&Alle Namen kommen nur einmal vor\\
-  checkArities&Typkonstruktoren haben korrekte Anzahl an Parametern\\
+  checkArities&Typkonstruktoren haben korrekte Anzahl an\\
+  &  Parametern\\
   checkAcyclicTypeSynonyms&Typsynonyme sind azyklisch\\
   checkAcyclicTypeClasses&Typklassen sind azyklisch\\
   checkAllConsAndClassesDeclared&Alle Typkonstruktoren und Typklassen sind deklariert\\
@@ -203,11 +299,14 @@ Name&Prüfung\\
 \label{tab:global-checks}
 \end{table}
 
+Die Prüfungen arbeiten dabei in der \texttt{Writer}-Monade, in der auftretende Fehlermeldungen protokolliert werden. Außerdem
+wird jede \texttt{Declaration} in eine \texttt{ValidDeclaration} eingekapselt, die als zusätzliche Information noch ein Flag enthält,
+in dem festgehalten wird, ob in der Deklaration Striktheitsannotationen vorkommen.
 Sind alle globalen Überprüfungen abgeschlossen, werden die übrig bleibenden Deklarationen an den Core-Teil weitergereicht.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-\subsection{interpret}
+\subsection{Interpretieren der Typen als Relationen}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 \label{sec:free-theorems-interpret}
@@ -216,26 +315,34 @@ Die erste Funktion des Cores ist \texttt{interpret}. Diese Funktion \textit{inte
 erwartet eine (geprüfte) Deklaration als Eingabe und liefert eine Relation, verpackt in eine sogenannte \texttt{Intermediate}-Struktur,
 die neben der eigentlichen Relation noch Zusatzinformationen beinhaltet, beispielsweise den Namen der interpretierten Funktion
 sowie freie Variablennamen für neu einzuführende Variablen.
-Diese Funktion setzt also den Schritt um, die Funktionssignatur in die Relationsschreibweise zu überführen.
+Diese Funktion setzt also, bezogen auf die Generierung von freien Theoremen, den Schritt um, die Funktionssignatur in die
+Relationsschreibweise zu überführen.
 
 \texttt{interpret} durchläuft rekursiv die \texttt{BasicSyntax}-Struktur und erzeugt entsprechende Relationen.
-Tabelle \ref{tab:relations} zeigt, welche Konstruktoren der \texttt{Relation}-Datentyp hat. Dabei ist zu beachten, dass
-\texttt{FunVar} nur verwendet wird, wenn Relationen zu Funktionen spezialisiert werden. \todo{referenz auf spaeter}
+Tabelle \ref{tab:relations} zeigt, welche Konstruktoren der \texttt{Relation}-Datentyp hat und aus welchen
+\texttt{BasicSyntax}-Ausdrücken diese generiert werden. Dabei ist zu beachten, dass
+\texttt{FunVar} und auch \texttt{FunAbs} nur verwendet werden, wenn Relationen zu Funktionen spezialisiert werden, was im
+nächsten Abschnitt von Bedeutung sein wird.
+
+Der \texttt{BasicSyntax}-Ausdruck \texttt{TypeExp} wiederum tritt in geparsten Ausdrücken erst einmal nicht auf, wird aber
+erzeugt, wenn die Syntax in die Relationaldarstellung überführt wird, um neu eingeführte Typen darzustellen.
+\todo{neu eingeführte typen?}
 
 \begin{table}
 \centering
 \begin{tabular}{| l | l | l |}
 \hline
-BasicSyntax & Relation & Mathematische Entsprechung\\
+BasicSyntax & Relation & Relationale Entsprechung\\
 \hline
-TypeVar & RelVar & $\alpha$ \\
+TypeVar & RelVar & $\mathcal{R}$ \\
 FunVar & - & f \\
-TypeCon & RelBasic & $\mathcal{R}$ \\
-& RelLift & [$\mathcal{R}$], etc. \\
+TypeCon & RelBasic & $id_{Int}, id_{Char}, id_{[Char]}...$ \\
+& RelLift & [$\mathcal{R}$], $Maybe\ \mathcal{R}$, ... \\
 TypeFun & RelFun & $S \rightarrow T$ \\
 & RelFunLab & $S \rightarrow T$ \\
 TypeAbs & RelAbs & $\forall R . F R$ \\
-& FunAbs &\\
+& FunAbs &$\forall f . F f$\\
+TypeExp & - &\\
 \hline
 \end{tabular}
 \caption{Konstruktoren des Datentyps Relation}

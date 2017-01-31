@@ -2,6 +2,8 @@
 \section{Grundlagen}
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
+% TODO: id_{M} ist die Relation, in der alle Elemente der Menge M mit sich selbst verwandt sind.
+
 \label{sec:grundlagen}
 
 Bevor auf die eigentliche Thematik eingegangen wird, bietet es sich an, einige Grundlagen zu klären, die im Laufe dieser Arbeit
@@ -46,14 +48,22 @@ Arbeit immer wieder auftauchen werden.
 \subsection{Relationen}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+%\begin{mydef}
+%Ist $X$ eine Menge, dann ist durch $\mathcal{P}(X)$ die Potenzmenge von $X$ gegeben, bei der es sich um die Menge handelt, die alle Teilmengen von $X$ beinhaltet, d.h. $\mathcal{P}(X) = \{ T~|~ T \subseteq X\}$.
+%\end{mydef}
+
 Die mathematische Grundlage und das wichtigste Werkzeug beim Erzeugen von freien Theoremen sind Relationen.
 
 %Sie werden im Zusammenhang mit freien Theoremen verwendet, um Ausdrücke einander zuzuordnen, die durch Polymorphie einander
 %ähnlich bzw. ``austauschbar'' sind.
 
+\begin{mydef}
 Eine \textit{binäre Relation} ist auf zwei Mengen definiert, deren Elemente sie einander zuordnet. Die Schreibweise
 $\mathcal{R} : T_1 \Leftrightarrow T_2$ sagt, dass $\mathcal{R}$ eine auf den Mengen $T_1$ und $T_2$ definierte
-Relation ist. Man kann die Relation als eine Menge von Paaren auffassen, wobei jedes Paar aus einem Element aus $T_1$ und einem
+Relation ist.
+\end{mydef}
+
+Man kann die Relation als eine Menge von Paaren auffassen, wobei jedes Paar aus einem Element aus $T_1$ und einem
 Element aus $T_2$ besteht.
 %Sie ordnet den Elementen der ersten Menge beliebig viele Elemente der zweiten Menge zu. Man kann die Relation
 %auffassen als eine Menge von Paaren, wobei jedes Paar aus einem Element aus $T_1$ und einem Element aus $T_2$ besteht.
@@ -66,16 +76,28 @@ Die Aussage $(x, y) \in \mathcal{R}$ bedeutet also, dass $x$ und $y$ bezüglich 
 gelegentlich auch $x\ \mathcal{R}\ y$ (hauptsächlich, wenn es sich bei $\mathcal{R}$ um ein Operatorsymbol handelt).
 Anders ausgedrückt ordnet eine Relation jedem Element aus der ersten Menge beliebig viele Elemente aus der zweiten Menge zu.
 
-% % % % % Nicht zwingend drin % % % % %
+Eine besondere Relation, die sich aus einer beliebigen Menge erzeugen lässt, ist die sogenannte \textit{Identitätsrelation}, die
+auch in freien Theoremen eine wichtige Rolle spielt.
 
-\todo{Hiervon brauche ich wahrscheinlich nicht alles}
+\begin{mydef}
+Ist $M$ eine Menge, so bezeichnet $id_{M}$ die \textit{Identitätsrelation} auf dieser Menge, die definiert ist durch
+$id_{M} = \{ (x, x) | x \in M \}$, in der also jedes Element aus $M$ mit sich selbst verwandt ist.
+\end{mydef}
+
+Ein Beispiel für Identitätsrelationen lässt sich ganz einfach für die Menge $\mathcal{B}$ der Wahrheitswerte geben. Es ist
+$\mathcal{B} = \{ tt, ff \}$, somit ist $id_{\mathcal{B}} = \{ (tt, tt), (ff, ff) \}$.
+
+% % % % % Nicht zwingend drin % % % % %
 %Zunächst werden die grundlegenden Notationen behandelt.
-Ist $X$ eine Menge, dann ist durch $\mathcal{P}(X)$ die Potenzmenge von $X$ gegeben, bei der es sich um die Menge handelt, die alle Teilmengen von $X$ beinhaltet.
 
 %Eine \textit{gerankte} Menge \todo{Wie soll man ranked übersetzen?} ist ein Paar $(A, rank)$, wobei $A$ eine endliche Menge ist und
 %$rank : A \rightarrow \mathbb{N}$ eine Funktion, die jedem Element der Menge einen Rang zuordnet. Man bezeichnet mit
 %$A^{(n)}$ die Menge $\{a \in A | rank(a) = n \}$, $n \in \mathbb{N}$.
 
+Erfüllen Relationen bestimmte Gesetzmäßigkeiten \todo{?}, kann man sie in bestimmte Relationen unterteilen, so zum Beispiel
+\textit{partielle Ordnungen}.
+
+\begin{mydef}
 Eine partielle Ordnung $\sqsubseteq : M \Leftrightarrow M$ ist eine Relation, die \textit{reflexiv}, \textit{antisymmetrisch} und \textit{transitiv} ist, d.h. es gelten die folgenden Aussagen für alle $x, y, z \in M$.
 
 \begin{align*}
@@ -84,38 +106,97 @@ Eine partielle Ordnung $\sqsubseteq : M \Leftrightarrow M$ ist eine Relation, di
 & x \sqsubseteq y \land y \sqsubseteq z \Rightarrow x \sqsubseteq z & \text{(Transitivität)} \\
 \end{align*}
 
-Sei X eine Menge und $\sqsubseteq_{X}$ eine partielle Ordnung über X. Man nennt eine Funktion $\bar{x} : \mathbb{N} \rightarrow X$
-eine \textit{monotone Sequenz} über $X$, wenn $\bar{x}(i) \sqsubseteq_{X} \bar{x}(i + 1)$ für alle $i \in \mathbb{N}$.
+\end{mydef}
 
+Als Beispiel für eine solche partielle Ordnung lässt sich der Teilmengenoperator $\subseteq$ auf beliebigen Mengen betrachten.
+Dass für beliebige Mengen Reflexivität, Antisymmetrie und Transitivität gelten, sollte klar sein und wird hier nicht weiter
+vertieft \todo{vielleicht anders schreiben}.
+
+In Abschnitt \ref{sec:striktheit-und-rekursion} wird eine partielle Ordnung genutzt, um Ausdrücke bezüglich ihrer ``Definiertheit''
+zu ordnen. Dazu müssen einige Definitionen eingeführt werden, um partielle Ordnungen weiter zu kategorisieren. Die folgenden
+Definitionen richten sich dabei nach Johann und Voigtländer \cite{johann2006}. \todo{prüfen welche tatsächlich von da kommen}
+
+\begin{mydef}
 Wenn $\sqsubseteq_{X}$ ein kleinstes Element besitzt, dann ist $\sqsubseteq_{X}$ eine komplette Partialordnung und man nennt $X$
 \textit{geordnet}. Dieses kleinste Element wird typischweise als $\bot_{X}$ (\textit{bottom}) bezeichnet.
+\end{mydef}
 
+\begin{mydef}
 Sei $\mathcal{R} \subseteq X \times Y$ eine binäre Relation über zwei geordneten Mengen $X$ und $Y$. Man nennt $\mathcal{R}$ \textit{strikt},
 wenn $(\bot, \bot) \in \mathcal{R}$. $\mathcal{R}$ wird \textit{total} genannt, wenn für jedes Paar $(x, y) \in \mathcal{R}$ gilt, dass
 aus $y = \bot$ folgt $x = \bot$.
+\end{mydef}
 
-Man nennt $\mathcal{R}$ \textit{bottom-reflecting} \todo{wie soll man das bloß übersetzen?}, wenn sogar für jedes Paar
+\begin{mydef}
+Man nennt $\mathcal{R}$ \textit{bottom-reflecting} \todo{wie soll man das bloß übersetzen?}, wenn für jedes Paar
 $(x, y) \in \mathcal{R}$ gilt: $y = \bot \Leftrightarrow x = \bot$.
+\end{mydef}
 
+Schließlich soll \textit{Stetigkeit} eingeführt werden, wozu zunächst die Definition einer \textit{monotonen Sequenz} benötigt wird.
+
+\begin{mydef}
+Sei X eine Menge und $\sqsubseteq_{X}$ eine partielle Ordnung über X. Man nennt eine Funktion $\bar{x} : \mathbb{N} \rightarrow X$
+eine \textit{monotone Sequenz} über $X$, wenn $\bar{x}(i) \sqsubseteq_{X} \bar{x}(i + 1)$ für alle $i \in \mathbb{N}$.
+\end{mydef}
+
+Es handelt sich also um eine Kette von Elementen einer Ordnung, die jeder natürlichen Zahl ein Element aus der geordneten Menge
+zuordnet, sodass eine Erhöhung der Zahl auch eine Erhöhung des Elements bezüglich der Ordnung zur Folge hat.
+Auf dieser Definition von monotonen Sequenzen aufbauend lässt sich nun eine Definition für \textit{Stetigkeit} formulieren, darüber
+hinaus nennen wir die Kombination aus Stetigkeit und Striktheit \textit{zulässig}.
+
+\begin{mydef}
 Wenn für alle monotonen Sequenzen $\bar{x}$ über $X$ und $\bar{y}$ über $Y$, die $(\bar{x}(i), \bar{y}(i)) \in \mathcal{R}$
-erfüllen, jeweils das Paar der Suprema ($\bigsqcup{\bar{x}}, \bigsqcup{\bar{y}})$ in $\mathcal{R}$ ist, dann nennt man $\mathcal{R}$ \textit{stetig}. Eine Relation ist \textit{zulässig}, wenn sie strikt und stetig ist.
+erfüllen, jeweils das Paar der Suprema ($\bigsqcup{\bar{x}}, \bigsqcup{\bar{y}})$ in $\mathcal{R}$ ist, dann nennt man $\mathcal{R}$ \textit{stetig}.
+\end{mydef}
 
+\begin{mydef}
+Eine Relation ist \textit{zulässig}, wenn sie strikt und stetig ist.
+\end{mydef}
+
+Hat man zwei Relationen gegeben, lassen sich aus diesen neue Relationen konstruieren, beispielsweise durch die Relationskomposition.
+
+\begin{mydef}
 Sind drei Mengen $X$, $Y$ und $Z$ und zwei binäre Relationen $\mathcal{R} \subseteq X \times Y$ und $\mathcal{R} \subseteq Y
 \times Z$ gegeben, dann definiert man die \textit{Komposition} von $\mathcal{R}$ und $\mathcal{S}$,
 geschrieben $\mathcal{R} ; \mathcal{S}$, wie folgt.
 
 \begin{align*}
-\mathcal{R} ; \mathcal{S} = \{ (x, z) | \exists y \in Y . (x, y) \in \mathcal{R} \and (y, z) \in \mathcal{S} \} \subseteq X \times Z
+\mathcal{R} ; \mathcal{S} = \{ (x, z) | \exists y \in Y . (x, y) \in \mathcal{R} \wedge (y, z) \in \mathcal{S} \} \subseteq X \times Z
+\end{align*}
+\end{mydef}
+
+In Worten ausgedrückt bedeutet das, dass man zwei Relationen zu einer neuen Relationen zusammenfügt, in der zwei Elemente
+verwandt sind, wenn es ein Bindeelement gibt, mit dem das erste Element in der ersten verwandt ist, und das selbst wiederum mit
+dem zweiten Element bezüglich der zweiten Relation verwandt ist.
+
+Hat man beispielsweise die Mengen $M = \{ 1, 2, 3 \}, N = \{ a, b, c \}, O = \{ \alpha, \beta, \gamma \}$ und zwei Relationen
+$\mathcal{R} : M \Leftrightarrow N, \mathcal{S} : N \Leftrightarrow O$ mit
+$\mathcal{R} = \{ (1, a), (2, b), (3, c) \}, \mathcal{S} = \{ (a, \alpha), (b, \beta), (c, \gamma) \}$ gegeben, so ergibt sich
+durch Kompositionen der beiden Relationen die folgende Relation.
+
+\begin{align*}
+R ; S = \{ (1, \alpha), (2, \beta), (3, \gamma) \}
 \end{align*}
 
-Ist Y eine Menge und X eine bezüglich $\sqsubseteq_{X}$ geordnete Menge, dann nennt man eine Relation $\mathcal{R} \subseteq X \times Y$ \textit{links-abgeschlossen},
-\todo{Übersetzung?} wenn $\sqsubseteq_{X} ; R = R$.
+Mithilfe von Relationskomposition kann man nun sehr leicht \textit{Linksabgeschlossenheit} definieren.
 
+\begin{mydef}
+Ist Y eine Menge und X eine bezüglich $\sqsubseteq_{X}$ geordnete Menge, dann nennt man eine Relation $\mathcal{R} \subseteq X \times Y$ \textit{links-abgeschlossen}, wenn $\sqsubseteq_{X} ; R = R$.
+\end{mydef}
+
+Eine Relation ist also linksabgeschlossen bezüglich $\sqsubseteq_{X}$, wenn die Komposition dieser Ordnung mit $\mathcal{R}$
+wieder $\mathcal{R}$ ergibt, oder in anderen Worten: für jedes $(x, y) \in \mathcal{R}$ gilt, dass zu jedem $a \sqsubseteq_{X} x$
+auch $(a, y) \in \mathcal{R}$. \todo{Beispiel?}
+
+\begin{mydef}
 Das Inverse einer Relation $\mathcal{R} \subseteq X \times Y$ wird definiert als $\mathcal{R}^{-1} = \{(y, x) | (x, y) \in \mathcal{R}\}
 \subseteq Y \times X$. Möchte man $\sqsubseteq^{-1}$ ausdrücken, nutzt man zuweilen auch das umgedrehte Symbol $\sqsupseteq$.
+\end{mydef}
 
-Seien $X$ und $Y$ geordnete Mengen und $f : X \rightarrow Y$ eine Funktion. Man nennt $f$ \textit{monoton}, wenn aus $x \sqsubseteq y$ folgt, dass
-$f(x) \sqsubseteq f(y)$ für alle $x, y \in X$.
+\begin{mydef}
+Seien $X$ und $Y$ geordnete Mengen und $f : X \rightarrow Y$ eine Funktion. Man nennt $f$ \textit{monoton}, wenn aus $x
+\sqsubseteq y$ folgt, dass $f(x) \sqsubseteq f(y)$ für alle $x, y \in X$.
+\end{mydef}
 
 %Sei $V$ eine endliche Menge und $\mathcal{E}$ eine binäre Relation auf $V$. Das Tupel $G = (V, \mathcal{E}) bezeichnet einen
 %\textit{gerichteten Graphen}. Die Elemente von $V$ nennt man \textit{Vertices}. Die transitive Hülle von $E$ bezeichnet man mit

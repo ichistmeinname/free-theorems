@@ -208,6 +208,8 @@ Aritäten mindestens einer der beiden Ausdrücke \texttt{f a} und \texttt{f b} e
 \subsection{Erweiterung von interpret}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+%TODO: erklären, dass ein zusätzlicher Relationskonstruktor erzeugt wurde.
+
 Die \texttt{interpret}-Funktion ist dafür zuständig, den abstrakten Syntaxbaum von Typsignaturen in die enstprechende
 \texttt{Intermediate}-Struktur zu überführen. Natürlich sind hier Änderungen notwendig, wenn \texttt{interpret} auch
 Typkonsturktorvariablen und deren Applikation erkennen und korrekt behandeln soll.
@@ -216,6 +218,9 @@ Es wurde ja bereits in Abschnitt \ref{sec:free-theorems-interpret} erläutert, w
 umgeht: Es wird in eine Allquantifizierung über Relationen umgewandelt, also in einen \texttt{RelAbs}-Ausdruck.
 Da es sich hierbei nicht mehr zwingend um Relationen handelt, wenn Typkonstruktorvariablen vorkommen können, sondern auch
 Funktionen auf Relationen afutreten können, wird jetzt an dieser Stelle eine Fallunterscheidung eingebaut.
+
+Im entsprechenden Abschnitt wurde auch beschrieben, dass die Implementierung von \textit{free-theorems} hier eine
+\texttt{Map} als Umgebung nutzt, in der Typvariablen den dazugehörigen 
 
 Es wird überprüft, ob die entsprechende Typvariable, über die allquantifiziert wird, in der restlichen Typsignatur auf Parameter
 angewandt wird. Gibt es irgendwo ein solches Vorkommen, wird statt der \texttt{RelAbs} die neue \texttt{RelTypeConsAbs}-Struktur

@@ -8,7 +8,7 @@ In der Einleitung wurde bereits kurz thematisiert, dass man allein durch Betrach
 eine grundlegende, intuitive Vorstellung davon erhalten kann, welche Funktionalität sich ungefähr hinter dieser Funktion
 verbirgt. Haskells Typsystem sorgt dafür, dass Funktionen in ihren Implementierungsmöglichkeiten
 teilweise stark eingeschränkt sind. Der Grund hierfür ist der parametrische Polymorphismus, der in Haskellfunktionen
-mit freien Typvariablen Anwendung findet. Nicht nur verringert das Typsystem die Fehleranfälligkeit von produziertem
+mit Typvariablen Anwendung findet. Nicht nur verringert das Typsystem die Fehleranfälligkeit von produziertem
 Code, es vereinfacht auch Rückschlüsse auf die Funktionsweise und Korrektheitsbeweise.
 
 Außerdem wurde bereits angedeutet, dass es eine Möglichkeit gibt, systematisch Theoreme zu gegebenen Typsignaturen
@@ -18,12 +18,8 @@ erläutert, wie die Vorgehensweise intuitiv zu erklären ist. Der darauf folgend
 eines freien Theorems zu einer beliebigen Typsignatur nach Wadler \cite{wadler}.
 
 Daraufhin wird die Erweiterung des Vorgehens um Typkonstruktorklassen thematisiert, wie sie
-auch verwendet wird von Voigtländer in \cite{voigtlander}. Am Ende des Kapitels wird schließlich an einem
+auch von Voigtländer verwendet wird \cite{voigtlander}. Am Ende des Kapitels wird schließlich an einem
 praktischen Beispiel gezeigt, wie ein freies Theorem für einen Beweis verwendet werden kann.
-
-Die Bibliothek \textit{free-theorems}, deren Erweiterung um Typkonstruktorvariablen der Fokus dieser Arbeit ist, spielt
-in diesem Kapitel noch keine Rolle. Ihre Implementierung wird im nächsten Kapitel erläutert, wo dann die Theorie hinter
-freien Theoremen und deren Implementierung in Haskell zusammenspielen.
 
 %Wie in der Einleitung bereits angedeutet wurde, lässt sich diese Intuition in Formeln ausdrücken. In diesem Abschnitt
 %wird erklärt, wie diese so genannten freien Theoreme aussehen. Es wird erläutert, wie man sie herleitet und warum
@@ -39,7 +35,7 @@ freien Theoremen und deren Implementierung in Haskell zusammenspielen.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-\subsection{Beispiel}
+\subsection{Intuition}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Bevor die theoretische Herangehensweise beschrieben wird, bietet es sich zunächst an, die Vorgehensweise intuitiv an einem
@@ -57,14 +53,14 @@ Als einfaches Beispiel dient die Funktion mit der folgenden Typsignatur.
 f :: [a] \rightarrow [a] \label{eq:fsig}
 \end{align}
 
-Gegeben ist also eine Funktion $f$, die von einer Liste auf eine Liste abbildet. Das Besondere an dieser Funktion ist, dass sie
-nicht für einen konkreten Typ wie beispielsweise $[Integer] \rightarrow [Integer]$ deklariert ist, sondern dass man sie für jeden
+Gegeben ist also eine Funktion $f$, die eine Liste auf eine Liste abbildet. Das Besondere an dieser Funktion ist, dass sie
+nicht für einen konkreten Typ wie beispielsweise $Integer$ deklariert ist, sondern dass man sie für jeden
 beliebigen Typ instanziieren kann, indem man die Typvariable $a$ durch einen Typausdruck ersetzt. Die Funktion ist also für
 einen beliebigen Typ deklariert, es handelt sich um eine \textit{polymorphe Funktion}.
 
 Bei der Typvariable $a$ handelt es sich erst einmal um eine ungebundene, \textit{freie} Variable. Man kann sich aber einen impliziten
 Allquantor vor der eigentlichen Signatur denken. Tatsächlich existiert dieser Allquantor sogar als spezielles Schlüsselwort \texttt{forall} in Haskell,
-wie die folgende Schreibweise zeigt.
+wie die folgende Schreibweise zeigt\footnote{Um die forall-Notation verwenden zu können, muss die \texttt{ExistentialQuantification}-Spracherweiterung verwendet werden.}.
 
 \begin{minted}{haskell}
 f :: forall a. [a] -> [a]
@@ -102,7 +98,7 @@ Berechnungen stattfinden. Die Funktion kann nicht einmal
 durch Fallunterscheidung ermitteln, um welchen konkreten Typ es sich im jeweiligen Fall handelt.
 %In diesem Fall handelt es sich um parametrischen Polymorphismus, d.h. die Funktion arbeitet für sämtliche Typen nach dem gleichen Prinzip.
 
-Das ist deswegen etwas Besonderes, weil es dadurch ermöglicht wird, allgemeine Aussagen zu treffen, die für sämtliche
+Das ist deswegen etwas Besonderes, weil dadurch ermöglicht wird, allgemeine Aussagen zu treffen, die für sämtliche
 Typinstanziierungen gelten. Vergleicht man diese Methode mit der zweiten Art von Polymorphismus, dem \textit{Ad-Hoc-Polymorphismus},
 wird der Vorteil klar: Unter Letzterem versteht man, dass eine Funktion zwar für verschiedene Typen definiert wird, diese jedoch
 jeweils eine konkrete, typspezifische Implementierung haben.
@@ -124,7 +120,8 @@ public:
 
 Hier werden drei Methoden deklariert, die alle den Namen \texttt{log} haben, sich jedoch durch den Typ des Parameters
 unterscheiden. Die jeweilige Implementierung, die hier nicht zu sehen ist, kann sich von Funktion zu Funktion komplett unterscheiden.
-Auch Haskell bietet mit sogenannten \texttt{Typklassen} Ad-Hoc-Polymorphismus. Darauf wird später noch genauer eingegangen.
+Auch Haskell bietet mit den in der Einleitung bereits eingeführten \texttt{Typklassen} Ad-Hoc-Polymorphismus.
+%. Darauf wird später noch genauer eingegangen.
 
 Beim Ad-Hoc-Polymorphismus kann also jede Funktion eine eigene Implementierung haben, außerdem ist jeder Funktion
 bekannt, auf welchem Typ sie arbeitet, was es ihr ermöglicht, typspezifische Operationen anzuwenden. Es liegt nahe, dass dies
@@ -161,8 +158,20 @@ anwendet und eine Liste gleicher Länge zurückgibt, in dem jedes Element durch 
 
 Haskell verwendet für Funktionsapplikation das Prinzip des Currying, das heißt, dass eine Funktion mit $n$ Parametern, die auf ein
 Argument angewandt wird, eine neue Funktion zurückgibt, in der dieses Argument fest gesetzt ist, die also nur noch $n-1$ Parameter erwartet. \todo{quote}
-Man kann die die $map$-Funktion also auch anders interpretieren: $map$, angewandt auf eine Funktion, gibt eine Funktion zurück, die
-die Funktionalität der Eingabefunktion für Listen bietet, sie also in den Listen-Kontext \textit{liftet}.
+Man kann die die $map$-Funktion also auch anders interpretieren als Funktion, die eine Funktion als Parameter erwartet und eine
+neue Funktion zurückgibt. Diese neue Funktion erwartet wiederum eine Liste als Parameter und gibt eine Liste zurück.
+
+Der folgende Ausdruck wandelt also gewissermaßen die Eingabefunktion \texttt{f} in eine neue Funktion um, die die Funktionalität von
+\texttt{f} für Listen bietet.
+
+\begin{minted}{haskell}
+map f
+\end{minted}
+
+Man kann auch sagen: \texttt{map} \textit{liftet} die Funktion \texttt{f} in den Listen-Kontext.
+%\texttt{map\ f} wandelt
+%also gewissermaßen die Eingabefunktion \texttt{f} um in eine Funktion, die dieselbe Funktionalität für Listen bietet. Man kann auch sagen:
+%Sie \textit{liftet} eine Funktion in den Listen-Kontext.
 %Da Haskells Funktionsapplikation das Prinzip des Currying verwendet, \todo{quote?} kann man diese Funktion auch auf eine andere
 %Weise interpretieren: $map$, angewandt auf eine Funktion, \textit{liftet} diese in den Listen-Kontext, gibt also eine Funktion zurück,
 %die dieselbe Funktionalität für Listen bietet.
@@ -205,10 +214,16 @@ Die folgende Formel fasst die Aussage der obigen Argumentation als mathematische
 f (map\ g\ l) = map\ g\ (f\ l)
 \end{align*}
 
-Diese Aussage ist ein Theorem, das für beliebige Funktionen g und beliebige Listen l gilt. Doch nicht nur das: Überlegt man sich
-einmal, anhand welcher Informationen diese Schlussfolgerung getroffen wurde, wird klar: Das einzige Wissen, das für diese Herleitung
-benötigt wurde, ist die Typsignatur der Funktion $f$. Insbesondere wurde die Funktion nicht auf einen konkreten Typ instanziiert,
-die Aussage gilt für beliebige Typen -- sie gilt sogar für beliebige Funktionen mit der Typsignatur $[a] \rightarrow [a]$.
+Diese Aussage ist ein Theorem, das für beliebige Funktionen $g$ und beliebige Listen $l$ gilt. Hierbei ist zu beachten, dass $g$ hier
+keine polymorphe Funktion ist, es ist eine beliebige Funktion, die auf dem \textit{konkreten} Typ von $f$ arbeitet d.h. auf dem Typ,
+auf den $f$ instanziiert wird. Ebenso handelt es sich bei $l$ um eine Liste ebendieses konkreten Typs.
+
+Das Bemerkenswerte ist jedoch nicht diese allgemeine Aussage an sich, sondern die Grundlage, auf der sie getroffen wurde.
+Überlegt man sich einmal, anhand welcher Informationen diese Schlussfolgerung gezogen wurde, wird klar, dass das einzige für
+diese Herleitung benötigte Wissen die Typsignatur der Funktion $f$ ist.
+Insbesondere wurde die Funktion nicht auf einen konkreten Typ instanziiert, die Aussage gilt für beliebige Typen.
+%, d.h. für
+%beliebige Funktionen mit der Typsignatur $[a] \rightarrow [a]$.
 
 %Wir haben für
 %die Herleitung kein Wissen über die konkrete Implementierung der Funktion f benötigt; das einzig Bekannte war die Typsignatur.
@@ -236,14 +251,15 @@ würde man den Typen \texttt{$Integer \rightarrow Integer$} auffassen als die Me
 Die grundsätzliche Idee hinter freien Theoremen basiert auf der Erkenntnis von Reynolds, dass die Semantik eines beliebigen
 Ausdrucks verwandte Umgebungen auf verwandte Werte abbildet \cite{reynolds}. Dieses Theorem, von Reynolds das
 \textit{Abstraktionstheorem} genannt, wird von Wadler umformuliert zum sogenannten \textit{Parametrizitätstheorem} \cite{wadler},
-das diese Erkenntnis für polymorphe Funktionssignaturen nutzbar macht und die Herleitung von Theoremen ermöglicht --
-vorausgesetzt, die Typen werden als Relationen aufgefasst statt als Mengen.
+das diese Erkenntnis für polymorphe Funktionssignaturen nutzbar macht und die Herleitung von Theoremen ermöglicht.
+Das heißt allerdings, dass man Typen als Relationen auffassen muss statt als Mengen, um dieses Theorem anwenden zu können.
+%vorausgesetzt, die Typen werden als Relationen aufgefasst statt als Mengen.
 
 Um Typen als Relationen aufzufassen, definiert man sogenannte \textit{relationale Aktionen}, mit denen zu jedem Typ eine entsprechende Relation
-konstruiert werden kann \cite{johann2006}.
+konstruiert werden kann. Johann et al. definieren relationale Aktionen wie folgt \cite{johann2006} \todo{johann et al?}.
 
 \begin{mydef}[Relationale Aktion]
-Zu jedem n-stelligen Typkonstruktor wird eine Abbildung definiert, die aus $n$ Relationaldarstellungen eine neue Relation konstruiert.
+Zu jedem $n$-stelligen Typkonstruktor wird eine Abbildung definiert, die aus $n$ Relationaldarstellungen eine neue Relation konstruiert.
 Diese Abbildung nennt man relationale Aktion.
 %Eine relationale Aktion ist eine map ??, die eine Anzahl 
 \end{mydef}
@@ -259,37 +275,87 @@ Diese Abbildung nennt man relationale Aktion.
 %folgendermaßen vor:
 
 Man kann also zu einem beliebigen Typ eine Relation konstruieren, die diesen Typ repräsentiert, indem man zu jedem Typkonstruktor
-die entsprechende relationale Aktion anwendet. Die einzelnen Relationen werden folgendermaßen konstruiert \cite{voigtlander}.
+die entsprechende relationale Aktion anwendet. Die einzelnen Relationen werden nach Voigtländer \cite{voigtlander} folgendermaßen konstruiert, wobei wir die Menge aller Typmengen als $Typen$ bezeichnen.
 
 \begin{itemize}
-\item Zu jedem Basistyp $T$ (Int, Bool, etc.) ist die zugehörige Relation die Identitätsrelation $\mathcal{R} = \{ (x, x) | x \in T\}$.
-\item Sind $\mathcal{R} : R_1 \Leftrightarrow R_2$ und $\mathcal{S} : S_1 \Leftrightarrow S_2$ Typrelationen, so ist $\mathcal{R} \rightarrow \mathcal{S} = \{ (f, g) | f \in (R_1 \rightarrow R_2), g \in (S_1 \rightarrow S_2), \forall x \in R_1, y \in R_2: (f\ x, g\ y) \in \mathcal{S} \}$ die zugehörige Funktionstyprelation.
-\item Ist $\mathcal{F}(\mathcal{X})$ eine Typrelation, die von einer Typrelation $\mathcal{X}$ abhängt, dann definiert man
-$\forall \mathcal{X} . \mathcal{F}(\mathcal{X}) = \{ (x, y) | \forall A_1, A_2 \in Typen, \mathcal{A} : A_1 \Leftrightarrow A_2: 
-(x_{A_1}, y_{A_2}) \in \mathcal{F}(\mathcal{A}) \}$. Hierbei sind $x$ und $y$ polymorphe Ausdrücke, die durch $x_{A_1}$ und
-$y_{A_2}$ auf einen bestimmten Typ instanziiert werden.
+\item Zu jedem Basistyp $T$ (\texttt{Int}, \texttt{Bool}, etc.) ist die zugehörige Relation die Identitätsrelation $\mathcal{R} = id_{T} = \{~(x, x)~|~x \in T~\}$.
+\item Sind $\mathcal{R} : R_1 \Leftrightarrow R_2$ und $\mathcal{S} : S_1 \Leftrightarrow S_2$ Typrelationen, so ist
+\begin{align*}
+\mathcal{R} \rightarrow \mathcal{S} = \{ (f, g) | & f \in (R_1 \rightarrow R_2), g \in (S_1 \rightarrow S_2),\\
+& \forall x \in R_1, y \in R_2: (f\ x, g\ y) \in \mathcal{S} \}
+\end{align*}
+die zugehörige Funktionstyprelation.
+\item Ist $\mathcal{F}(\mathcal{X})$ eine Typrelation, die von einer Typrelation $\mathcal{X} : X \Leftrightarrow X'$ abhängt,
+dann definiert man
+\begin{align*}
+\forall \mathcal{X} . \mathcal{F}(\mathcal{X}) = \{~(x, y)~|& x \in X, y \in X' \wedge \forall A_1, A_2 \in Typen,\\
+&\mathcal{A} : A_1 \Leftrightarrow A_2: (x_{A_1}, y_{A_2}) \in \mathcal{F}(\mathcal{A})~\}
+\end{align*}
+Hierbei sind $x$ und $y$ polymorphe Ausdrücke.
+% , die durch $x_{A_1}$ und
+%$y_{A_2}$ auf einen bestimmten Typ instanziiert werden.
 \end{itemize}
 
 %Zudem lassen sich bestimmte Typkonstruktoren, wie beispielsweise der Listenkonstruktor $[a]$, durch Lifting der betreffenden
 %Relation umsetzen. Man kann beispielsweise für eine gegebene Typrelation $\mathcal{R} : T_1 \Leftrightarrow T_2$ folgenes
 %Lifting definieren.
 
+Die Konstruktion zu Basistypen sagt ganz einfach, dass in der resultierenden Relation jeder Wert nur mit sich selbst verwandt ist.
+Betrachten wir als Beispiel die Relation zum Typ \texttt{Bool}. In Haskell stellt sich dieser Datentyp dar wie folgt.
+
+\begin{align*}
+Bool = \{~True, False~\}
+\end{align*}
+
+Die konstruierte Relation besteht nun in der Identitätsrelation, $True$ ist also mit $True$ verwandt, $False$ ist mit $False$ verwandt.
+Sonstige Beziehungen gibt es nicht zwischen den Werten.
+
+Funktionstypkonstruktoren bauen auf zwei bereits bestehenden Typrelationen $\mathcal{R}$ und $\mathcal{S}$ auf. Doch auch
+hier ergibt sich aus einer Identitätsrelation wiederum eine Identitätsrelation, wie sich gleich zeigen wird. Wir bleiben beim einfachen
+Beispiel \texttt{Bool} und erweitern die Signatur zu \texttt{Bool -> Bool}.
+
+Induktiv werden nun also zunächst die Relationen zu den Basistypen konstruiert, in diesem Fall $id_{Bool}$. Darauf aufbauend
+wird dann aus den zwei Identitätsrelationen die Funktionstyprelation gebaut. Die Intuition hinter der oben gegebenen Formel ist
+die folgende: Es wird eine Relation von Funktionen konstruiert, in denen zwei Funktionen genau dann verwandt sind, wenn sie
+verwandte Parameter auf verwandte Ergebnisse abbilden.
+
+Die Konstruktion $id_{Bool} \rightarrow id_{Bool}$, die sich aus dem Beispiel ergibt, führt also zu einer Relation
+$\mathcal{R} : (Bool \rightarrow Bool) \Leftrightarrow (Bool \rightarrow Bool)$, in der solche Funktionen verwandt sind,
+die verwandte Argumente aus der ersten Relation auf verwandte Ergebnisse in der zweiten Relation abbilden. Da es sich bei
+beiden Relationen um Identitätsrelationen handelt, können nur gleiche Werte verwandt sein, und somit können auch nur
+Funktionen verwandt sein, die gleiche Werte auf gleiche Werte abbilden -- es können also auch nur gleiche Funktionen verwandt
+sein.
+
+Dies trifft für alle Basistypen und Funktionen auf Basistypen zu. Bis hierhin bringt die Verwendung von Relationen also noch keinen
+wirklichen Vorteil, da immer wieder Identitätsrelationen entstehen. Interessant wird es erst beim Auftreten von Typabstraktionen der
+Form
+$\forall \mathcal{R} . \mathcal{F}(\mathcal{R})$, wobei $\mathcal{F}(\mathcal{R})$ eine Relation ist, die von einer Relation
+$\mathcal{R}$ abhängt. Wie in der obigen Definition der Relationalen Aktion beschrieben, sind zwei Werte dann verwandt bezüglich der
+konstruierten Relation, falls sie bezüglich jeder Relation $\mathcal{A}$ auf beliebigen Typen verwandt sind, sofern sie auf deren
+jeweiligen Typen instanziiert werden. \todo{vielleicht noch bisschen verständlicher}
+
 Auch für Datentypen lassen sich Relationen konstruieren. Ein Beispiel ist der Listentypkonstruktor \texttt{[]}, für den man folgende
-relationale Aktion definiert, wenn eine Typrelation $\mathcal{R} : T_1 \Leftrightarrow T_2$ gegeben ist.
+relationale Aktion rekursiv definiert, wenn eine Typ\-re\-lati\-on $\mathcal{R} : T_1 \Leftrightarrow T_2$ gegeben ist.
 
 \begin{align*}
 [\mathcal{R}] = \{ ([], []) \} \cup \{ (a : as, b : bs) | (a, b) \in \mathcal{R}, (as, bs) \in [\mathcal{R}] \}
 \end{align*}
 
 Andere Standardtypkonstruktoren lassen sich auf ähnliche Weise beschreiben. Nun haben wir die Mittel, zu jeder vorhandenen
-Typsignatur eine Relation zu konstruieren. Eine entscheidende Erkenntnis von \cite{wadler}, aufbauend auf
-\cite{reynolds}, ist nun das Parametrizitätstheorem. Hierzu muss noch der Begriff \textit{geschlossener Term} definiert werden.
+Typsignatur eine Relation zu konstruieren. Eine entscheidende Erkenntnis von Wadler \cite{wadler}, aufbauend auf
+Reynolds \cite{reynolds}, ist nun das Parametrizitätstheorem. Hierzu muss noch der Begriff \textit{geschlossener Term} definiert werden.
+
+\begin{mydef}
+Ein Term ist geschlossen, wenn er keine freien Variablen enthält.
+\end{mydef}
+
+Diese Definition ist zwar relativ selbsterklärend, ist aber wichtig für das folgende Theorem, da dieses Theorem von geschlossenen
+Termen ausgeht.
 
 \begin{mytheorem}[Parametrizität]
 Ist t ein geschlossener Term von Typ T und $\mathcal{T}$ die zugehörige konstruierte Typrelation, dann gilt $(t, t) \in \mathcal{T}$.
 \end{mytheorem}
 
-Ein Term ist dabei geschlossen, wenn er keine freien Variablen enthält.
 %folgende: Ist t ein geschlossener Term von Typ T und $\mathcal{T}$ die zugehörige konstruierte
 %Typrelation, dann gilt $(t, t) \in \mathcal{T}$ (dieser Satz wird von \cite{wadler} auch Parametrizität, \textit{Parametricity}, genannt).
 Damit ist alles gegeben, was man zur Herleitung des freien Theorems benötigt. Wir untersuchen wieder das Beispiel
@@ -304,7 +370,7 @@ Es wurde bereits zu Beginn des Kapitels erwähnt, dass freie Typvariablen in Sig
 quantifiziert werden, weshalb hier die entsprechende relationale Aktion Anwendung findet.
 %Implizit ist $[a] \rightarrow [a]$ aber gleichbedeutend mit $\forall a . [a] \rightarrow [a]$.
 Wir können nun Schritt für Schritt die Definitionen der einzelnen Relationskonstruktionen anwenden, wodurch die Formel
-abgerollt wird:
+abgerollt wird: \todo{aligns noch ein bisschen verschönern}
 
 \begin{align*}
 &\forall A_1, A_2 \in Typen, \mathcal{A} : A_1 \Leftrightarrow A_2: \\
@@ -315,10 +381,10 @@ abgerollt wird:
 & \forall (l, l') \in [\mathcal{A}]: \\
 &(f_{A_1} l, f_{A_2} l') \in [\mathcal{A}] \\
 & \\
-\Leftrightarrow &
-\forall A_1, A_2 \in Typen, \mathcal{A} : A_1 \Leftrightarrow A_2: \\
-& \forall (l, l') \in lift_{[]}(\mathcal{A}): \\
-& (f_{A_1} l, f_{A_2} l') \in lift_{[]}(\mathcal{A}) \\
+%\Leftrightarrow &
+%\forall A_1, A_2 \in Typen, \mathcal{A} : A_1 \Leftrightarrow A_2: \\
+%& \forall (l, l') \in lift_{[]}(\mathcal{A}): \\
+%& (f_{A_1} l, f_{A_2} l') \in lift_{[]}(\mathcal{A}) \\
 \end{align*}
 
 %Zur Erinnerung: $\mathcal{A} : A_1 \Leftrightarrow A_2$ bedeutet, dass $\mathcal{A}$ eine Relation auf den Mengen $A_1$ und $A_2$ ist.
@@ -367,10 +433,14 @@ dass sie gültig ist, da Parametrizität gilt. Und ein Theorem dieser Art lässt
 
 \label{sec:typkonstruktorklassen}
 
-Die bisherige Theorie basierte auf \cite{wadler} und sah kein Auftreten von Typklassen oder Typkonstruktorklassen vor.
+Die bisherige Theorie basierte auf Wadler \cite{wadler} und sah kein Auftreten von Typklassen oder Typkonstruktorklassen vor.
 In Abschnitt \ref{sec:free-theorems-param} wurde angegeben, wie beispielsweise der Listendatentyp in eine Relationaldarstellung
 überführt werden kann, und auf dieselbe Art und Weise lassen sich entsprechende Repräsentationen für beliebige Datentypen
-herleiten, so zum Beispiel $Maybe$.
+herleiten, so zum Beispiel $Maybe$, wie das folgende Beispiel zeigt.
+
+\begin{align*}
+Maybe\ \mathcal{R} = \{~(Nothing,\ Nothing)~\} \cup \{~(Just\ x, Just\ y)~|~(x, y) \in \mathcal{R} \}
+\end{align*}
 
 Dass in Typsignaturen aber nicht nur über Typvariablen, sondern auch über Variablen allquantifiziert werden kann, die
 ihrerseits nicht Platzhalter für spezielle Typen, sondern für Typkonstruktoren sind, wurde bisher außer Acht gelassen. In diesem
@@ -397,7 +467,7 @@ es handelt sich also um einen Typkonstruktor, der einen Typ auf einen neuen Typ 
 %das heißt es handelt sich um einen Typkonstruktor, der einen Typ auf einen neuen Typ abbildet.
 Daher ist es in der Typsignatur legitim, diese Variable auf Typparameter anzuwenden, in diesem Beispiel also in $f\ a$ und $f\ b$.
 Zwei Dinge müssen zum bisherigen Ansatz hinzugefügt werden: Allquantifizierung über Typkonstruktorvariablen muss separat betrachtet werden,
-und Klasseneinschränkungen müssen beachtet werden, im obigen Beispiel $Functor f$ \cite{voigtlander}.
+und Klasseneinschränkungen müssen beachtet werden, im obigen Beispiel $Functor f$.
 
 Die Allquantifizierung über Typkonstruktorvariablen funktioniert an sich ähnlich wie die Allquantifizierung über gewöhnliche
 Typvariablen. Statt beliebigen Relationen über beliebig gewählten Typen interpretiert man freie Typkonstruktorvariablen als
@@ -407,8 +477,25 @@ auf die Typmengen der Relation anwenden.
 %die durch Anwenden eines beliebigen
 % mit beliebig gewählten Typkonstruktoren \cite{voigtlander}.
 
-Dazu kommt noch die Beschränkung auf bestimmte Klassen. Hierzu bietet es sich an, die Funktion $fmap$ im Zusammenhang der
-Typklasse \texttt{Functor} zu betrachten.
+Es bietet sich an, an einem Beispiel zu zeigen, wie eine solche Relationsfunktion aussehen kann. Die folgende Formel zeigt eine
+Funktion $\mathcal{F} : Maybe \Leftrightarrow []$, die eine Relation $\mathcal{R}$ auf eine neue Relation
+$\mathcal{F}~\mathcal{R}$ abbildet.
+
+\begin{align*}
+\mathcal{F}~\mathcal{R} = \{ (Nothing, []) \} \cup \{(Just\ a, [b]) | (a, b) \in \mathcal{R}\}
+\end{align*}
+
+Diese Relation hat Ähnlichkeiten zu den Relationen, die für Basistypkonstruktoren wie Listen konstruiert werden
+(vgl. Abschnitt \ref{sec:free-theorems-param} \todo{Richtiger Abschnitt?}). Tatsächlich ist die bereits eingeführte
+Relationskonstruktion für Listentypkonstruktoren ebenfalls eine zulässige Relationsfunktion $\mathcal{F} : [] \Leftrightarrow []$, die
+eingesetzt werden kann \todo{eingesetzt werden kann?}.
+
+Das Besondere an Typkonstruktorvariablen ist eben, dass man eine Aussage über \textit{alle} Relationsfunktionen trifft,
+die infrage kommen.
+Und es kommen nicht alle Funktionen infrage. Im obigen Beispiel wird die Typkonstruktorvariable auf die Typkonstruktorklasse
+\texttt{Functor} eingeschränkt. Diese Klasse definiert eine Funktion, wie der folgenden Deklaration zu entnehmen ist.
+%Dazu kommt noch die Beschränkung auf bestimmte Klassen. Hierzu bietet es sich an, die Funktion $fmap$ im Zusammenhang der
+%Typklasse \texttt{Functor} zu betrachten.
 %In einer Klassendefinition legt man Typparameter sowie
 %Klassenfunktionen fest. Als Beispiel bietet sich die Klassendefinition von Functor an, hier beschränkt auf die interessante Funktion
 %$fmap$:
@@ -422,20 +509,59 @@ Wie man sieht, hat die Klasse Functor einen Typparameter $f$ und definiert die T
 einer Typsignatur auf eine Klassenbeschränkung wie $Functor f$ (ohne die Typkonstruktorvariablen wenig Sinn machen),
 muss man die Allquantifizierung über Typkonstruktoren weiter einschränken.
 
-Sei $\mathcal{F}(\mathcal{X})$ wieder eine Typrelation, die von Typrelation $\mathcal{X}$ abhängt, und sei C eine Typklasse.
-%Wir definieren Allquantifizierung über Typkonstruktorvariablen
-Dann definiert man die Allquantifizierung über Typkonstruktorvariablen wie folgt.
+Zum einen dürfen die resultierenden Relationen natürlich nur auf Typen definiert sein, für die Instanzen der entsprechenden
+Klasse deklariert sind, in diesem Beispiel also nur Funktoren.
+Zum anderen muss man aber auch fordern, dass Parametrizität bei Verwendung dieser Typen erhalten bleibt,
+das heißt die Typen müssen ihrerseits mit sich selbst verwandt sind bezüglich ihrer konstrierten Relation, wobei man für
+die Typkonstruktorvariable die Funktion $\mathcal{F}$ einsetzt. \todo{viellt noch bisschen verdeutlichen}
+%Es muss sichergestellt werden, dass Parametrizität auch weiterhin gilt, wenn die Klassenfunktionen der entsprechenden Klasse,
+%instanziiert auf den jeweiligen Typkonstruktor, angewandt werden. Und damit das gilt, muss man davon ausgehen können, dass für die
+%Klassenfunktionen ihrerseits Parametrizität gilt, wenn mn 
+
+%Das Ganze wird klarer, wenn man es an einem Beispiel verdeutlicht. Sei $\mathcal{A}(\mathcal{X})$ wieder eine Typrelation, die von
+%einer Funktion auf Relationen $\mathcal{G}$ abhängt, und sei $C$ eine Typklasse.
+%Dann definiert man die Allquantifizierung über Typkonstruktorvariablen wie folgt als Funktion auf Relationen.
+
+Formal wird eine Allquantifizierung über Typkonstruktorvariablen in eine Relationsfunktion statt in eine Relation überführt. Die
+zu überführende Typsignatur ist dabei von der folgenden Art.
+
+\begin{minted}{haskell}
+f :: C t => A(t)
+\end{minted}
+
+Hierbei soll \texttt{A(t)} ein Typausdruck sein, der die Typkonstruktorvariable \texttt{t} enthält. Man überführt diese Signatur wieder
+wie üblich in eine entsprechende Relationaldarstellung $\forall^{\{C\}} \mathcal{T} . \mathcal{A}(\mathcal{T})$, wobei $\mathcal{A}$
+die Typrelation zu \texttt{A} ist, abhängig von einer Funktion auf Relationen $\mathcal{T}$. Die Relationskonstruktion ist
+dabei wie folgt definiert, wobei es es sich hier genau genommen um die Konstruktion einer Funktion auf Relationen handelt.
+
+%Die semantische Aktion für die
+%Allquantifizierung über Typkonstruktorvariablen sieht nun wie folgt aus.
 
 \begin{align*}
-\forall^{\{C\}} \mathcal{K} . \mathcal{F}(\mathcal{K}) = \{ 
-(x_{k1}, x'_{k2}) | k_1, k_2 \text{Typkonstruktoren für C, die C einhalten},\\
-\mathcal{A} : k_1 \Leftrightarrow k_2, (x, x') \in \mathcal{F}(\mathcal{A})
-\}
+& (x, x') \in \forall^{\{C\}} \mathcal{T} . \mathcal{A}(\mathcal{T}) \\
+\Leftrightarrow & \forall k_1, k_2~\text{Typkonstruktoren für C, die C einhalten}\\
+& \forall \mathcal{F} : k_1 \Leftrightarrow k_2 \\
+& (x_{k_1}, x'_{k_2}) \in \mathcal{A}(\mathcal{F})
 \end{align*}
 
-Was ist nun mit Typkonstruktoren gemeint, die die Klasse C \textit{einhalten}? Es werden nur jene Typkonstruktoren in Betracht gezogen,
-für die jede Klassenfunktion bezüglich ihrer Typrelation mit sich selbst verwandt ist. Für unser Beispiel bedeutet das, es werden nur
-Funktionen $\mathcal{F} : k_1 \Leftrightarrow k_2$ betrachtet, für die die folgende Aussage gilt.
+%Die Funktion wird also so konstriert, dass jede Relation auf eine Relation abgebildet wird, in der jeweils zwei Intanziierungen der
+%für die jede Klassenfunktion bezüglich ihrer Typrelation mit sich selbst verwandt ist. Für unser Beispiel bedeutet das, es werden nur
+%Funktionen $\mathcal{F} : k_1 \Leftrightarrow k_2$ betrachtet, für die die folgende Aussage gilt.
+Es wird also über alle Typkonstruktoren und über alle Funktionen quantifiziert, die Relationen auf Relationen abbilden, wobei die
+ursprünglichen Typmengen auf die Typmengen abgebildet werden, die durch Anwendung der Typkonstruktoren entstehen.
+Die Beschränkung auf ``Typkonstruktoren für C, die C einhalten'' ist die Einschränkung auf diejenigen Funktionen, die für die
+entsprechende Typklasse überhaupt infrage kommen. Es gibt zwei Kriterien für Funktionen, damit die Aussage gilt:
+
+\begin{itemize}
+\item Die entsprechende Funktion muss auf Relationen abbilden, die auf Typen definiert sind, für die es Instanzdeklarationen
+für die Klasse gibt.
+\item Die entsprechende Funktion muss auf Relationen abbilden, für die sämtliche Klassenfunktionen wiederum mit sich selbst
+verwandt sind bezüglich ihrer jeweiligen Relationaldarstellung, wobei für die entsprechende Typkonstruktorvariable die Funktion
+eingesetzt wird.
+\end{itemize}
+
+Um wieder auf das ursprüngliche Beispiel der \texttt{Functor}-Klasse zurückzukommen, ist im Folgenden die Bedingung gegeben,
+die gelten muss für eine Funktion $\mathcal{F}$, damit diese die Klasse \texttt{Functor} einhält.
 
 \begin{align*}
 (fmap_{k_1}, fmap_{k_2}) \in \forall \mathcal{R} . (\mathcal{R} \rightarrow \mathcal{S}) \rightarrow \mathcal{F} \mathcal{R}
@@ -450,9 +576,14 @@ Bei letzterer handelt es sich ja um eine Konstruktion von Relationen aus Typen, 
 Typkonstruktorvariablen sind aber keine Relationen, es handelt sich um Funktionen -- und die Applikation dieser Funktionen auf
 Typrelationen ist auch tatsächlich einfach eine Funktionsanwendung, deren Ergebnis wieder eine Relation ist.
 
-Die Erweiterung um Typkonstruktorvariablen ist also alles in allem nicht besonders komplex oder tiefgreifend, sie betrifft aber sämtliche
-Teile der zu erweiternden Bibliothek. Bevor jedoch die Implementierung betrachtet wird, soll zunächst noch einmal an
-einem Beispiel gezeigt werden, wozu man freie Theoreme -- insbesondere erweitert auf Typkonstruktorklassen -- verwenden kann.
+Es ist noch anzumerken, dass eine entsprechende Methode natürlich auch für Typklassen ohne Typparameter möglich ist,
+die sogar in der Bibliothek \textit{free-theorems} schon Anwendung findet. Der wichtige Schritt von simplen Typklassen
+zu Typkonstruktorklassen ist das Einsetzen der Relationskonstruktion für Typkonstruktorvariablen in die Parametrizitätsaussagen
+der Klassenfunktionen. \todo{das könnte man sicherlich auhc noch ein bisschen deutlicher machen}
+
+%Die Erweiterung um Typkonstruktorvariablen ist also alles in allem nicht besonders komplex oder tiefgreifend, sie betrifft aber sämtliche
+%Teile der zu erweiternden Bibliothek. Bevor jedoch die Implementierung betrachtet wird, soll zunächst noch einmal an
+%einem Beispiel gezeigt werden, wozu man freie Theoreme -- insbesondere erweitert auf Typkonstruktorklassen -- verwenden kann.
 
 
 %Eine Frage, die sich nun stellt, ist: Inwiefern kann man dann überhaupt mit diesen Relationsfunktionen arbeiten? An sich ist ja nur
@@ -466,15 +597,19 @@ einem Beispiel gezeigt werden, wozu man freie Theoreme -- insbesondere erweitert
 \subsection{Anwendung}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-\todo{Dieser Abschnitt zeigt einen Beweis von schoolofhaskell.com -- ist aber merkwürdig}
-
 %In den vorangehenden Abschnitten wurde beschrieben, wie freie Theoreme hergeleitet werden. Um zu zeigen, welchen
 %Nutzen diese Technik hat und was man damit herleiten kann, werden in diesem Abschnitt einige Beispiele gegeben,
 %in denen freie Theoreme eine Rolle spielen.
 
 In den vorangegangenen Abschnitten wurde beschrieben, wie freie Theoreme hergeleitet werden. Das Vorgehen wurde am einfachen
-Beispiel $f :: [a] \rightarrow [a]$ verdeutlicht. Dieses Beispiel zeigt zwar, wie die Technik funktioniert, ist an sich aber nicht wirklich
-weltbewegend. In diesem Abschnitt sollen nun einige interessantere Anwendungsbeispiele aufgezeigt werden.
+Beispiel $f :: [a] \rightarrow [a]$ verdeutlicht. Dieses Beispiel beschreibt die grundlegende Technik zwar, die resultierende
+Aussage ist aber relativ simpel und darüber hinaus kaum weltbewegend. \todo{naja, ob man das so schreiben sollte...}
+In diesem Abschnitt sollen zwei Beispiele betrachtet werden, die ein wenig komplexer und auch etwas interessanter sind. Vor
+allem aber verwenden sie Typkonstruktorklassen, es kann also an Beispielen gezeigt werden, wie sich die Herleitung
+von freien Theoremen gestaltet, wenn Typkonstruktorvariablen eine Rolle spielen.
+
+%Dieses Beispiel zeigt zwar, wie die Technik funktioniert, ist an sich aber nicht wirklich
+%weltbewegend. In diesem Abschnitt sollen nun einige interessantere Anwendungsbeispiele aufgezeigt werden.
 
 In Haskell ist es gebräuchliche Praxis, für Datentypen oder Typklassen zusätzliche Einschränkungen zu definieren, die nicht durch
 die Implementierung sichergestellt werden. Stattdessen liegt es am Anwender, diese Einschränkungen einzuhalten, und es hindert
@@ -494,12 +629,27 @@ fmap id      = id
 fmap (p . q) = (fmap p) . (fmap q)
 \end{minted}
 
-Eine interessante Besonderheit der Functor-Gesetze ist, dass in Haskell tatsächlich nur das erste Gesetz gelten muss. Gilt es, dann kann
-man das zweite Gesetz daraus unter Zuhilfenahme der freien Theoreme folgern. Dieser Beweis basiert auf dem Ansatz in \cite{fmap}.
-% Noch interessanter ist die Tatsache, dass freie Theoreme bei der Herleitung helfen.
+%Eine interessante Besonderheit der Functor-Gesetze ist, dass in Haskell tatsächlich nur das erste Gesetz gelten muss. Gilt es, dann kann
+%man das zweite Gesetz daraus unter Zuhilfenahme der freien Theoreme folgern. Dieser Beweis basiert auf dem Ansatz in \cite{fmap}.
 
-Wir beginnen mit der Herleitung des freien Theorems, wobei zu beachten ist, dass dieses Mal eine Typkonstruktorvariable auftritt. Im
-Folgenden ist zu sehen, wie das Parametrizitätstheorem angewandt wird und Schritt für Schritt die jeweiligen relationalen Aktionen
+Es wäre nun interessant zu betrachten, welche Aussagen zu dieser Funktion das freie Theorem offenbart. Tatsächlich zeigt
+Kmett \todo{ich nehme mal an der heißt wirklich so?}in einem Artikel für \cite{schoolofhaskell.com} \cite{fmap} einen Ansatz, wie man mithilfe des freien Theorems beweisen
+kann, dass das zweite Gesetz in Haskell immer gelten muss, wenn das erste Gesetz gilt. \todo{nicht sicher, ob man das so zitieren würde}
+
+Dieser Beweis soll an dieser Stelle nicht wiedergegeben werden, weil er vor allem zu weit über die Thematik von freien Theoremen
+hinausgeht, aber es ist sinnvoll zu zeigen, wie man das freie Theorem für die Funktion \texttt{fmap} herleitet.
+
+%Wir beginnen mit der Herleitung des freien Theorems, wobei zu beachten ist, dass dieses Mal eine Typkonstruktorvariable auftritt. Im
+Wie bereits erwähnt, hat \texttt{fmap} die folgende Typsignatur.
+
+\begin{minted}{haskell}
+fmap :: Functor f => (a -> b) -> f a -> f b
+\end{minted}
+
+Wie bereits gesagt ist eine Besonderheit die auftretende Typkonstruktorvariable $f$. Doch auch interessant ist die Tatsache, dass
+eine Funktion als Parameter übergeben wird -- dieser Fall wurde nie explizit anhand eines Beispiels erklärt, obwohl das Vorgehen
+natürlich das übliche ist.
+Im Folgenden ist zu sehen, wie das Parametrizitätstheorem angewandt wird und Schritt für Schritt die jeweiligen relationalen Aktionen
 eingesetzt werden.
 %auch eine Typkonstruktorvariable vorkommt.
 
@@ -511,19 +661,19 @@ eingesetzt werden.
 \rightarrow \mathcal{F} \mathcal{R} \rightarrow \mathcal{F} \mathcal{S} \\
 &\\
 \Leftrightarrow &
-\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2, \mathcal{K}~\text{beachtet Functor} \\
 &(fmap_{k1}, fmap_{k2}) \in \forall \mathcal{R} . \forall \mathcal{S} . (\mathcal{R} \rightarrow \mathcal{S}) \rightarrow
 \mathcal{K} \mathcal{R} \rightarrow \mathcal{K} \mathcal{S} \\
 &\\
 \Leftrightarrow &
-\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2, \mathcal{K}~\text{beachtet Functor} \\
 &\forall A, A' \in Typen, \mathcal{A} : A \Leftrightarrow A' \\
 &\forall B, B' \in Typen, \mathcal{B} : B \Leftrightarrow B' \\
 &(fmap_{k1 A B}, fmap_{k2 A' B'}) \in (\mathcal{A} \rightarrow \mathcal{B}) \rightarrow
 \mathcal{K} \mathcal{A} \rightarrow \mathcal{K} \mathcal{B} \\
 &\\
 \Leftrightarrow &
-\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2, \mathcal{K}~\text{beachtet Functor} \\
 &\forall A, A' \in Typen, \mathcal{A} : A \Leftrightarrow A' \\
 &\forall B, B' \in Typen, \mathcal{B} : B \Leftrightarrow B' \\
 &\forall (g_1, g_2) \in (\mathcal{A} \rightarrow \mathcal{B}) \\
@@ -541,90 +691,309 @@ einsetzen, also $(g, g') \in (\mathcal{A} \rightarrow \mathcal{B})$ genau dann, 
 %$\mathcal{A} \rightarrow \mathcal{B}$ anwendet. \todo{Hier stimmt was nicht, nochmal korrigieren}Man kommt also auf:
 
 \begin{align*}
-&\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+&\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2, \mathcal{K}~\text{beachtet Functor} \\
 &\forall A, A' \in Typen, \mathcal{A} : A \Leftrightarrow A' \\
 &\forall B, B' \in Typen, \mathcal{B} : B \Leftrightarrow B' \\
 &\forall g_1 : A \rightarrow B, g_2 : A' \rightarrow B' \\
 &(\forall (x, x') \in \mathcal{A}: (g_1\ x, g_2\ x') \in \mathcal{B})\\
 &\Rightarrow (fmap_{k1 A B}\ g_1, fmap_{k2 A' B'}\ g_2) \in \mathcal{K} \mathcal{A} \rightarrow \mathcal{K} \mathcal{B} \\
 &\\
-\Leftrightarrow &\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+\Leftrightarrow &\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2, \mathcal{K}~\text{beachtet Functor} \\
 &\forall A, A' \in Typen, \mathcal{A} : A \Leftrightarrow A' \\
 &\forall B, B' \in Typen, \mathcal{B} : B \Leftrightarrow B' \\
 &\forall g_1 : A \rightarrow B, g_2 : A' \rightarrow B' \\
 &(\forall (x, x') \in \mathcal{A}: (g_1\ x, g_2\ x') \in \mathcal{B})\\
-&\Rightarrow (\forall (y, y') \in \mathcal{K} \mathcal{A} \\
-&\ \ \ \ \ \ fmap_{k1 A B}\ g_1\ y, fmap_{k2 A' B'}\ g_2\ y') \in \mathcal{K} \mathcal{B}\\
+&\Rightarrow \forall (y, y') \in \mathcal{K} \mathcal{A} \\
+&\ \ \ \ \ \ (fmap_{k1 A B}\ g_1\ y, fmap_{k2 A' B'}\ g_2\ y') \in \mathcal{K} \mathcal{B}\\
 % FIXME: Da gibt es doch sicherlich eine ordentliche Loesung, um die zweite Zeile einzuruecken.
 \end{align*}
 
-Nun spezialisieren wir das Ganze auf den Fall, dass $\mathcal{A}$ und $\mathcal{B}$ Funktionen sind, und wir bekommen das
-folgende Theorem:
+%TODO: den rest nicht, vorher wurde ja gesagt, dass das nicht geht, warum sollte man es dann jetzt machen können?
 
+An dieser Stelle ist es noch möglich, die Relationen $\mathcal{A}$ und $\mathcal{B}$ auf Funktionen zu spezialisieren. Wir werden
+feststellen, dass dies bei auftretenden Typkonstruktorvariablen leider oftmals keine Vereinfachung bringt, da Typkonstruktorvariablen
+über beliebige Typkonstruktoren allquantifiziert werden und deshalb nichts Genaues über sie bekannt ist.
+
+Im vorangegangenen Schritt wurde bereits erläutert, dass man bei der Spezialisierung zu einigen gelifteten Datentypen
+spezielle Funktionen einführen kann, um die spezialisierten Funktionen in einen entsprechenden Kontext zu liften, beispielsweise
+durch Verwenden der Funktion $map$, wenn eine Relation durch den Listentypkonstruktor in den Listenkontext geliftet wird.
+%Es wurde bereits vorher
+%erläutert, dass man in diesem Schritt bei bestimmten Datentypen spezielle Funktionen einführen kann, um die spezialisierten
+%Funktionen in einen entsprechenden Kontext zu liften. Als Beispiel war die Funktion $map$ gegeben, die eingefügt wird,
+%wenn eine Relation durch den Listentypkonstruktor in den Listenkontext geliftet wird.
+
+Es wäre wünschenswert, an dieser Stelle ebenfalls eine solche Funktion einzufügen. In diesem Fall handelt es sich um die
+\texttt{Functor}-Klassen, von der wir wissen, dass sie eine Funktion \texttt{fmap} enthält, die den Inhalt des entsprechenden
+\texttt{Functor}-Datentyps manipuliert, und man könnte argumentieren, dass sie für diesen Zweck geeignet ist -- zumindest, wenn sie
+korrekt implementiert wurde und die \texttt{Functor}-Gesetze einhält. Da aber der allgemeine Fall betrachtet werden soll, in dem
+eine solche Funktion nicht unbedingt gegeben ist, beschränken wir uns hier darauf, die
+%\todo{Hier vielleicht eine Anmerkung, dass nur das erste Gesetz gelten muss und Verweis auf url}
+%Man könnte an dieser Stelle argumentieren, dass die \texttt{Functor-Klasse eine solche Funktion also bereitstellt, doch im allgemeinen
+%Fall ist eine solche Funktion nicht zwingend gegeben.
+%Wir beschränken uns also darauf,
+die Relationsfunktion $\mathcal{K}$ auf
+die entsprechende Funktion anzuwenden. Da sich die Funktion als Relation auffassen lässt, können wir daraus auch wieder
+eine Relation generieren.
+
+% TODO: wahrscheinlich eher hier ein bisschen mehr dazu schreiben, statt später, wenn es um die implementierung geht.
+
+%, und wir bekommen das
+%folgende Theorem:
+%
 \begin{align*}
-&\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2 \\
+&\forall k1, k2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2, \mathcal{K}~\text{beachtet Functor} \\
 &\forall a : A \rightarrow A' \\
 &\forall b : B \rightarrow B' \\
 &\forall g_1 : A \rightarrow B\\
 &\forall g_2 : A' \rightarrow B' \\
 &(\forall x \in A : b\ (g_1\ x) = g_2 (a x))\\
 &\Rightarrow \forall y \in k_1\ A\\
-&\ \ \ \ \ \ map_F\ b\ (fmap_{k1 A B}\ g_1\ y) = fmap_{k2 A' B'}\ g_2\ (map_F\ a\ y)
+&\ \ \ \ \ \ (fmap_{k1 A B}\ g_1\ y, fmap_{k2 A' B'}\ g_2) \in \mathcal{K} b
 \end{align*}
 
-%$map_F$ ist hierbei die natürliche map-Funktion, die zu Beginn des Abschnitts bereits erwähnt wurde. \todo{?}
-$map_F$ ist hierbei die Funktion, die eine beliebige Funktion in den $\mathcal{K}$-Kontext liftet.
-Anders ausgedrückt sagt dieses Theorem also, für beliebige Funktionen $a, b, g_1, g_2$ gilt, falls $b . g_1 = g_2 . a$, die folgende Aussage
-(die Typinstanzierungen werden hier der Übersichtlichkeit halber weggelassen):
+Es ist natürlich schade, dass die Spezialisierung auf Funktionen durch die Anwendung der Relationsfunktion gewissermaßen wieder
+rückgängig gemacht wird.
+Das macht die Spezialisierung auf Funktionen natürlich nicht hinfällig, auf der linken Seite der entstandenen Implikation hat
+sie zur Lesbarkeit beigetragen.
 
-\begin{align*}
-(map_F\ b)\ .\ (fmap\ g_1\ y) = (fmap\ g_2)\ .\ (map_F\ a\ y)
-\end{align*}
+Somit haben wir also das freie Theorem für \texttt{fmap} hergeleitet. Es zeigt sich, dass auch mit Typkonstruktorvariablen ganz normal
+gearbeitet werden kann. Durch das Auftreten der Funktion als Parameter ist auch gut zu sehen, wie eine solche Funktion
+zu einer Implikation führt, da für Elemente der entsprechenden Relation wiederum die Relationskonstruktion aus einem Funktionstyp
+gilt.
 
-Der Punktoperator ist hierbei die Funktionsverkettung. Nun muss man noch zeigen dass $fmap\ f = map_F\ f$, was aus $fmap\ id = id$ (also dem ersten geforderten Gesetz) folgt.
+Nicht zu vergessen ist, was sich hinter der Einschränkung ``$\mathcal{K}$ beachtet Functor'' verbirgt: Es muss Parametrizität gelten
+für alle Klassenfunktionen von \texttt{Functor}, wenn für die Typkonstruktorvariable $\mathcal{K}$ eingesetzt wird (wie es zu Beginn
+des Abschnitts bereits erläutert wurde).
+%
+%$map_F$ ist hierbei die Funktion, die eine beliebige Funktion in den $\mathcal{K}$-Kontext liftet.
+%Anders ausgedrückt sagt dieses Theorem also, für beliebige Funktionen $a, b, g_1, g_2$ gilt, falls $b . g_1 = g_2 . a$, die folgende Aussage
+%(die Typinstanzierungen werden hier der Übersichtlichkeit halber weggelassen):
+%
+%\begin{align*}
+%(map_F\ b)\ .\ (fmap\ g_1\ y) = (fmap\ g_2)\ .\ (map_F\ a\ y)
+%\end{align*}
+%
+%Der Punktoperator ist hierbei die Funktionsverkettung. Nun muss man noch zeigen dass $fmap\ f = map_F\ f$, was aus $fmap\ id = id$ (also dem ersten geforderten Gesetz) folgt.
+%
+%\begin{align}
+%& fmap\ f \nonumber \\
+%= & map_F\ id\ .\ fmap\ f \nonumber \\
+%= & fmap\ id\ .\ map_F\ f \label{eq:freetheorem} \\
+%= & map_F\ f \nonumber
+%\end{align}
+%
+%In Zeile (\ref{eq:freetheorem}) wird das freie Theorem angewandt mit $g = k = id$ und $h = f$. \todo{korrekte bezeichnungen!} Damit ist gezeigt, dass $fmap = map_F$ gilt. Da laut dem ersten Funktorgesetz die Aussage $fmap\ id = id$ gilt, lässt sich Folgendes zeigen.
+%
+%\begin{align*}
+%& fmap\ f\ .\ fmap \\
+%= & map_F\ .\ fmap\ g \\
+%= & fmap\ id\ .\ map_F\ (f\ .\ g) \\
+%= & map_F\ (f\ .\ g) \\
+%= & fmap (f\ .\ g)
+%\end{align*}
+%
+%Es reicht also aus zu fordern, dass für Funktoren $fmap\ id = id$ gilt. Wie bereits erwähnt, werden diese Gesetze nicht
+%erzwungen, auch die Gesetze, die für die Monaden-Klasse formuliert werden, können theoretisch missachtet werden.
+%Mathematisch gesehen haben sie den Namen zwar erst verdient, wenn diese Gesetze gelten, doch sprachtechnisch gelten keine
+%Einschränkungen. Geht man davon aus, dass sie erfüllt sind, lassen sich jedoch noch zusätzliche Aussagen treffen, die ohne diese
+%Gesetze nicht möglich wären, wie zum Teil in \cite{voigtlander} untersucht wird.
 
-\begin{align}
-& fmap\ f \nonumber \\
-= & map_F\ id\ .\ fmap\ f \nonumber \\
-= & fmap\ id\ .\ map_F\ f \label{eq:freetheorem} \\
-= & map_F\ f \nonumber
-\end{align}
+% % % % % % % % % %
 
-In Zeile (\ref{eq:freetheorem}) wird das freie Theorem angewandt mit $g = k = id$ und $h = f$. \todo{korrekte bezeichnungen!} Damit ist gezeigt, dass $fmap = map_F$ gilt. Da laut dem ersten Funktorgesetz die Aussage $fmap\ id = id$ gilt, lässt sich Folgendes zeigen.
+In der Arbeit, in der Voigtländer die hier verwendete Interpretation von Typkonstruktorvariablen in freien Theoremen
+einführt \cite{voigtlander}, nutzt er diese Erweiterung der freien Theoreme, um einige Überlegungen insbesondere zu Monaden
+anzustellen. Es soll nachfolgend eine dieser Überlegungen dargestellt werden, um ein weiteres Beispiel für den Einsatz von
+freien Theoremen, insbesondere mit der Erweiterung um Typkonstruktorvariablen, zu erläutern.
+Der folgende Code zeigt, wie die Monadenklassen definiert ist.
 
-\begin{align*}
-& fmap\ f\ .\ fmap \\
-= & map_F\ .\ fmap\ g \\
-= & fmap\ id\ .\ map_F\ (f\ .\ g) \\
-= & map_F\ (f\ .\ g) \\
-= & fmap (f\ .\ g)
-\end{align*}
+\begin{minted}{haskell}
+class Monad m where
+  (>>=) :: m a -> (a -> m b) -> m b
+  return :: a -> m a
+\end{minted}
 
-Es reicht also aus zu fordern, dass für Funktoren $fmap\ id = id$ gilt. Wie bereits erwähnt, werden diese Gesetze nicht
-erzwungen, auch die Gesetze, die für die Monaden-Klasse formuliert werden, können theoretisch missachtet werden.
-Mathematisch gesehen haben sie den Namen zwar erst verdient, wenn diese Gesetze gelten, doch sprachtechnisch gelten keine
-Einschränkungen. Geht man davon aus, dass sie erfüllt sind, lassen sich jedoch noch zusätzliche Aussagen treffen, die ohne diese
-Gesetze nicht möglich wären, wie zum Teil in \cite{voigtlander} untersucht wird.
+Tatsächlich gibt es noch weitere Funktionen \texttt{>>} und \texttt{fail}, diese spielen jedoch in diesem Fall keine Rolle und besitzen
+darüber hinaus Standardimplementierungen. Wie auch für Funktoren gibt es in Haskell einige -- von Haskell nicht erzwungene -- Gesetze,
+die für Monadeninstanzen gelten sollten. Diese sind wie folgt definiert.
+
+\begin{minted}{haskell}
+return a >>= k  =  k a
+m >>= return  =  m
+m >>= (\x -> k x >>= h)  =  (m >>= k) >>= h
+\end{minted}
 
 %Im Folgenden sollen einige Überlegungen speziell zu Monaden angestellt werden, wie sie in \cite{voigtlander}
 %eingeführt werden.
 
-%Ein monadischer Wert heißt \textit{rein} \todo{rein? pur? pure?}, wenn er mit keinerlei monadischem Effekt versehen ist. Man
-%kann einen reinen Wert auch ansehen als den Wert, der von der \texttt{return}-Funktion geliefert wird. Betrachten wir die
-%folgende Funktion:
-%
-%\begin{minted}{haskell}
-%f :: Monad m => [m Int] -> m Int
-%\end{minted}
-%
-%Eine Erkenntnis von \cite{voigtlander} ist nun, dass man im Fall, dass die Eingabeliste nur reine Werte beinhaltet, davon ausgehen
-%kann, dass das Ergebnis auch rein ist, sofern die Monade das erste Monadengesetz erfüllt: $return_k\ a\ {>>=}_k\ k = k\ a$. Man argumentiert hier genauso wie bei polymorphen Funktionen: Da die Funktion über
-%beliebige Monaden $m$ definiert ist, hat die Funktion keine Kenntnis über die jeweilige Monade, die genutzt wird.
-%Sie kann dementsprechend keine monadenspezifischen Effekte einführen; nur bereits vorhandene
-%Effekte können gegebenenfalls beibehalten werden.
-%
-%\includegraphics[height=100px]{purity-preservation}
-%
+Ein monadischer Wert heißt \textit{rein}, wenn er mit keinerlei monadischem Effekt versehen ist. Ein einfaches Beispiel für monadische
+Effekte liefert zum Beispiel die \texttt{IO}-Monade, mit deren Hilfe Seiteneffekte wie Ein- und Ausgabe umgesetzt werden. So
+stellt ein Ausdruck mit dem Typ $IO\ a$ eine Berechnung dar, bei deren Ausführung es zu Ein- und Ausgaben kommen kann, aber
+nicht muss.
+
+Der Ausdruck \texttt{getLine} vom Typ \texttt{IO String} ist ein Beispiel für einen solchen effektbehafteten monadischen Ausdruck, da
+er nicht nur eine Zeichenkette enthält, sondern auch einen Seiteneffekt, der den Einlesen dieser Zeichenkette verursacht.
+Der Ausdruck \texttt{return\ "Zeichenkette"} wiederum ist ein Beispiel für einen reinen monadischen Wert, der keinen monadischen
+Effekt enthält.
+
+Man kann einen reinen Wert ansehen als den Wert, der von der \texttt{return}-Funktion der jeweiligen Monadeninstanz
+bzw. einer semantisch äquivalenten Funktion geliefert wird. Betrachten wir die folgende Funktion.
+
+\begin{minted}{haskell}
+f :: Monad m => [m Int] -> m Int
+\end{minted}
+
+Eine Erkenntnis von Voigtländer ist nun, dass man im Fall, dass die Eingabeliste nur reine Werte beinhaltet, davon ausgehen
+kann, dass das Ergebnis auch rein ist, sofern die Monade das erste Monadengesetz erfüllt: $return_k\ a\ {>>=}_k\ k = k\ a$. Man argumentiert hier genauso wie bei polymorphen Funktionen: Da die Funktion über
+beliebige Monaden $m$ definiert ist, hat die Funktion keine Kenntnis über die jeweilige Monade, die genutzt wird.
+Sie kann dementsprechend keine monadenspezifischen Effekte einführen; nur bereits vorhandene
+Effekte können gegebenenfalls beibehalten werden.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[height=100px]{purity-preservation}
+\caption{Purity Preservation}
+\label{fig:purity-preservation}
+\end{figure}
+
+In einer Formel ausgedrückt heißt das, dass das folgende Theorem gilt.
+
+\begin{mytheorem}
+Sei $f :: Monad\ \mu \Rightarrow [\mu\ Int] \rightarrow \mu\ Int$, sei $\kappa$ eine Instanz von Monad, für die Monadengesetz (1) gilt.
+Sei $l :: [\kappa\ Int]$. Wenn jedes Element in l ein Bild von $return_{\kappa}$ ist, dann ist auch $f_{\kappa}\ l$ ein Bild von $return_{\kappa}$.
+\end{mytheorem}
+
+Um zu zeigen, dass dieses Theorem gilt, leiten wir zunächst das freie Theorem zur Funktion $f$ her. Da an dieser Stelle klar sein
+sollte, wie das Prinzip des schrittweisen Abrollens funktioniert, wird hier direkt das resultierende Theorem angegeben.
+
+\begin{align*}
+& \forall k_1, k_2 \in (* \rightarrow *), \mathcal{M} : k_1 \Leftrightarrow k_2, \mathcal{M}~\text{beachtet Monad} \\
+& \forall (x, y) \in [\mathcal{M}\ id_{Int}] \\
+& (f_{k_1}\ x, f_{k_2}\ y) \in \mathcal{M}\ id_{Int}
+\end{align*}
+
+Wir möchten nun zeigen, dass das Ergebnis von $f_{\kappa}$ für eine beliebige Liste von $return_{\kappa}$-Bildern selbst ein
+$return_{\kappa}$-Bild ist. Hierzu betrachten wir eine beliebige Liste $l' :: [Int]$. Wenden wir auf jedes Listenelement von $l'$ die
+Funktion $return_{\kappa}$ an, erhalten wir folglich eine solche Liste von $return_{\kappa}$-Bildern. Anders schreiben lässt
+sich das mithilfe der $map$-Funktion als $map\ return_{\kappa}\ l'$.
+
+Nun müssen wir beweisen, dass man durch Anwenden von $f_{\kappa}$ auf diese Liste einen Ausdruck erhält, der einem
+$return_{\kappa}$, angewandt auf einen Ausdruck, entspricht. Um dies zu tun, führen wir zunächst einen neuen Typ ein und deklarieren
+für diesen eine Monadeninstanz.
+
+\begin{minted}{haskell}
+newtype Id a = Id { unId :: a }
+
+instance Monad Id where
+   return a = Id a
+   Id a >>= k = k a
+\end{minted}
+
+Diese Monade reicht also einfach nur den internen Wert weiter, \texttt{return} setzt diesen Wert. Sonstige Effekte
+sind nicht vorhanden.
+Es ist nun zu zeigen, dass für jede Liste $l' :: [Int]$ Folgendes gilt.
+
+\begin{align*}
+f_k (map\ return_{\kappa}\ l') = return_{\kappa} (unId (f_{Id} (map\ Id\ l')))
+\end{align*}
+
+Dass dies die Behauptung ist, die wir beweisen wollen, ist nicht unbedingt auf den ersten Blick klar. Auf der rechten
+Seite der Gleichung sieht man den Ausdruck $map\ Id\ l'$. Es wird also der Konstrktor $Id$ auf jedes Element der Liste $l'$
+angewandt. Auf den resultierenden Ausdruck wird die Funktion $f_{Id}$ angewandt, also $f$, instanziiert auf den
+Typkonstruktor $Id$. Das ist möglich, da $Id$ eine Instanz der Klasse \texttt{Monad} ist. Auf den daraus entstehenden Ausdruck
+wird \texttt{unId} aufgerufen, was uns wieder den internen Wert der \texttt{Id}-Monade gibt. Schließlich wird darauf die
+Funktion $return_{\kappa}$ angewandt.
+
+Das Problem ist ja, dass wir für eine beliebige Monade $\kappa$ keine Möglichkeit haben, den reinen Wert zurückzuholen. Wir können
+aber eine eigene Monade definieren und das freie Theorem geschickt nutzen, um eine Beziehung zwischen der $\kappa$-Monade
+und der $Id$-Monade zu erhalten.
+
+Wir definieren eine Funktion auf Relationen $\mathcal{F} : \kappa \Leftrightarrow Id$ wie folgt.
+
+\begin{align*}
+\mathcal{F} \mathcal{R} = return_{\kappa}^{-1} ; \mathcal{R} ; Id
+\end{align*}
+
+Jetzt zeigen wir, dass diese Funktion die Klasse \texttt{Monad} beachtet\footnote{Voigtländer nennt dies auch eine Monaden-Aktion \cite{voigtlander}}. Es ist also zunächst Folgendes für die $return$-Funktion zu zeigen.
+
+\begin{align*}
+(return_{\kappa}, return_{Id}) \in \forall \mathcal{R}. \mathcal{R} \rightarrow \mathcal{F} \mathcal{R}
+\end{align*}
+
+Rollt man diese Gleichung ab, erhält man die folgende Aussage, die zu zeigen ist.
+
+\begin{align*}
+& \forall T_1, T_2 \in Typen, \mathcal{R} : T_1 \Leftrightarrow T_2 \\
+& \forall (a, b) \in \mathcal{R} \\
+& (return_{\kappa}\ a, return_{Id}\ b) \in \mathcal{F}\ \mathcal{R}
+\end{align*}
+
+Setzt man das oben definierte $\mathcal{F}$ ein, sieht man, dass diese Aussage stimmt, da man wie folgt argumentieren kann.
+
+Die Verkettung $return_{\kappa}^{-1} ; \mathcal{R} ; Id$ kann man ansehen als Einkapselung der Relation in die 
+Monaden-Konstruktoren für $\kappa$ und $Id$: Zwei Werte sind bezüglich dieser Relation verwandt, wenn es
+eine Möglichkeit gibt, den ersten Wert mit der inversen Relation zur Funktion $return_{\kappa}$ in einen puren Wert
+umzuwandeln und es einen zu diesem puren Wert verwandten Wert in $\mathcal{R}$ gibt, der sich mithilfe von $Id$ wieder
+in einen Wert des $Id$-Datentyps umwandeln lässt.
+
+Es ist $return_{\kappa}^{-1}\ return_{\kappa}\ a = a$ und $a \in \mathcal{R}$. Da $Id$ der Konstruktor zum Datentyp $Id$
+ist, der für beliebige Typen definiert ist, ist natürlich auch $(a, Id\ a) \in Id$, wenn man den Konstruktor $Id$ als Relation auffasst.
+Und da $return_{Id}$ implementiert ist mit \texttt{return a = Id a}, gilt die folgende Aussage.
+
+\begin{align*}
+(return_{\kappa}\ a, return_{Id}\ b) = (return_{\kappa}\ a, Id\ b) \in return_{\kappa}^{-1} ; \mathcal{R} ; Id
+\end{align*}
+
+Ein wenig aufwendiger wird es, die Parametrizitätsaussage für die zweite Funktion zu zeigen.
+
+\begin{align*}
+& ((>>=_{\kappa}), (>>=_{Id})) \in \forall \mathcal{R}. \forall \mathcal{S}. \mathcal{F} \mathcal{R} \rightarrow
+((\mathcal{R} \rightarrow \mathcal{F} \mathcal{S}) \rightarrow \mathcal{F} \mathcal{S}) \\
+\Leftrightarrow & \forall T_1, T_2 \in Typen, \mathcal{R} : T_1 \Leftrightarrow T_2 \\
+& \forall T_3, T_4 \in Typen, \mathcal{S} : T_3 \Leftrightarrow T_4 \\
+& \forall (a, b) \in \mathcal{F}\ \mathcal{R} \\
+& \forall (k_1, k_2) \in \mathcal{R} \rightarrow \mathcal{F}\ \mathcal{S}\\
+& ((>>=)_{\kappa T_1 T_3}\ a\ k_1, (>>=)_{Id T_2 T_4}\ b\ k_2) \in \mathcal{F} \mathcal{S}\\
+\Leftrightarrow & \forall T_1, T_2 \in Typen, \mathcal{R} : T_1 \Leftrightarrow T_2 \\
+& \forall T_3, T_4 \in Typen, \mathcal{S} : T_3 \Leftrightarrow T_4 \\
+& \forall (a, b) \in return_{\kappa}^{-1}~;~\mathcal{R}~;~Id \\
+& \forall (k_1, k_2) \in \mathcal{R} \rightarrow return_{\kappa}^{-1}~;~\mathcal{S}~;~Id\\
+& (a\ >>=_{\kappa T_1 T_3}\ k_1, b\ >>=_{Id T_2 T_4}\ k_2) \in return_{\kappa}^{-1}~;~\mathcal{S}~;~Id
+\end{align*}
+
+Wir betrachten also beliebige $\mathcal{R}$ und $(return_{\kappa}\ a, Id\ b) \in return_{\kappa}^{-1}~;~\mathcal{R}~;~Id$
+(durch die Komposition mit $return_{\kappa}^{-1}$ und $Id$ können diese Elemente nur von dieser Form sein \todo{evtl ausführlicher}).
+Zudem seien $(k_1, k_2) \in \mathcal{R} \rightarrow \mathcal{F}\ \mathcal{S}$, was bedeutet, dass für alle $(x, y) \in \mathcal{R}$
+gilt, dass $(k_1\ x, k_2\ y) \in return_{\kappa}^{-1}~;~\mathcal{S}~;~Id$.
+Durch das erste Monadengesetz, \texttt{return a >>= k = k a} \todo{nicht trennen}, gilt die folgende Aussage.
+
+\begin{align*}
+(return_{\kappa}\ a >>=_{\kappa} k_1, Id\ b >>=_{Id}\ k_2) = (k_1\ a, k_2\ b)
+\end{align*}
+
+Da $(k_1\ a, k_2\ b) \in return_{\kappa}^{-1}~;~\mathcal{S}~;~Id$, ist auch die Parametrizitätsaussage für die zweite Funktion
+gezeigt. Somit sind beide Aussagen gezeigt und es gilt, dass $\mathcal{F}$ die Klasse \texttt{Monad} beachtet. Das heißt, dass
+das freie Theorem zu $f$ für $\mathcal{F}$ gilt, sprich: $(f_{\kappa}, f_{Id}) \in [\mathcal{F}\ id_{Int}] \rightarrow \mathcal{F}\ 
+id_{Int}$. Es gilt nun Folgendes.
+
+\begin{align*}
+& \mathcal{F}\ id_{Int} \\
+=~& return_{\kappa}^{-1}~;~id_{Int}~;~Id \\
+=~& return_{\kappa}^{-1}~;~Id \\
+=~& return_{\kappa}^{-1}~;~unId^{-1} \\
+=~& (return_{\kappa} \circ unId)^{-1}
+\end{align*}
+
+Das freie Theorem zu $f$ impliziert also die folgende Aussage, da $\mathcal{F}$ die Klasse \texttt{Monad} beachtet und man
+die Relationen wieder zu Funktionen spezialisieren kann, und somit beweist die folgende Aussage die Behauptung.
+
+\begin{align*}
+& \forall (x, y) \in [(return_{\kappa} \circ unId)^{-1}] \\
+& (f_{\kappa}\ x, f_{Id}\ y) \in (return_{\kappa} \circ unId)^{-1} \\
+\Rightarrow~& \forall l' :: [Int] \\
+& return_{\kappa} (unId (f_{Id}\ (map\ Id\ l'))) = f_{\kappa}\ (map\ return_{\kappa}\ l')
+\end{align*}
+
+
 %Ist nicht sichergestellt, dass sämtliche Elemente der Eingabeliste rein sind, kann man sich weiter überlegen, dass eine
 %Möglichkeit zur Verfügung steht, mit der man den reinen Inhalt des monadischen Werts extrahieren kann - ähnlich wie
 %die unsichere Funktion \texttt{unsafePerformIO}, die den reinen Wert aus einer IO-Monade extrahiert, nur eben für
