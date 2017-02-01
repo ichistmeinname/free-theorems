@@ -39,15 +39,16 @@ Kopf-Normal-Form reduziert wird, unabhängig vom zweiten Parameter.
 
 Handelt es sich beim ersten Parameter also um $\bot$, ergibt sich daraus ein Fehler, obwohl der erste Parameter
 ansonsten möglicherweise gar keine Verwendung findet. Bei den Striktheitsannotationen bei Datentypen handelt es sich
-um angenehmere Schreibweisen, um den Striktheitsoperator zu verwenden. Das folgende Beispiel zeigt eine solche
-Striktheitsannotation.
+um angenehmere Schreibweisen, um den Striktheitsoperator zu verwenden \todo{besser formulieren}
+Diese Notation wurde bereits kurz in Abschnitt \ref{sec:basic-syntax} erwähnt \todo{nötig?}.
+Das folgende Beispiel zeigt eine solche Striktheitsannotation.
 
 \begin{minted}{haskell}
 data Test = String !SomeData
 \end{minted}
 
 Die Annotation im Beispiel bewirkt, dass der Parameter vom Datentyp \texttt{SomeData} stets sofort ausgewertet wird und
-folglich auf Kopf-Normal-Form reduziert wird.
+folglich auf Kopf-Normal-Form reduziert wird, statt wie üblich Lazy Evaluation anzuwenden.
  
 
 %Letztere können bei selbstdefinierten
@@ -58,18 +59,49 @@ Die Untermenge SubsetWithSeq ist die Sprache, die auch \texttt{seq} und Strikthe
 Es wird noch eine weitere Unterscheidung eingeführt: Zu SubsetWithFix und SubsetWithSeq kann noch unterschieden werden,
 ob die Theoreme als Gleichungen oder als Ungleichungen erwünscht sind.
 
-Die Idee hinter der Darstellung als Ungleichungen ist die folgende: Durch Einführen von \texttt{seq} bricht die Gültigkeit der
-freien Theoreme auseinander, weil es passieren kann, dass eine Seite der resultierenden Gleichung $\bot$ sein kann.
+Die Idee hinter der Darstellung als Ungleichungen, beschrieben von Johann und Voigtländer \cite{johann}, ist die folgende: Durch Einführen von \texttt{seq} bricht die Gültigkeit der
+freien Theoreme auseinander, weil es passieren kann, dass eine Seite der resultierenden Gleichung $\bot$ wird.
 Man kann die Aussage jedoch als Ungleichung darstellen, indem man die Typrelationen asymmetrisch konstruiert; sie
 ordnen dann nicht mehr jeweils zwei Ausdrücke als ``gleichwertig'' einander zu, sondern legen eine Ordnung fest, die
 die \textit{Definiertheit} widerspiegelt \cite{johann}. So bleibt es möglich, gültige Aussagen zu treffen, ohne zu starke
 Einschränkungen auf die quantifizierten Relationen festzulegen.
 
-Insgesamt ergeben sich insgesamt fünf Varianten, für die \cite{freetheorems} die folgende Schreibweise einführt,
-wobei $M$ die Menge der verfügbaren \textit{Modelle} ist:
+Insgesamt ergeben sich insgesamt fünf Varianten, für die Böhme \cite{freetheorems} die folgende Schreibweise einführt,
+wobei $M$ die Menge der verfügbaren \textit{Modelle} ist.
 
 \begin{align}
 M = \{(basic, =), (fix, =), (fix, \sqsubseteq), (seq, =), (seq, \sqsubseteq)\}
 \end{align}
 
+Je nach gewählter Teilsprache kommen unterschiedliche Relationen bei Allquantifizierungen über Relationen infrage. Tabelle
+\ref{tab:relations} listet die unterschiedlichen Relationen auf, die bei Böhme definiert werden, wobei die jeweiligen Relationen
+stets auf den Typen $T_1, T_2$ definiert sind.
+
+\begin{table}[th]
+\centering
+\begin{tabular}{| l | l |}
+\hline
+Bezeichnung & Beschreibung \\
+\hline
+$Rel^{(fix, =)}(T_1, T_2)$ & Menge aller zulässigen Relationen \\
+$Rel^{(fix, \sqsubseteq)}(T_1, T_2)$ & Menge aller zulässigen und links-abgeschlossenen Relationen \\
+$Rel^{(seq, =)}(T_1, T_2)$ & Menge aller zulässigen und bottom-reflexiven Relationen \\
+$Rel^{(seq, \sqsubseteq)}(T_1, T_2)$ & Menge der zulässigen, totalen und links-abgeschlossenen Relationen \\
+\hline
+\end{tabular}
+\caption{Relationen für die verschiedenen Teilsprachen}
+\label{tab:relations}
+\end{table}
+
 % TODO: zumindest erklären, welche einschränkungen auf die relationen angewendet werden.
+
+Die Menge $Rel^{seq}(T_1, T_2)$ beschreibt dabei die Menge aller Relationen auf den Mengen $T_1$ und $T_2$, die zulässig,
+total und links-abgeschlossen sind.
+
+Dazu werden neue relationale Aktionen definiert. So wird die Funktion zwischen Relationen bezüglich \texttt{seq} folgendermaßen
+gebildet.
+
+\begin{align*}
+\mathcal{R} \rightarrow^{seq} \mathcal{S} = \{~(f, g)~|~(f \neq \bot \Rightarrow g \neq \bot) \wedge
+\forall (x, y) \in \mathcal{R}. (f\ x, g\ y) \in \mathcal{S} \}
+\end{align*}

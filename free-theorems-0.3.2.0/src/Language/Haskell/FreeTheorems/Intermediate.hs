@@ -177,7 +177,6 @@ interpretM l t = case t of
     if (isUsedAsTypeConstructor i t')
       then do
             let rvar = RelConsFunVar (RelationInfo l t1 t2) rv
---            error $ "Inserting into map: " ++ show v ++ " = (RelConsFunVar (RelationInfo " ++ show t1 ++ ", " ++ show t2 ++ ")) rv"
             r  <- local (Map.insert v rvar) $ interpretM l t'  -- subrelations
             let res = relRes l ++ (if null cs then [] else [RespectsClasses cs])
             return $ RelTypeConsAbs ri rv (t1,t2) res r
