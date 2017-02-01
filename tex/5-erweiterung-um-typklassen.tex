@@ -203,6 +203,8 @@ Mit diesen Erweiterungen ist es nun möglich, die hinzukommenden relationalen St
 \subsection{Zusätzliche Fehlerprüfungen}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+\label{sec:erweiterung-typklassen-fehler}
+
 %Da in der ursprünglichen Version von free-theorems Typkonstruktorvariablen nicht gestattet waren, konnten einige
 %Fehlerüberprüfungen eingespart werden. Erlaubt man Typkonstruktorvariablen, muss man zusätzliche Fehlerfälle abdecken,
 %die auftreten können. Betrachten wir das folgende Beispiel:
@@ -489,18 +491,25 @@ Typkonstruktorvariablen über denselben Ausdruck \texttt{TypeAbs} allquantifizie
 nächsten Schritt.
 
 Die Liste, die der \texttt{TypeAbs}-Konstruktor als zweiten Parameter erwartet, ist die Liste der Einschränkungen -- auf Syntaxebene
-sind dies die im Kontext angegebenen Typklassen.
+sind dies die im Kontext angegebenen Typklassen, in diesem Beispiel also die Klasse \texttt{Functor}.
 
-Der nächste Schritt besteht wieder darin, die Funktion $interpret$ aufzurufen. Was im Beispiel nicht zu sehen ist, ist die
-Deklaration der \texttt{Functor}-Klasse. Natürlich muss die $interpret$-Funktion wissen, welche vordefinierten Funktionen,
-Datentypen und Klassen gegeben sind. In der Implementierung der Webui \cite{freetheoremswebui} werden zum Beispiel bereits
-geparste BasicSyntax-Ausdrücke vieler Deklarationen der Prelude aus einem separaten Modul importiert und der
-\texttt{interpret}-Funktion zusätzlich zur eigentlichen Signatur übergeben, sodass sie dieser bekannt sind.
+Der nächste Schritt, der Aufruf der \texttt{check}-Funktion, soll nur am Rande erwähnt bleiben, da die entsprechenden
+Fehlerüberprüfungen in Abschnitt \ref{sec:erweiterung-typklassen-fehler} bereits erläutert wurden und in unserem Beispiel
+kein Fehler zu erwarten ist -- zudem ändert sich die Datenstruktur dadurch kaum.
+
+Wichtig ist aber zu erwähnen, dass die \texttt{check}-Funktion (bzw. die \texttt{checkAgainst}) natürlich sicherstellt, dass die
+\texttt{Functor}-Klasse deklariert ist.
+In unserem Beispiel ist die eigentliche Deklaration der Klasse nicht enthalten. Natürlich muss die \texttt{check}- bzw später
+auch die \texttt{interpret}-Funktion wissen, welche vordefinierten Funktionen,
+Datentypen und Klassen gegeben sind. In der Implementierung des Webinterface \cite{freetheoremswebui} werden zum Beispiel bereits
+geparste \texttt{BasicSyntax}-Ausdrücke vieler Deklarationen der Prelude aus einem separaten Modul importiert und den
+Funktionen \texttt{checkAgainst} und \texttt{interpret} zusätzlich zur Hauptsignatur übergeben, sodass sie dieser bekannt sind.
 Außerdem wird ein Eingabefeld angezeigt, in dem es möglich ist, zusätzliche Deklarationen anzugeben.
 
-Wir gehen im Folgenden davon aus, dass die typische Deklaration der \texttt{Functor}-Klasse gegeben ist, wie sie auch schon
-mehrfach verwendet wurde in dieser Arbeit. \todo{?} \texttt{interpret} überführt die \texttt{BasicSyntax} nun also in die
-\texttt{Intermediate}-Darstellung, die in Listing \ref{lst:example-intermediate} zu sehen ist.
+Wir gehen im Folgenden davon aus, dass die typische Deklaration der \texttt{Functor}-Klasse gegeben ist, wie sie in dieser
+Arbeit auch schon mehrfach verwendet wurde. Der nächste Schritt besteht wieder darin, die Funktion $interpret$ aufzurufen. 
+Diese Funktion überführt die \texttt{BasicSyntax} nun also in die \texttt{Intermediate}-Darstellung, die vereinfacht in Listing
+\ref{lst:example-intermediate} zu sehen ist.
 
 \begin{listing}[ht]
 \begin{minted}{haskell}
@@ -525,4 +534,55 @@ Dieser Schritt ist wieder relativ selbsterklärend, da lediglich jede Typkonstru
 überführt wird. Die \texttt{RelTypeConsApp}-Ausdrücke entsprechen dabei der Applikation einer Relationsfunktion auf
 eine Relation. Die Typen sind dabei die Typkonstruktoren, angewandt auf die Typvariablen.
 
+An dieser Stelle liegt also eine \texttt{Intermediate}-Struktur vor, die die Relationaldarstellung der Typsignatur enthält. Als
+nächstes soll diese Relationaldarstellung spezialisiert werden auf Funktionen, es wird als zunächst durch einen Aufruf von
+\texttt{relationVariables} die Liste aller Relationsvariablen ermittelt, für jede dieser Variablen wird dann \texttt{specialise}
+aufgerfen.
+
+Die \texttt{Intermediate}-Struktur sieht daraufhin so aus wie in Listing \ref{lst:example-intermediate-specialised}.
+
+\begin{listing}[ht]
+\begin{minted}{haskell}
+(Intermediate "fmap" BasicSubset
+   (FunAbs "f" ("t1", "t2")
+      (FunAbs "g" ("t3", "t4")
+         (RelTypeConsAbs ("k1", "k2")
+            (RelFun
+               (RelFun
+                  (FunVar "f")
+                  (FunVar "g"))
+               (RelFun
+                  (RelTypeConsApp ("k1 t1", "k2 t2") "R1"
+                     (FunVar "f"))
+                  (RelTypeConsApp ("k1 t3", "k2 t4") "R1"
+                     (FunVar "g"))))))) ...)
+\end{minted}
+\caption{Spezialisierte Intermediate-Darstellung des Beispiels}
+\label{lst:example-intermediate-specialised}
+\end{listing}
+
+Wie man sieht, werden sämtliche Vorkommen von Relationsvariablen durch entsprechende Funktionsvariablen ersetzt, auch
+die Variablen, die innerhalb der \texttt{RelTypeConsApp}-Struktur stehen. An den Applikationsausdrücken selbst hat sich
+nichts geändert. Zu beachten ist noch, dass die als Tupel dargestellten Zeichenketten in \texttt{RelTypeConsApp} nur
+der Einfachheit in dieser Form zu sehen sind -- tatsächlich handelt es sich jeweils um \texttt{RelationInfo}-Ausdrücke, in
+allgemein in jedem Ausdruck des \texttt{Relation}-Datentyp vorkommen und den jeweils dargestellten Typ beinhalten.
+
+An dieser Stelle kann also die Umwandlung in die Formel des freine Theorems stattfinden, wozu die Funktion \texttt{asTheorem}
+bemüht wird. Diese Funktion führt nun das Abrollen der jeweiligen Relationsdefinitionen durch und erzeugt eine
+entsprechende \texttt{Formula}-Struktur. Auch diese Zwischendarstellung soll an dieser Stelle nicht noch einmal thematisiert
+werden, das Interessante ist die durch den Pretty Printer resultierende Zeichenkette, die wie folgt aussieht.
+
+\begin{minted}{haskell}
+"forall t1,t2 in TYPES, f :: t1 -> t2.
+ forall t3,t4 in TYPES, g :: t3 -> t4.
+  forall k1,k2 in (* -> *), R1 : k1 <=> k2, R1 respects Functor.
+   forall p :: t1 -> t3.
+    forall q :: t2 -> t4.
+     (forall x :: t1. g (p x) = q (f x))
+     ==> (forall (y, z) in R1 f.
+           (fmap_{t1}_{t3}_{k1} p y, fmap_{t2}_{t4}_{k2} q z) in R1 g)"
+\end{minted}
+
+Und es zeigt sich, dass diese Zeichenkette dem in Abschnitt \texttt{sec:freie-theoreme-anwendung} per Hand hergeleiteten
+freien Theorem zu \texttt{fmap} entspricht.
 % TODO: Beispieldurchlauf zuende schreiben
