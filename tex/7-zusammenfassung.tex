@@ -1,23 +1,91 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\section{Zusammenfassung}
+\section{Zusammenfassung und Ausblick}
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-In dieser Ausarbeitung wurde eine bereits existierende Haskell-Bibliothek zur automatischen Generierung freier Theoreme
-beschrieben und eine Erweiterung dieser Bibliothek vorgestellt, mit der es möglich wird, freie Theoreme auch im Zusammenhang
+In dieser Arbeit wurde eine bereits existierende Haskell-Bibliothek zur automatischen Generierung freier Theoreme
+beschrieben und eine Erweiterung dieser Bibliothek zusammengefasst, mit der es möglich ist, freie Theoreme auch im Zusammenhang
 mit Typkonstruktorklassen zu generieren.
 
-In Kapitel \ref{sec:freie-theoreme} wurde vorgestellt, wie nach \cite{wadler} die Interpretation von Typen als Typrelationen
-vonstatten geht und wie sich daraus wertvolle Theoreme ableiten lassen. Anhand dieser wurde dann in \ref{sec:free-theorems}
-die Bibliothek \textit{free-theorems} \cite{freetheorems} erläutert und anhand einiger Beispieldaten veranschaulicht.
+In Kapitel \ref{sec:freie-theoreme} wurde vorgestellt, wie nach Wadler \cite{wadler} die Interpretation von Typen als Typrelationen
+vonstatten geht und wie sich daraus wertvolle Theoreme ableiten lassen. Insbesondere wurde die Herleitung von Theoremen
+in der Anwesenheit von Typkonstruktorklassen und Typkonstruktorvariablen erläutert, wie sie von Voigtländer \cite{voigtlander}
+beschrieben wird.
 
-Da diese Bibliothek vorher nicht mit Typkonstruktorklassen umgehen konnte, lag der Fokus dieser Arbeit darauf, die Bibliothek dermaßen
-zu erweitern, dass sie auch mit Typkonstruktorklassen arbeiten kann. Nebenbei wurden einige Kompatibilitätsprobleme beseitigt,
-die ein Kompilieren der Bibliothek mit aktuellen Versionen des verwendeten GHC \cite{ghc} verhinderte.
+Schließlich wurde die Bibliothek \textit{free-theorems} \cite{freetheorems} beschrieben und anhand einiger Beispieldaten
+veranschaulicht. Die Technik zur Herleitung von Theoremen zu Typkonstruktorklassen wurde schließlich verwendet, um der
+beschriebenen Bibliothek die entsprechende Funktionalität hinzuzufügen.
 
-Verschiedene Quellen stellen Möglichkeiten vor, freie Theoreme für Typsignaturen zu generieren, die Typkonstruktorklassen
-verwenden. In dieser Arbeit findet die Vorgehensweise von Voigtländer \cite{voigtlander} Anwendung, die die relationale Interpretation
-von Typsignaturen erweitert um eine Interpretation für Typkonstruktorvariablen-Abstraktion: Es wird über Funktionen
-quantifiziert, die ihrerseits Typrelationen auf neue Relationen abbilden.
+Dazu war es notwendig, die internen Datenstrukturen so zu erweitern, dass sie die hinzukommenden syntaktischen und formalen
+Ausdrücke speichern können. Da die Bibliothek auf etwas älteren Modulen aufbaute, wurden hierbei auch
+Kompatibilitätsprobleme beseitigt, die ein Kompilieren der Bibliothek mit neueren Versionen des verwendeten GHC verhinderte.
+%Anhand dieser wurde dann in \ref{sec:free-theorems}
+%die Bibliothek \textit{free-theorems} \cite{freetheorems} erläutert und anhand einiger Beispieldaten veranschaulicht.
 
-Mithilfe dieser Erweiterung lässt sich die Bibliothek jetzt auf einen breiteren Rahmen an Haskell-Programmen anwenden, da
-Typsignaturen, die Typkonstruktorklassen verwenden, nicht länger wegfallen.
+%Da diese Bibliothek vorher nicht mit Typkonstruktorklassen umgehen konnte, lag der Fokus dieser Arbeit darauf, die Bibliothek dermaßen
+%zu erweitern, dass sie auch mit Typkonstruktorklassen arbeiten kann. Nebenbei wurden einige Kompatibilitätsprobleme beseitigt,
+%die ein Kompilieren der Bibliothek mit aktuellen Versionen des verwendeten GHC \cite{ghc} verhinderte
+
+Und natürlich wurde an einigen Stellen die Funktionalität der Bibliothek verändert, um die Theoremgenerierung auf
+Typkonstruktorvariablen auszuweiten. So wurden beispielsweise neue abzufangende Fehlerfälle eingeführt, die
+Überführung der Syntax in entsprechende relationale Strukturen wurde erweitert und das \textit{Abrollen} der
+Parametrizitätsaussage musste an die erweiterte Vorgehensweise angepasst werden.
+
+Schließlich wurde kurz darauf eingegangen, inwiefern der Fixpunktoperator und Striktheitsoperator dafür sorgen,
+dass freie Theorome in der Tat nicht ganz so simpel sind, wie sie im Großteil dieser Arbeit dargestellt werden. Kapitel
+\ref{sec:striktheit-und-rekursion} hat diese Probleme erläutert und hat Lösungen von Wadler, Voigtländer und Johann angedeutet,
+indem nämlich die Sprache Haskell in Teilsprachen aufgeteilt wird, wobei in jeder Teilsprache unterschiedlich starke Einschränkungen
+an die konstruierten Relationen gestellt werden.
+
+Durch die Erweiterung der Bibliothek auf Typkonstruktorklassen ist es nun also möglich, freie Theoreme für einen breiteren
+Rahmen an Programmen zu generieren, da man auf dieses wichtige Sprachelement nicht länger verzichten muss.
+
+\subsection{Ausblick}
+
+In der Erweiterung der Bibliothek wird bisher nur die Sprache \texttt{BasicSubset} unterstützt, in der weder der Fixpunktoperator
+noch Striktheit vorgesehen sind. Da es sich bei diesen Sprachelementen jedoch um praktisch unverzichtbare Konstrukte
+in Haskell handelt, wäre es wünschenswert, die Implementierung dahingehend zu erweitern, dass auch
+die Teilsprachen \texttt{SubsetWithFix} und \texttt{SubsetWithSeq} unterstützt werden.
+
+%Verschiedene Quellen stellen  vor, freie Theoreme für Typsignaturen zu generieren, die Typkonstruktorklassen
+%verwenden. In dieser Arbeit findet die Vorgehensweise von Voigtländer \cite{voigtlander} Anwendung, die die relationale Interpretation
+%von Typsignaturen erweitert um eine Interpretation für Typkonstruktorvariablen-Abstraktion: Es wird über Funktionen
+%quantifiziert, die ihrerseits Typrelationen auf neue Relationen abbilden.
+
+%Mithilfe dieser Erweiterung lässt sich die Bibliothek jetzt auf einen breiteren Rahmen an Haskell-Programmen anwenden, da
+%Typsignaturen, die Typkonstruktorklassen verwenden, nicht länger wegfallen.
+
+
+%Es wurde bereits in Kapitel \ref{sec:striktheit-und-rekursion} darauf eingegangen, inwiefern Striktheit und der Fixpunktoperator
+%eine Rolle bei der Gegnerierung freier Theoreme spielen. In der Erweiterung der Bibliothek wurden diese bisher außer Acht gelassen,
+%sie funktioniert nur mit der \texttt{BasicLanguage} korrekt. Aber natürlich wäre es wünschenswert, auch die übrigen
+%Teilsprachen zu unterstützen.
+
+%Die umgesetzte Erweiterung basierte zum großen Teil auf einer Arbeit von Voigtländer \cite{voigtlander}, deren Betrach
+
+In der umgesetzten Implementierung ist nur die Typsorte $* \rightarrow *$ vorgesehen.
+Aktuelle Spracherweiterungen des
+GHC Compilers ermöglichen hingegen sogar benutzerdefinierte Typsorten \cite{yorgey}. Auch
+hier wäre noch Raum für Verbesserungen.
+
+Die Theorie hinter der Erweiterung um Typkonstruktorklassen wendet dasselbe Vorgehen an wie
+Voigtländer \cite{voigtlander}. Es existieren weitere Ansätze, um freie Theoreme zu höheren Sorten
+zu generieren, so zum Beispiel von Aktey, der ein Modell aufstellt, in dem Sorten als reflexive
+Graphen dargestellt werden \cite{atkey}.
+
+Wirklich komfortabel wird der Umgang mit der Bibliothek \textit{free-theorems} erst, wenn ein angenehmes Benutzerinterface verfügbar ist.
+Bei der Entstehung dieser Arbeit wurde beispielsweise ein kleines Tool geschrieben, das Zugriff auf die Funktionalitäten
+der Bibliothek bietet. Es verrichtet seine Arbeit, bietet aber keinen echten Komfort beim Erzeugen der Theoreme. Zudem
+läuft es lediglich in der Kommandozeile.
+
+Angenehmer stellt sich die Verwendung dar, wenn beispielsweise ein Webinterface wie das Paket \textit{free-theorems-webui}
+\cite{freetheoremswebui} verwendet wird. Nicht nur wird die Eingabe dadurch intuitiver und einfacher, es ist auch eine
+übersichtlichere Darstellung des resultierenden Theorems möglich.
+
+\textit{free-theorems-webui} importiert dabei eine Datei vordefinierter Deklarationen, sodass bekannte Typen aus der
+Prelude verwendet werden können und man Funktionssignaturen zu bekannten Funktionen direkt über deren Namen
+angeben kann. Bei der Umsetzung der vorliegenden Arbeit wurden Deklarationen für \texttt{Functor} und \texttt{Monad}
+eingebaut. Doch nicht nur gibt es weitere wichtige Typklassen, die jetzt ebenfalls verwendet werden können, es gibt
+auch viele Funktionen, die mit Typkonstruktorvariablen arbeiten und daher bisher nicht verwendbar waren.
+
+Es bietet sich also an, die Liste der \texttt{KnownDeclarations} auszubauen und sich zu überlegen, welche
+Typkonstruktorklassen und Funktionen sinnvoll sind.

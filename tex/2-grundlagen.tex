@@ -10,7 +10,7 @@ Bevor auf die eigentliche Thematik eingegangen wird, bietet es sich an, einige G
 von Bedeutung sein werden. Ein großer Teil der Arbeit baut auf dem mathematischen Konstrukt der Relation auf, weshalb neben
 grundsätzlichen mathematischen Notationen vor allem Definitionen und Notationen eingeführt werden, die Relationen betreffen.
 
-Des Weiteren sind Haskell-Kenntnisse erforderlich. Es würde an dieser Stelle zu weit führen, sämtliche Sprachkonstrukte von
+Des Weiteren sind Haskell-Kenntnisse erforderlich für das Verständnis der weiteren Arbeit. Es würde an dieser Stelle zu weit führen, sämtliche Sprachkonstrukte von
 Haskell anzuführen, die für die folgenden Abschnitte von Bedeutung sind; dennoch wird zumindest auf Typklassen eingegangen, insbesondere Typkonstruktorklassen,
 da diese für die Arbeit eine signifikante Rolle spielen. Zudem bietet es sich an, von Anfang an einige Benennungen einzuführen, die im Laufe der
 Arbeit immer wieder auftauchen werden.
@@ -59,19 +59,12 @@ Die mathematische Grundlage und das wichtigste Werkzeug beim Erzeugen von freien
 
 \begin{mydef}
 Eine \textit{binäre Relation} ist auf zwei Mengen definiert, deren Elemente sie einander zuordnet. Die Schreibweise
-$\mathcal{R} : T_1 \Leftrightarrow T_2$ sagt, dass $\mathcal{R}$ eine auf den Mengen $T_1$ und $T_2$ definierte
+$\mathcal{R} : T_1 \Leftrightarrow T_2$ sagt, dass $\mathcal{R} \subseteq T_1 \times T_2$ eine auf den Mengen $T_1$ und $T_2$ definierte
 Relation ist.
 \end{mydef}
 
 Man kann die Relation als eine Menge von Paaren auffassen, wobei jedes Paar aus einem Element aus $T_1$ und einem
 Element aus $T_2$ besteht.
-%Sie ordnet den Elementen der ersten Menge beliebig viele Elemente der zweiten Menge zu. Man kann die Relation
-%auffassen als eine Menge von Paaren, wobei jedes Paar aus einem Element aus $T_1$ und einem Element aus $T_2$ besteht.
-
-\begin{align*}
-T_1 \times T_2 \subseteq \mathcal{R}
-\end{align*}
-
 Die Aussage $(x, y) \in \mathcal{R}$ bedeutet also, dass $x$ und $y$ bezüglich $\mathcal{R}$ verwandt sind. Man schreibt hierfür
 gelegentlich auch $x\ \mathcal{R}\ y$ (hauptsächlich, wenn es sich bei $\mathcal{R}$ um ein Operatorsymbol handelt).
 Anders ausgedrückt ordnet eine Relation jedem Element aus der ersten Menge beliebig viele Elemente aus der zweiten Menge zu.
@@ -86,39 +79,33 @@ $id_{M} = \{ (x, x) | x \in M \}$, in der also jedes Element aus $M$ mit sich se
 
 Ein Beispiel für Identitätsrelationen lässt sich ganz einfach für die Menge $\mathcal{B}$ der Wahrheitswerte geben. Es ist
 $\mathcal{B} = \{ tt, ff \}$, somit ist $id_{\mathcal{B}} = \{ (tt, tt), (ff, ff) \}$.
-
-% % % % % Nicht zwingend drin % % % % %
-%Zunächst werden die grundlegenden Notationen behandelt.
-
-%Eine \textit{gerankte} Menge \todo{Wie soll man ranked übersetzen?} ist ein Paar $(A, rank)$, wobei $A$ eine endliche Menge ist und
-%$rank : A \rightarrow \mathbb{N}$ eine Funktion, die jedem Element der Menge einen Rang zuordnet. Man bezeichnet mit
-%$A^{(n)}$ die Menge $\{a \in A | rank(a) = n \}$, $n \in \mathbb{N}$.
-
-Erfüllen Relationen bestimmte Gesetzmäßigkeiten \todo{?}, kann man sie in bestimmte Relationen unterteilen, so zum Beispiel
-\textit{partielle Ordnungen}.
+%Erfüllen Relationen bestimmte Gesetzmäßigkeiten \todo{?}, kann man sie in bestimmte Relationen unterteilen, so zum Beispiel
+%\textit{partielle Ordnungen}.
+Man kann die Menge der Relationen weiter unterteilen, ein Spezialfall der Relation ist beispielsweise die \textit{partielle Ordnung}.
 
 \begin{mydef}
 Eine partielle Ordnung $\sqsubseteq : M \Leftrightarrow M$ ist eine Relation, die \textit{reflexiv}, \textit{antisymmetrisch} und \textit{transitiv} ist, d.h. es gelten die folgenden Aussagen für alle $x, y, z \in M$.
-
 \begin{align*}
 & x \sqsubseteq x & \text{(Reflexivität)} \\
 & x \sqsubseteq y \land y \sqsubseteq x \Rightarrow x = y & \text{(Antisymmetrie)} \\
 & x \sqsubseteq y \land y \sqsubseteq z \Rightarrow x \sqsubseteq z & \text{(Transitivität)} \\
 \end{align*}
-
 \end{mydef}
 
 Als Beispiel für eine solche partielle Ordnung lässt sich der Teilmengenoperator $\subseteq$ auf beliebigen Mengen betrachten.
-Dass für beliebige Mengen Reflexivität, Antisymmetrie und Transitivität gelten, sollte klar sein und wird hier nicht weiter
-vertieft \todo{vielleicht anders schreiben}.
+Wie man sich leicht klar machen kann, gilt für $\subseteq$ Reflexivität, Antisymmetrie und Transitivität.
+%Dass für beliebige Mengen Reflexivität, Antisymmetrie und Transitivität gelten, sollte klar sein und wird hier nicht weiter
+%vertieft \todo{vielleicht anders schreiben}.
 
-In Abschnitt \ref{sec:striktheit-und-rekursion} wird eine partielle Ordnung genutzt, um Ausdrücke bezüglich ihrer ``Definiertheit''
-zu ordnen. Dazu müssen einige Definitionen eingeführt werden, um partielle Ordnungen weiter zu kategorisieren. Die folgenden
-Definitionen richten sich dabei nach Johann und Voigtländer \cite{johann2006}. \todo{prüfen welche tatsächlich von da kommen}
+In Abschnitt \ref{sec:striktheit-und-rekursion} wird eine partielle Ordnung genutzt, um Ausdrücke bezüglich ihrer \textit{Definiertheit}'
+zu ordnen. Dazu müssen einige zusätzliche Definitionen eingeführt werden,
+um partielle Ordnungen weiter einzuschränken. Die folgenden
+Definitionen richten sich dabei nach Johann und Voigtländer \cite{johann2006}.
 
 \begin{mydef}
 Wenn $\sqsubseteq_{X}$ ein kleinstes Element besitzt, dann ist $\sqsubseteq_{X}$ eine komplette Partialordnung und man nennt $X$
-\textit{geordnet}. Dieses kleinste Element wird typischweise als $\bot_{X}$ (\textit{bottom}) bezeichnet.
+\textit{geordnet}. Dieses kleinste Element wird typischweise als $\bot_{X}$ (\textit{bottom}) bezeichnet, wobei man den Index
+auch weglassen kann, wenn klar ist, welche Menge gemeint ist.
 \end{mydef}
 
 \begin{mydef}
@@ -128,7 +115,7 @@ aus $y = \bot$ folgt $x = \bot$.
 \end{mydef}
 
 \begin{mydef}
-Man nennt $\mathcal{R}$ \textit{bottom-reflecting} \todo{wie soll man das bloß übersetzen?}, wenn für jedes Paar
+Man nennt $\mathcal{R}$ \textit{bottom-reflexiv}, wenn für jedes Paar
 $(x, y) \in \mathcal{R}$ gilt: $y = \bot \Leftrightarrow x = \bot$.
 \end{mydef}
 
@@ -139,14 +126,15 @@ Sei X eine Menge und $\sqsubseteq_{X}$ eine partielle Ordnung über X. Man nennt
 eine \textit{monotone Sequenz} über $X$, wenn $\bar{x}(i) \sqsubseteq_{X} \bar{x}(i + 1)$ für alle $i \in \mathbb{N}$.
 \end{mydef}
 
-Es handelt sich also um eine Kette von Elementen einer Ordnung, die jeder natürlichen Zahl ein Element aus der geordneten Menge
+Anders ausgedrückt ist eine monotone Sequenz also eine Menge von Elementen einer Ordnung,
+die jeder natürlichen Zahl ein Element aus der geordneten Menge
 zuordnet, sodass eine Erhöhung der Zahl auch eine Erhöhung des Elements bezüglich der Ordnung zur Folge hat.
 Auf dieser Definition von monotonen Sequenzen aufbauend lässt sich nun eine Definition für \textit{Stetigkeit} formulieren, darüber
 hinaus nennen wir die Kombination aus Stetigkeit und Striktheit \textit{zulässig}.
 
 \begin{mydef}
-Wenn für alle monotonen Sequenzen $\bar{x}$ über $X$ und $\bar{y}$ über $Y$, die $(\bar{x}(i), \bar{y}(i)) \in \mathcal{R}$
-erfüllen, jeweils das Paar der Suprema ($\bigsqcup{\bar{x}}, \bigsqcup{\bar{y}})$ in $\mathcal{R}$ ist, dann nennt man $\mathcal{R}$ \textit{stetig}.
+Wenn für alle monotonen Sequenzen $\bar{x}$ über $X$ und $\bar{y}$ über $Y$, die die Aussage $(\bar{x}(i),~\bar{y}(i)) \in\mathcal{R}$
+erfüllen, jeweils das Paar der Suprema ($\bigsqcup{\bar{x}}, \bigsqcup{\bar{y}})$ ebenfalls in $\mathcal{R}$ ist, dann nennt man $\mathcal{R}$ \textit{stetig}.
 \end{mydef}
 
 \begin{mydef}
@@ -156,24 +144,27 @@ Eine Relation ist \textit{zulässig}, wenn sie strikt und stetig ist.
 Hat man zwei Relationen gegeben, lassen sich aus diesen neue Relationen konstruieren, beispielsweise durch die Relationskomposition.
 
 \begin{mydef}
-Sind drei Mengen $X$, $Y$ und $Z$ und zwei binäre Relationen $\mathcal{R} \subseteq X \times Y$ und $\mathcal{R} \subseteq Y
-\times Z$ gegeben, dann definiert man die \textit{Komposition} von $\mathcal{R}$ und $\mathcal{S}$,
+Sind drei Mengen $X$, $Y$ und $Z$ und zwei binäre Relationen $\mathcal{R} : X \Leftrightarrow Y$ und $\mathcal{R} : Y
+\Leftrightarrow Z$ gegeben, dann definiert man die \textit{Komposition} von $\mathcal{R}$ und $\mathcal{S}$,
 geschrieben $\mathcal{R} ; \mathcal{S}$, wie folgt.
-
 \begin{align*}
-\mathcal{R} ; \mathcal{S} = \{ (x, z) | \exists y \in Y . (x, y) \in \mathcal{R} \wedge (y, z) \in \mathcal{S} \} \subseteq X \times Z
+\mathcal{R} ~;~ \mathcal{S} = \{ (x, z) ~|~ \exists y \in Y .~ (x, y) \in \mathcal{R} \wedge (y, z) \in \mathcal{S} \} \subseteq X \times Z
 \end{align*}
 \end{mydef}
 
-In Worten ausgedrückt bedeutet das, dass man zwei Relationen zu einer neuen Relationen zusammenfügt, in der zwei Elemente
-verwandt sind, wenn es ein Bindeelement gibt, mit dem das erste Element in der ersten verwandt ist, und das selbst wiederum mit
-dem zweiten Element bezüglich der zweiten Relation verwandt ist.
+In Worten ausgedrückt bedeutet das, dass man zwei Relationen zu einer neuen Relation zusammenfügt, in der zwei Elemente
+$x$ und $z$ verwandt sind, wenn es ein Bindeelement $y \in Y$ gibt, mit dem das erste Element $x$ in der ersten Relation und das
+zweite Element $z$ in der zweiten Relation verwandt ist.
 
-Hat man beispielsweise die Mengen $M = \{ 1, 2, 3 \}, N = \{ a, b, c \}, O = \{ \alpha, \beta, \gamma \}$ und zwei Relationen
-$\mathcal{R} : M \Leftrightarrow N, \mathcal{S} : N \Leftrightarrow O$ mit
-$\mathcal{R} = \{ (1, a), (2, b), (3, c) \}, \mathcal{S} = \{ (a, \alpha), (b, \beta), (c, \gamma) \}$ gegeben, so ergibt sich
-durch Kompositionen der beiden Relationen die folgende Relation.
+Wir betrachten ein Beispiel, in dem die folgenden Mengen und Relationen definiert sind.
+\begin{align*}
+&M = \{ 1, 2, 3 \}, N = \{ a, b, c \}, O = \{ \alpha, \beta, \gamma \} \\
+&\mathcal{R} : M \Leftrightarrow N, \mathcal{S} : N \Leftrightarrow O \\
+&\mathcal{R} = \{ (1, a), (2, b), (3, c) \} \\
+&\mathcal{S} = \{ (a, \alpha), (b, \beta), (c, \gamma) \}
+\end{align*}
 
+Durch Komposition der beiden Relationen $\mathcal{R}$ und $\mathcal{S}$ ergibt sich die folgende Relation.
 \begin{align*}
 R ; S = \{ (1, \alpha), (2, \beta), (3, \gamma) \}
 \end{align*}
@@ -181,21 +172,21 @@ R ; S = \{ (1, \alpha), (2, \beta), (3, \gamma) \}
 Mithilfe von Relationskomposition kann man nun sehr leicht \textit{Linksabgeschlossenheit} definieren.
 
 \begin{mydef}
-Ist Y eine Menge und X eine bezüglich $\sqsubseteq_{X}$ geordnete Menge, dann nennt man eine Relation $\mathcal{R} \subseteq X \times Y$ \textit{links-abgeschlossen}, wenn $\sqsubseteq_{X} ; R = R$.
+Ist Y eine Menge und X eine bezüglich $\sqsubseteq_{X}$ geordnete Menge, dann nennt man eine Relation $\mathcal{R} \subseteq X \times Y$ \textit{linksabgeschlossen}, wenn $\sqsubseteq_{X} ; R = R$.
 \end{mydef}
 
-Eine Relation ist also linksabgeschlossen bezüglich $\sqsubseteq_{X}$, wenn die Komposition dieser Ordnung mit $\mathcal{R}$
-wieder $\mathcal{R}$ ergibt, oder in anderen Worten: für jedes $(x, y) \in \mathcal{R}$ gilt, dass zu jedem $a \sqsubseteq_{X} x$
-auch $(a, y) \in \mathcal{R}$. \todo{Beispiel?}
+Eine Relation $\mathcal{R}$ ist also linksabgeschlossen bezüglich einer Ordnung $\sqsubseteq_{X}$, wenn die Komposition dieser Ordnung mit $\mathcal{R}$
+wieder $\mathcal{R}$ ergibt, oder in anderen Worten: wenn für jedes $(x, y) \in \mathcal{R}$ gilt, dass zu jedem $a \sqsubseteq_{X} x$
+auch $(a, y) \in \mathcal{R}$.
 
 \begin{mydef}
-Das Inverse einer Relation $\mathcal{R} \subseteq X \times Y$ wird definiert als $\mathcal{R}^{-1} = \{(y, x) | (x, y) \in \mathcal{R}\}
+Das Inverse einer Relation $\mathcal{R} : X \Leftrightarrow Y$ wird definiert als $\mathcal{R}^{-1} = \{(y, x) ~|~ (x, y) \in \mathcal{R}\}
 \subseteq Y \times X$. Möchte man $\sqsubseteq^{-1}$ ausdrücken, nutzt man zuweilen auch das umgedrehte Symbol $\sqsupseteq$.
 \end{mydef}
 
 \begin{mydef}
 Seien $X$ und $Y$ geordnete Mengen und $f : X \rightarrow Y$ eine Funktion. Man nennt $f$ \textit{monoton}, wenn aus $x
-\sqsubseteq y$ folgt, dass $f(x) \sqsubseteq f(y)$ für alle $x, y \in X$.
+\sqsubseteq_{X} y$ folgt, dass $f(x) \sqsubseteq_{Y} f(y)$ für alle $x, y \in X$.
 \end{mydef}
 
 %Sei $V$ eine endliche Menge und $\mathcal{E}$ eine binäre Relation auf $V$. Das Tupel $G = (V, \mathcal{E}) bezeichnet einen
@@ -212,20 +203,22 @@ Seien $X$ und $Y$ geordnete Mengen und $f : X \rightarrow Y$ eine Funktion. Man 
 
 Wie bereits erwähnt, ordnet eine Relation einem Element ein einzelnes Element, mehrere Elemente oder gar keine Elemente zu.
 Das unterscheidet sie von einer Funktion, oder anders ausgedrückt: Das macht Funktionen zu speziellen Relationen. Eine
-Funktion, ebenfalls auf zwei Mengen definiert, ordnet jedem Element genau ein Ergebnis zu - Eingabewerte mit
+Funktion, ebenfalls auf zwei Mengen definiert, ordnet jedem Element genau ein Ergebnis zu -- Eingabewerte mit
 mehreren Funktionswerten sind genausowenig enthalten wie Eingabewerte ohne Ergebnis.
 
 Wir betrachten eine beliebige Funktion $f : T_1 \rightarrow T_2$. Zu jedem $x \in T_1$ ist also $f(x)$ definiert, wobei $f(x) \in T_2$. Funktionen kann man auch wie folgt als Relationen darstellen.
-
 \begin{align*}
-\{ (x, f(x)) | x \in T_1 \}
+\{ (x, f(x)) ~|~ x \in T_1 \}
 \end{align*}
 
 Man nennt die zu $f$ gehörige Relation auch den \textit{Graphen} zu $f$.
-
 Umgekehrt heißt das natürlich, dass eine Relation unter Umständen auch eine Funktion ist. Das wird besonders interessant, wenn man
-über Relationen allquantifiziert, beispielsweise $\forall \mathcal{R} : T_1 \Leftrightarrow T_2 . A(\mathcal{R})$, wobei $A(\mathcal{R})$
-eine Aussage ist, die von $\mathcal{R}$ abhängt.
+über Relationen allquantifiziert, zu sehen im folgenden Beispiel.
+\begin{align*}
+\forall \mathcal{R} : T_1 \Leftrightarrow T_2 . A(\mathcal{R})
+\end{align*}
+
+Hierbei ist $A(\mathcal{R})$ eine Aussage, die von $\mathcal{R}$ abhängt.
 Diese Aussage lässt sich verschärfen, indem man statt über Relationen über Funktionen $\forall f : T_1 \rightarrow T_2$ quantifiziert.
 Eine Aussage wie  $(x, y) \in \mathcal{R}$ wird dann beispielsweise zu $f\ x = y$.
 
@@ -250,7 +243,7 @@ Aussage, gilt dementsprechend auch die speziellere Aussage.
 \subsection{Haskell}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Die in dieser Ausarbeitung verwendete Bibliothek generiert freie Theoreme für in Haskell geschriebene Programme. In diesem Abschnitt wird noch einmal speziell auf das Sprachkonstrukt der Typkonstruktorklassen eingegangen.
+Die in dieser Arbeit verwendete Bibliothek generiert freie Theoreme für in Haskell geschriebene Programme. In diesem Abschnitt wird noch einmal speziell auf das Sprachkonstrukt der Typkonstruktorklassen eingegangen.
 Eine generelle Beschreibung der Sprache Haskell würde an dieser Stelle zu weit führen, hier sei auf \cite{haskell} verwiesen.
 
 %In dieser Arbeit wird mit einer Teilsprache von Haskell gearbeitet, die ähnlich funktioniert wie der Girard-Reynolds-Kalkül,
@@ -277,8 +270,8 @@ Eine generelle Beschreibung der Sprache Haskell würde an dieser Stelle zu weit 
 
 Typklassen in Haskell ermöglichen die Umsetzung von Ad-Hoc-Polymorphismus. Man kann beliebige Typklassen selbst definieren,
 wobei eine Typklasse immer aus einem Namen, beliebig vielen Funktionssignaturen und gegebenenfalls auch aus vordefinierten
-Standardimplementierungen einzelner Funktionen besteht. Haskell transformiert Programme mit Typklassen intern in Programme
-ohne dieses Konstrukt, auch Wörterbuchtransformation (engl. ``dictionary translation'') genannt \cite{jones}.
+Standardimplementierungen einzelner Funktionen besteht. Haskell transformiert Programme, die Typklassen verwenden, intern in Programme
+ohne dieses Konstrukt -- man nennt diesen Vorgang auch Wörterbuchtransformation (engl. ``dictionary translation'') \cite{jones}.
 
 Es folgt ein einfaches Beispiel, das auch in der Prelude von Haskell enthalten ist.
 
@@ -318,7 +311,7 @@ test :: Functor f => f Int -> f Int
 
 Hier ist \texttt{f} eine freie Typvariable, für die jedoch ein Kontext angegeben ist, der besagt, dass für $f$ nur Instanzen
 der Typklasse \texttt{Functor} infrage kommen. Im Gegenzug für diese Einschränkung ist es in der Implementierung möglich,
-die Funktionen dieser Klasse zu nutzen, da sichergestellt ist, dass Implementierungen dieser Funktionen
+die Funktionen dieser Klasse mit dieser Variable zu nutzen, da sichergestellt ist, dass Implementierungen dieser Funktionen
 existieren. Die folgende Funktionsdefinition ist also eine mögliche Implementierung der obigen Beispielsignatur.
 
 \begin{minted}{haskell}
@@ -328,15 +321,15 @@ test x = fmap (+1) x
 Haskell erkennt, dass \texttt{x} ein Typ sein muss, für den eine \texttt{Functor}-Instanz deklariert ist, weshalb eine
 \texttt{fmap}-Implementierung existiert.
 
-Nun ist es ja auch möglich, dass ein selbstdefinierter Datentyp einen Typen als Parameter erwartet, wie das folgende Beispiel
+Nun ist es ja auch möglich, dass ein selbstdefinierter Datentyp einen Typ als Parameter erwartet, wie das folgende Beispiel
 zeigt.
 
 \begin{minted}{haskell}
 data Test a = Test a String
 \end{minted}
 
-Beim Ausdruck \texttt{Test} handelt es sich in diesem Fall also nicht um einen Typen, sondern eher um einen funktionsähnlichen Ausdruck, der
-einen Typen als Parameter erwartet und einen Typen zurückgibt. Man spricht hier auch von \textit{Sorten} (engl. ``kinds''). Haskell
+Beim Ausdruck \texttt{Test} handelt es sich in diesem Fall also nicht um einen Typ, sondern eher um einen funktionsähnlichen Ausdruck, der
+einen Typ als Parameter erwartet und einen Typ zurückgibt. Man spricht hier auch von \textit{Sorten} (engl. ``kinds''). Haskell
 führt für Sorten eine eigene Notation ein. Alle Basistypen wie \texttt{Int}, \texttt{String}, etc. sind von der Sorte *.
 Typkonstruktoren, die einen Typen als Parameter erwarten und daraus einen neuen Typen konstruieren, sind von der Sorte
 $* \rightarrow *$.
@@ -353,10 +346,10 @@ class Functor f where
 
 Hier ist \texttt{f} die Typvariable. Die Signatur für \texttt{fmap} lässt erkennen, dass \texttt{f} auf einen Parameter appliziert
 wird, $f$ muss also von der Sorte $* \rightarrow *$ sein. Zu beachten ist hier, dass es keinen Sinn macht (und auch nicht
-gestattet ist), dass die Typvariable mit unterschiedlichen Argumentzahlen auftaucht. Ebenso wäre es ungültig,
+gestattet ist), dass die Typvariable mit unterschiedlichen Argumentzahlen genutzt wird. Ebenso wäre es ungültig,
 eine Instanz von \texttt{Functor} zu definieren für einen Datentyp, der keine Typparameter erwartet.
 
-Nachfolgend ist ein Beispiel zu sehen, in dem ein Datentyp namens \texttt{Test} deklariert wird und in einer \texttt{instance}-Deklaration
+Nachfolgend ist ein Beispiel für ein ungültiges Programm zu sehen, in dem ein Datentyp namens \texttt{Test} deklariert wird und in einer \texttt{instance}-Deklaration
 eine Instanz für die Typklasse \texttt{Functor} beschrieben wird.
 
 \begin{minted}{haskell}
@@ -366,8 +359,7 @@ instance Functor Test where
    fmap = undefined
 \end{minted}
 
-Davon abgesehen, dass \texttt{fmap} als undefined deklariert ist (eine sinnvolle Implementierung ist hier ohnehin nicht wirklich
-möglich), ergibt diese Deklaration bereits zur Kompilierzeit den folgenden Fehler.
+Davon abgesehen, dass \texttt{fmap} als undefiniert deklariert ist (eine sinnvolle Implementierung ist hier ohnehin nicht möglich), ergibt diese Deklaration bereits zur Kompilierzeit einen Fehler, den GHC folgendermaßen darstellt.
 
 \begin{minted}{text}
     The first argument of `Functor' should have kind `* -> *',

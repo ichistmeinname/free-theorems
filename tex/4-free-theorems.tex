@@ -86,7 +86,7 @@ der von \texttt{haskell-src-exts} generiert wird, in eine vereinfachte Darstellu
 %werden lediglich Typsignaturen festgehalten, Implementierungen werden vollkommen ignoriert, da sie für die Theoremgenerierung keine Rolle spielen.
 
 
-\subsubsection{BasicSyntax}
+\subsubsection*{BasicSyntax}
 % `````````````````````
 
 \label{sec:basic-syntax}
@@ -326,9 +326,11 @@ Tabelle \ref{tab:relations} zeigt, welche Konstruktoren der \texttt{Relation}-Da
 \texttt{FunVar} und auch \texttt{FunAbs} nur verwendet werden, wenn Relationen zu Funktionen spezialisiert werden, was im
 nächsten Abschnitt von Bedeutung sein wird.
 
-Der \texttt{BasicSyntax}-Ausdruck \texttt{TypeExp} wiederum tritt in geparsten Ausdrücken erst einmal nicht auf, wird aber
-erzeugt, wenn die Syntax in die Relationaldarstellung überführt wird, um neu eingeführte Typen darzustellen.
-\todo{neu eingeführte typen?}
+Der \texttt{BasicSyntax}-Ausdruck \texttt{TypeExp} wiederum tritt in geparsten Ausdrücken erst einmal nicht auf, er wird
+innerhalb von \texttt{interpret} verwendet, um die neu eingeführten Typvariablen bei Relationsabstraktionen auszudrücken.
+%wird aber
+%erzeugt, wenn die Syntax in die Relationaldarstellung überführt wird, um neu eingeführte Typen darzustellen.
+%\todo{neu eingeführte typen?}
 
 \begin{table}
 \centering
@@ -361,7 +363,16 @@ ersetzt. Typkonstruktorausdrücke werden entweder zu einer \texttt{RelBasic}, al
 oder zu \texttt{RelLift}-Ausdrücken, also \textit{gelifteten} Relationen, je nachdem ob es sich um nullstellige oder mehrstellige
 Typkonstruktoren handelt.
 
-Aus der Funktion resultiert also letztendlich ein \texttt{Relation}-Ausdruck, der im nächsten Schritt weiterverarbeitet wird.
+Zusätzlich ist noch zu erwähnen, dass jeder \texttt{Relation}-Ausdruck eine \texttt{RelationInfo}-Struktur enthält. Diese enthält
+neben der verwendeten Teilsprache (die dementsprechend bei jedem \texttt{Relation}-Ausdruck gleich ist) die Typausdrücke
+der linken und der rechten Seite der Relation. Das Besondere hieran ist, dass diese Typausdrücke bei Typabstraktionen zunächst
+auch den entsprechenden \texttt{forall}-Ausdruck beinhalten sowie die jeweilige allquantifizierte Typvariable.
+
+Beim Typausdruck, der in die Map geschrieben wird (und demzufolge auch bei jedem weiteren Vorkommen der allquantifizierten
+Relationsvariable) werden sämtliche Vorkommen dieser allquantifizierten Typvariable jedoch durch die entsprechende neu
+eingeführte Typvariable der Relationsabstraktion ersetzt.
+
+Aus der \texttt{interpret}-Funktion resultiert also letztendlich ein \texttt{Relation}-Ausdruck, der im nächsten Schritt weiterverarbeitet wird.
 
 % % %
 
@@ -399,8 +410,8 @@ bietet \textit{free-theorems} die Funktion \texttt{specialise} an. Diese Funktio
 eine Relationsvariable und transformiert die Intermediate-Struktur, indem sie sämtliche vorkommen der Relationsvariablen
 durch Funktionsvariablen ersetzt.
 
-Im zweiten Schritt führt sie die \texttt{reduceLifts}-Funktion aus, die versucht geliftete Datentypen zu vereinfachen.
-\todo{besser ausdrücken} Wenn es sich hierbei um eine Funktion handelt, dann wird überprüft, ob es sich beim Typen
+Im zweiten Schritt führt sie die \texttt{reduceLifts}-Funktion aus, die nach Möglichkeit geliftete Datentypen vereinfacht.
+Wenn es sich hierbei um eine Funktion handelt, dann wird überprüft, ob es sich beim Typen
 um Listen oder um den spezifischen Typen \texttt{Maybe} handelt. In diesen Fällen wird der Ausdruck ersetzt durch die
 Funktion $map$ bzw. $fmap$, angewandt auf die entsprechende Funktion. Man kann dies als das \textit{Lifting} der Funktion
 in den entsprechenden Kontext auffassen.
@@ -414,9 +425,9 @@ test :: a -> [a]
 Man kann leicht nachvollziehen, dass diese Signatur zu folgendem freien Theorem führt.
 
 \begin{align*}
-& \forall T_1, T_2 \in Types, \mathcal{R} : T_1 \Leftrightarrow T_2 \\
-& \forall (x, y) \in \mathcal{R} \\
-& (test_{T1}\ x, test_{T2}\ y) \in lift_{[]}(\mathcal{R})
+& \forall~ T_1, T_2 \in Types, \mathcal{R} : T_1 \Leftrightarrow T_2 \\
+& \hphantom{\forall~} \forall (x, y) \in \mathcal{R} \\
+& \hphantom{\forall~ \forall} (test_{T1}\ x, test_{T2}\ y) \in lift_{[]}(\mathcal{R})
 \end{align*}
 
 Ersetzt man die Relationsvariablen jetzt durch Funktionensvariablen, ergibt sich die folgende Aussage.
@@ -448,7 +459,7 @@ Funktionsvariablen.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-\subsection{asTheorem}
+\subsection{Generierung des Theorems}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Der Schritt, der zu Beginn als ``Abrollen'' der Parametrizitätsaussage eingeführt wurde, wird in der Funktion \texttt{asTheorem}
@@ -498,7 +509,7 @@ unfoldFormula n n r
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-\subsection{simplify}
+\subsection{Vereinfachung der Formel}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 An dieser Stelle liegt die Formel im \texttt{Formula}-Datentyp vor. Bevor sie schließlich mithilfe der Pretty Printer Funktionen
@@ -530,7 +541,7 @@ dann per Pretty Printer in eine Zeichenkette umgewandelt werden.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-\subsection{unfoldLifts, unfoldClasses}
+\subsection{Abrollen von Lifts und Typklassen}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 % TODO: erklären, wie relationVariables funktioniert?
@@ -564,7 +575,7 @@ Teilmengen, eine Teilmenge pro Konstruktor. Die folgende Formel ergibt sich aus 
 \end{minted}
 
 Es wird einfach das bekannte Prinzip weitergeführt: Ausdrücke von Basistypen sind verwandt, wenn sie gleich sind. Ausdrücke
-des polymorphen Typen, der als Typvariable übergeben wurde, sind genau dann verwandt, wenn sie in der zugrundeliegenden
+des polymorphen Typs, der als Typvariable übergeben wurde, sind genau dann verwandt, wenn sie in der zugrundeliegenden
 Relation verwandt sind.
 
 Eine weitere Funktion, die \textit{free-theorems} anbietet, ist \texttt{unfoldClasses}. Diese Funktion extrahiert die Klassen,

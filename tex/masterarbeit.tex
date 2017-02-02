@@ -17,6 +17,7 @@
 \usepackage{minted}
 \usepackage{url}
 \usepackage{amsthm}
+\usepackage{dirtree}
 
 \newtheorem{mydef}{Definition}
 \newtheorem{mytheorem}{Theorem}
@@ -74,12 +75,43 @@
 %%% The "real" document content comes below...
 
 \title{Erweiterung eines Frameworks zur Generierung freier Theoreme um Typkonstruktorklassen}
-\author{Thomas Rossow}
-%\date{} % Activate to display a given date or no date (if empty),
+%\author{Thomas Rossow}
+\author{
+\\
+\\
+\large{Thomas Rossow} \\
+\small{Matrikelnummer: 004045} \\ 
+\\
+\\
+\\
+Master-Thesis \\
+\small{Februar 2017} \\
+\\
+\vspace{5cm} \\
+\small{Betreut von:} \\ Prof. Dr. Michael Hanus \\ M. Sc. Sandra Dylus \\
+\vspace{3cm} \\
+\small{Programmiersprachen und Übersetzerkonstruktion} \\ \small{Institut für Informatik} \\ \small{Christian-Albrechts-Universität zu Kiel}
+}
+\date{} % Activate to display a given date or no date (if empty),
          % otherwise the current date is printed 
 
 \begin{document}
 \maketitle
+\thispagestyle{empty}
+
+\newpage
+\thispagestyle{empty}
+\section*{Selbstständigkeitserklärung}
+\vspace{15mm}    % ?????
+ 
+Hiermit versichere ich, dass ich die vorliegende Arbeit selbstständig und nur unter
+Verwendung der angegebenen Quellen und Hilfsmittel verfasst habe.
+
+\vspace{30mm}
+Kiel, den \date{3.2.2017}\hspace{45mm}
+\rule{6cm}{0.1mm}
+\vspace{5mm}
+
 \newpage
 \tableofcontents 
 
@@ -103,10 +135,15 @@
 \clearpage
 \input{7-zusammenfassung}
 
-\clearpage
-\input{8-ausblick}
+%\clearpage
+%\input{8-ausblick}
 
+\clearpage
 \bibliography{masterarbeit}
 \bibliographystyle{alpha}
+
+\clearpage
+\appendix
+\input{anhang}
 
 \end{document}

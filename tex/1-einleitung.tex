@@ -6,14 +6,15 @@
 
 Das Typsystem einer Programmiersprache hat einen erheblichen Einfluss darauf, wie sich die Arbeit mit dieser
 Sprache gestaltet. Natürlich wird man jedes Programm, das mit einem statischen Typsystem entwickelt wurde,
-auch mit dynamischen Typen schreiben können. Dennoch bietet statische Typsicherheit einen nicht zu unterschätzenden Vorteil --
-nicht nur während der Entwicklung. \todo{kommt dazu noch mehr?}
+auch mit dynamischen Typen schreiben können. Dennoch bietet statische Typsicherheit deutliche Vorteile --
+nicht nur während der Entwicklung. Ein Vorteil ist die Möglichkeit, wertvolle Erkenntnisse allein aus den verwendeten
+Typen des Programms zu ziehen. Und genau das ist ein zentrales Thema dieser Arbeit.
 %Natürlich kann man mit einer streng statisch getypten Sprache nichts entwickeln, das man nicht
 %auch mit einem dynamischen Typsystem programmieren kann. Dennoch bietet statische Typisierung nicht nur beim Programmieren
 %selbst unbestreitbare Vorteile.
 
 Haskell ist eine funktionale Programmiersprache mit einem statischen Typ\-sys\-tem. Wie es bei vielen funktionalen
-Programmiersprachen der Fall ist, basiert auch Haskells Typsystem auf dem Hindley/Milner System \cite{hindley, milner, damas} \todo{Referenzen besser in den Textfluss einbauen}, was es
+Programmiersprachen der Fall ist, basiert auch Haskells Typsystem auf dem Hindley/Milner System \cite{hindley, milner}, was es
 Haskell ermöglicht, zu jedem Ausdruck automatisch eine Typsignatur herzuleiten, die den allgemeinsten Typ dieses Ausdrucks
 darstellt \cite{wadler}.
 
@@ -24,12 +25,28 @@ nicht ändern. Kann ein solcher Typ nicht hergeleitet werden, dann kompiliert da
 
 Der offensichtliche Vorteil für den Entwickler ist, dass viele unerwünschte Programmzustände gar nicht erst auftreten,
 weil sie bereits durch Typfehler abgefangen werden, während eine Programmiersprache mit dynamischem Typsystem solche
-Probleme ohne Fehlermeldung durchwinken würde \todo{Beispiel?}, was nicht selten schwer nachvollziehbare Laufzeitfehler zur Folge hat.
+Probleme ohne Fehlermeldung durchwinken würde, was nicht selten schwer nachvollziehbare Laufzeitfehler zur Folge hat.
+Betrachten wir zum Beispiel die folgende Funktion der Skriptsprache \textit{Javascript} \cite{javascript}.
+
+\begin{minted}{javascript}
+function sum(a, b)
+{
+   return a + b;
+}
+\end{minted}
+
+Javascript hat ein dynamisches Typsystem, das heißt es können beim Aufruf der Funktion \texttt{sum} Parameter beliebiger Typen
+übergeben werden. Ein Laufzeitfehler tritt dann auf, wenn zwei Werte \texttt{a} und \texttt{b} übergeben werden, auf die
+der Operator \texttt{+} nicht angewandt werden kann (ein Beispiel hierfür wären Funktionen). Problematisch ist auch der Fall, in
+dem zwei Parameter übergeben werden, auf die der \texttt{+}-Operator zwar angewandt werden kann, jedoch nicht das erwartete
+Ergebnis liefert. Ein Aufruf von \texttt{sum("42", 7)} würde beispielsweise zum Ergebnis \texttt{"427"} führen.
 
 %Außerdem kann der Entwickler in Haskell
-Haskell bietet dem Entwickler zudem die Möglichkeit, zu jedem Ausdruck eine eigene Typsignatur anzugeben. Das führt nicht dazu,
+Trotz automatisch hergeleiteten Typen bietet Haskell dem Entwickler zusätzlich die Möglichkeit, zu jedem Ausdruck eine eigene
+Typsignatur anzugeben. Das führt nicht dazu,
 dass Haskell Ausdrücke auf einmal als völlig andere Typen interpretiert. Vielmehr bedeutet das, dass Haskell Typen, die der
 Benutzer manuell angegeben hat, ebenfalls akzeptiert, sofern es sich dabei um Spezialisierungen des allgemeinsten Typs handelt\footnote{Manchmal können Typannotationen einen Unterschied machen, beispielsweise in Verbindung mit Typklassen.}.
+
 Das bietet vor allem den Vorteil, dass Haskell weiß, was der Entwickler erwartet. Es ist durchaus möglich, dass Haskell trotz eines
 Denkfehlers des Entwicklers einen Typ herleiten kann, der zur Funk\-tions\-de\-kla\-rati\-on passt -- mit dem man aber nicht rechnet.
 Das folgende Beispiel soll veranschaulichen, wie ein solcher Fehler zustande kommen kann.
@@ -38,20 +55,22 @@ Das folgende Beispiel soll veranschaulichen, wie ein solcher Fehler zustande kom
 concatStrings a b = a : b
 \end{minted}
 
-\todo{Da gibt es sicherlich bessere Beispiele}
-
-Die angegebene Funktion soll zwei Zeichenketten konkatenieren, verwendet aber statt des Konkatenationsoperatoren \texttt{++} fälschlicherweise den
+Die angegebene Funktion soll zwei Zeichenketten konkatenieren, verwendet aber statt des Konkatenationsoperators \texttt{++} fälschlicherweise den
 Listenkonstruktor \texttt{:}. Das hat zur Folge, dass Haskell als ersten Parameter $a$ ein Listenelement statt einer Liste erwartet,
 es ergeben sich jedoch keine Probleme mit der Typsignatur. Problematisch wird es erst, wenn versucht wird, die Funktion
-aufzurufen, beispielsweise mit \texttt{concatStrings "Test" b}, wobei b eine Zeichenkette ist. Haskell erkennt, dass der
+aufzurufen, beispielsweise mit dem folgenden Aufruf, wobei \texttt{b} eine Zeichenkette ist.
+
+\begin{minted}{haskell}
+concatStrings "Student#" b
+\end{minted}
+
+Haskell erkennt, dass der
 Funktionsaufruf nicht mit der (automatisch ermittelten) Funktionssignatur kompatibel ist und erzeugt einen Kompilierfehler. Die
-Fehlermeldung besagt allerdings, dass der Typ \texttt{[Char]} nicht mit dem erwarteten Typ \texttt{Char} übereinstimmt,
-und zwar beim Funktionsaufruf.
+Fehlermeldung besagt allerdings, dass der Typ \texttt{[Char]} nicht mit dem erwarteten Typ \texttt{Char} übereinstimmt
+und gibt als Fehlerposition den Funktionsaufruf an.
 
-Hätte der Entwickler die erwartete Typsignatur \texttt{String -> String -> String} angegeben, dann hätte bereits die Typsignatur
-einen Fehler erzeugt, da sie kein Spezialfall der automatisch hergeleiteten Signatur \texttt{a -> [a] -> [a]} ist.
-
- Das Typsystem ist also ein wichtiger Faktor bezüglich Fehleranfälligkeit und -prävention.
+Hätte der Entwickler die erwartete Typsignatur \texttt{[Char] -> [Char] -> [Char]} angegeben, dann hätte bereits die Typsignatur
+einen Fehler erzeugt, da sie kein Spezialfall der automatisch hergeleiteten Signatur \texttt{a -> [a] -> [a]} ist. Zusammenfassend kann man sagen, dass das Typsystem ein wichtiger Faktor bezüglich Fehleranfälligkeit und -prävention ist.
 %Durch Typsignaturen hat Haskell jedoch einen Anhaltspunkt, was der Entwickler erwartet. Es ist ja durchaus
 %möglich, dass Haskell trotz eines Denkfehlers des Entwicklers einen Typen herleiten kann, der auf die Funk\-tions\-de\-kla\-rati\-on passt, mit dem man aber nicht rechnet.
 %Das Typsystem ist also ein wichtiger Faktor bezüglich Fehleranfälligkeit und -prävention.
@@ -70,18 +89,18 @@ für eine solche Funktionstypsignatur.
 %Betrachten wir beispielhaft die folgende Signatur.
 
 \begin{minted}{haskell}
-test :: (a -> b) -> [a] -> [b]
+applyOnList :: (a -> b) -> [a] -> [b]
 \end{minted}
 
-Es handelt sich um eine Funktion namens \texttt{test}, die als ersten Parameter eine Funktion erwartet, die von einem beliebigen
-Typ in einen anderen (oder den gleichen) beliebigen Typen abbildet. Beim zweiten Parameter muss es sich um eine Liste handeln,
-deren Listenelemente vom Typen $a$ sein müssen, also vom Typen, den die als ersten Parameter übergebene Funktion als
+Es handelt sich um eine Funktion namens \texttt{applyOnList}, die als ersten Parameter eine Funktion erwartet, die einen beliebigen
+Typ auf einen anderen (oder den gleichen) beliebigen Typ abbildet. Beim zweiten Parameter muss es sich um eine Liste handeln,
+deren Listenelemente vom Typ $a$ sind, also vom Typ, den die als erster Parameter übergebene Funktion als
 Eingabewert erwartet.
 
 Allein durch diesen Typ lässt sich bereits erahnen, was sich ungefähr hinter dieser Funktion verbirgt.
-Es ist anzunehmen, dass die  Funktion \texttt{test} die Eingabeliste mithilfe der übergebenen Funktion manipuliert und die
+Es ist anzunehmen, dass die  Funktion \texttt{applyOnList} die Eingabeliste mithilfe der übergebenen Funktion manipuliert und die
 resultierende Liste zurückgibt. Natürlich ist es nicht gesagt, dass sie das tut, es drängt sich aber die Annahme auf, dass sie
-etwas ``Ähnliches'' tun muss - einfach deshalb, weil ihr aufgrund des Typs nichts anderes übrig bleibt. \todo{explizites beispiel}
+etwas ``Ähnliches'' tun muss -- einfach deshalb, weil es der Typ suggeriert.
 %Natürlich kann man nicht einfach davon ausgehen, dass die Funktion in ihrer Implementierung die Funktion des ersten Parameters
 %auf jedes Listenelement des zweiten Parameters anwendet und das Ergebnis zurückgibt, aber eine ähnliche Funktionsweise
 %ist zu erwarten - einfach aus dem Grund, dass die Funktion ``nicht viel anderes'' mit den gegebenen Typen machen kann.
@@ -135,7 +154,7 @@ erläutert, wie die Bibliothek und insbesondere die Anpassungen für Typkonstruk
 Dazu wird in Kapitel \ref{sec:grundlagen} zunächst auf die mathematischen Grundlagen eingegangen, also Notationen, Definitionen,
 etc., die für das Verständnis der daraufhin folgenden Abschnitte benötigt werden.
 Die allgemeine Herangehensweise zum Herleiten freier Theoreme ist dann das Thema von Kapitel \ref{sec:freie-theoreme}, in dem
-das sogenannte \textit{Parametrizitäts-Theorem} eingeführt wird, das dann zu freien Theoremen führt.
+das sogenannte \textit{Parametrizitätstheorem} eingeführt wird, das dann zu freien Theoremen führt.
 Am Ende des Kapitels geht es dann um die Erweiterung der Theorie auf Typkonstruktorklassen. Um die Anwendbarkeit dieser
 Theorie zu motivieren, werden daraufhin einige Anwendungsbeispiele gegeben.
 

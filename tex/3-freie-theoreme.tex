@@ -56,11 +56,11 @@ f :: [a] \rightarrow [a] \label{eq:fsig}
 Gegeben ist also eine Funktion $f$, die eine Liste auf eine Liste abbildet. Das Besondere an dieser Funktion ist, dass sie
 nicht für einen konkreten Typ wie beispielsweise $Integer$ deklariert ist, sondern dass man sie für jeden
 beliebigen Typ instanziieren kann, indem man die Typvariable $a$ durch einen Typausdruck ersetzt. Die Funktion ist also für
-einen beliebigen Typ deklariert, es handelt sich um eine \textit{polymorphe Funktion}.
+jeden beliebigen Typ deklariert, es handelt sich um eine \textit{polymorphe Funktion}.
 
 Bei der Typvariable $a$ handelt es sich erst einmal um eine ungebundene, \textit{freie} Variable. Man kann sich aber einen impliziten
 Allquantor vor der eigentlichen Signatur denken. Tatsächlich existiert dieser Allquantor sogar als spezielles Schlüsselwort \texttt{forall} in Haskell,
-wie die folgende Schreibweise zeigt\footnote{Um die forall-Notation verwenden zu können, muss die \texttt{ExistentialQuantification}-Spracherweiterung verwendet werden.}.
+wie die folgende Schreibweise zeigt\footnote{Um die forall-Notation verwenden zu können, muss allerdings die \texttt{ExistentialQuantification}-Spracherweiterung aktiviert werden.}.
 
 \begin{minted}{haskell}
 f :: forall a. [a] -> [a]
@@ -88,7 +88,7 @@ folglich mit $g_{Integer\ String}$ auf den Typ $Integer \rightarrow String$.
 %kann. Es handelt sich also um eine polymorphe Funktion.
 
 Ein entscheidendes Detail bei polymorphen Funktionen in Haskell ist die Art des Polymorphismus.
-Man unterscheidet zwischen Ad-Hoc Polymorphismus und parametrischem Poly\-mor\-phis\-mus \todo{cite}. Bei Typvariablen
+Man unterscheidet zwischen Ad-Hoc Polymorphismus und parametrischem Poly\-mor\-phis\-mus \cite{strachey}. Bei Typvariablen
 in Haskell handelt es sich um parametrischen Polymorphismus, das heißt die entsprechende Funktion arbeitet für sämtliche
 eingesetzten Typen nach demselben Prinzip.
 
@@ -105,9 +105,10 @@ jeweils eine konkrete, typspezifische Implementierung haben.
 
 Es handelt sich also technisch gesehen um verschiedene Funktionen, die sich einen Namen teilen können, weil anhand der Typsignatur
 und der Typen der Parameter, mit denen die Funktion aufgerufen wird, entschieden werden kann, welche der Funktionen jeweils gemeint ist.
-Ein Beispiel für Ad-Hoc-Polymorphismus bietet die Programmiersprache \textit{C++} \todo{wahrscheinlich noch was ziteren}: Hier ist es möglich, mehrere Funktionen mit gleichem
-Namen in einer Klasse zu deklarieren, solange sie unterschiedliche Signaturen besitzen, wie das folgende Beispiel zeigt.
+Ein Beispiel für Ad-Hoc-Polymorphismus bietet die Programmiersprache \textit{C++} \cite{cpp}: Hier ist es möglich, mehrere Funktionen mit gleichem
+Namen in einer Klasse zu deklarieren, solange sie unterschiedliche Signaturen besitzen, wie Listing \ref{lst:c-example} zeigt.
 
+\begin{listing}[ht]
 \begin{minted}{cpp}
 class Log
 {
@@ -117,15 +118,18 @@ public:
    void log(Test* t);
 }
 \end{minted}
+\caption{Ad-Hoc-Polymorphismus in C++}
+\label{lst:c-example}
+\end{listing}
 
 Hier werden drei Methoden deklariert, die alle den Namen \texttt{log} haben, sich jedoch durch den Typ des Parameters
 unterscheiden. Die jeweilige Implementierung, die hier nicht zu sehen ist, kann sich von Funktion zu Funktion komplett unterscheiden.
-Auch Haskell bietet mit den in der Einleitung bereits eingeführten \texttt{Typklassen} Ad-Hoc-Polymorphismus.
+Auch Haskell bietet mit den in der Einleitung bereits eingeführten \texttt{Typklassen} Ad-Hoc-Polymorphismus \cite{adhoc}.
 %. Darauf wird später noch genauer eingegangen.
 
 Beim Ad-Hoc-Polymorphismus kann also jede Funktion eine eigene Implementierung haben, außerdem ist jeder Funktion
 bekannt, auf welchem Typ sie arbeitet, was es ihr ermöglicht, typspezifische Operationen anzuwenden. Es liegt nahe, dass dies
-allgemeingültige Aussagen über solche Funktionen unmöglich macht.
+allgemeingültige Aussagen über solche Funktionen sehr stark einschränkt.
 
 %Die Implementierungen können also komplett unterschiedlich funktionieren und kennen den konkreten Typen, für de%n sie
 %implementiert sind, können also auf typspezifische Eigenschaften zugreifen. Man kann sich denken, dass das allgemeine Aussagen
@@ -169,13 +173,6 @@ map f
 \end{minted}
 
 Man kann auch sagen: \texttt{map} \textit{liftet} die Funktion \texttt{f} in den Listen-Kontext.
-%\texttt{map\ f} wandelt
-%also gewissermaßen die Eingabefunktion \texttt{f} um in eine Funktion, die dieselbe Funktionalität für Listen bietet. Man kann auch sagen:
-%Sie \textit{liftet} eine Funktion in den Listen-Kontext.
-%Da Haskells Funktionsapplikation das Prinzip des Currying verwendet, \todo{quote?} kann man diese Funktion auch auf eine andere
-%Weise interpretieren: $map$, angewandt auf eine Funktion, \textit{liftet} diese in den Listen-Kontext, gibt also eine Funktion zurück,
-%die dieselbe Funktionalität für Listen bietet.
-
 Im Folgenden nehmen wir an, dass die Funktion $f$ auf einen beliebigen konkreten Typ instanziiert wurde.
 Wir betrachten jetzt eine beliebige nicht-polymorphe Funktion $g$, die auf diesem konkreten Typ arbeitet. $map\ g$ liefert folglich eine Funktion,
 die $g$ auf sämtliche Elemente einer Eingabeliste
@@ -256,7 +253,7 @@ Das heißt allerdings, dass man Typen als Relationen auffassen muss statt als Me
 %vorausgesetzt, die Typen werden als Relationen aufgefasst statt als Mengen.
 
 Um Typen als Relationen aufzufassen, definiert man sogenannte \textit{relationale Aktionen}, mit denen zu jedem Typ eine entsprechende Relation
-konstruiert werden kann. Johann et al. definieren relationale Aktionen wie folgt \cite{johann2006} \todo{johann et al?}.
+konstruiert werden kann. Johann und Vogitländer definieren relationale Aktionen wie folgt \cite{johann2006}.
 
 \begin{mydef}[Relationale Aktion]
 Zu jedem $n$-stelligen Typkonstruktor wird eine Abbildung definiert, die aus $n$ Relationaldarstellungen eine neue Relation konstruiert.
@@ -281,15 +278,15 @@ die entsprechende relationale Aktion anwendet. Die einzelnen Relationen werden n
 \item Zu jedem Basistyp $T$ (\texttt{Int}, \texttt{Bool}, etc.) ist die zugehörige Relation die Identitätsrelation $\mathcal{R} = id_{T} = \{~(x, x)~|~x \in T~\}$.
 \item Sind $\mathcal{R} : R_1 \Leftrightarrow R_2$ und $\mathcal{S} : S_1 \Leftrightarrow S_2$ Typrelationen, so ist
 \begin{align*}
-\mathcal{R} \rightarrow \mathcal{S} = \{ (f, g) | & f \in (R_1 \rightarrow R_2), g \in (S_1 \rightarrow S_2),\\
+\mathcal{R} \rightarrow \mathcal{S} = \{ (f, g) | & f \in (R_1 \rightarrow S_1), g \in (R_2 \rightarrow S_2),\\
 & \forall x \in R_1, y \in R_2: (f\ x, g\ y) \in \mathcal{S} \}
 \end{align*}
 die zugehörige Funktionstyprelation.
 \item Ist $\mathcal{F}(\mathcal{X})$ eine Typrelation, die von einer Typrelation $\mathcal{X} : X \Leftrightarrow X'$ abhängt,
 dann definiert man
 \begin{align*}
-\forall \mathcal{X} . \mathcal{F}(\mathcal{X}) = \{~(x, y)~|& x \in X, y \in X' \wedge \forall A_1, A_2 \in Typen,\\
-&\mathcal{A} : A_1 \Leftrightarrow A_2: (x_{A_1}, y_{A_2}) \in \mathcal{F}(\mathcal{A})~\}
+\forall \mathcal{X} . \mathcal{F}(\mathcal{X}) = \{~(x, y)~|& x \in X, y \in X', \forall A_1, A_2 \in Typen,\\
+&\forall \mathcal{A} : A_1 \Leftrightarrow A_2.~ (x_{A_1}, y_{A_2}) \in \mathcal{F}(\mathcal{A})~\}
 \end{align*}
 Hierbei sind $x$ und $y$ polymorphe Ausdrücke.
 % , die durch $x_{A_1}$ und
@@ -301,18 +298,17 @@ Hierbei sind $x$ und $y$ polymorphe Ausdrücke.
 %Lifting definieren.
 
 Die Konstruktion zu Basistypen sagt ganz einfach, dass in der resultierenden Relation jeder Wert nur mit sich selbst verwandt ist.
-Betrachten wir als Beispiel die Relation zum Typ \texttt{Bool}. In Haskell stellt sich dieser Datentyp dar wie folgt.
+Betrachten wir als Beispiel die Relation zum Typ \texttt{Bool}. Als Menge aufgefasst stellt sich dieser Datentyp dar wie folgt.
 
 \begin{align*}
 Bool = \{~True, False~\}
 \end{align*}
 
-Die konstruierte Relation besteht nun in der Identitätsrelation, $True$ ist also mit $True$ verwandt, $False$ ist mit $False$ verwandt.
+Die zu diesem Typ konstruierte Relation ist nun die Identitätsrelation, $True$ ist also mit $True$ verwandt, $False$ ist mit $False$ verwandt.
 Sonstige Beziehungen gibt es nicht zwischen den Werten.
 
-Funktionstypkonstruktoren bauen auf zwei bereits bestehenden Typrelationen $\mathcal{R}$ und $\mathcal{S}$ auf. Doch auch
-hier ergibt sich aus einer Identitätsrelation wiederum eine Identitätsrelation, wie sich gleich zeigen wird. Wir bleiben beim einfachen
-Beispiel \texttt{Bool} und erweitern die Signatur zu \texttt{Bool -> Bool}.
+Funktionstypkonstruktoren bauen auf zwei bereits bestehenden Typrelationen $\mathcal{R}$ und $\mathcal{S}$ auf. Wir bleiben beim einfachen
+Beispiel \texttt{Bool} und erweitern die Signatur zum Typ \texttt{Bool -> Bool}.
 
 Induktiv werden nun also zunächst die Relationen zu den Basistypen konstruiert, in diesem Fall $id_{Bool}$. Darauf aufbauend
 wird dann aus den zwei Identitätsrelationen die Funktionstyprelation gebaut. Die Intuition hinter der oben gegebenen Formel ist
@@ -326,19 +322,20 @@ beiden Relationen um Identitätsrelationen handelt, können nur gleiche Werte ve
 Funktionen verwandt sein, die gleiche Werte auf gleiche Werte abbilden -- es können also auch nur gleiche Funktionen verwandt
 sein.
 
-Dies trifft für alle Basistypen und Funktionen auf Basistypen zu. Bis hierhin bringt die Verwendung von Relationen also noch keinen
+Alle Basistypen und alle Funktionen auf Basistypen sind also Identitätsrelationen. Bis hierhin bringt die Verwendung von Relationen
+statt Mengen noch keinen
 wirklichen Vorteil, da immer wieder Identitätsrelationen entstehen. Interessant wird es erst beim Auftreten von Typabstraktionen der
 Form
 $\forall \mathcal{R} . \mathcal{F}(\mathcal{R})$, wobei $\mathcal{F}(\mathcal{R})$ eine Relation ist, die von einer Relation
-$\mathcal{R}$ abhängt. Wie in der obigen Definition der Relationalen Aktion beschrieben, sind zwei Werte dann verwandt bezüglich der
+$\mathcal{R}$ abhängt. Wie in der obigen Definition der entsprechenden \textit{relationalen Aktion} beschrieben, sind zwei Werte dann verwandt bezüglich der
 konstruierten Relation, falls sie bezüglich jeder Relation $\mathcal{A}$ auf beliebigen Typen verwandt sind, sofern sie auf deren
-jeweiligen Typen instanziiert werden. \todo{vielleicht noch bisschen verständlicher}
+jeweiligen Typ instanziiert werden.
 
 Auch für Datentypen lassen sich Relationen konstruieren. Ein Beispiel ist der Listentypkonstruktor \texttt{[]}, für den man folgende
 relationale Aktion rekursiv definiert, wenn eine Typ\-re\-lati\-on $\mathcal{R} : T_1 \Leftrightarrow T_2$ gegeben ist.
 
 \begin{align*}
-[\mathcal{R}] = \{ ([], []) \} \cup \{ (a : as, b : bs) | (a, b) \in \mathcal{R}, (as, bs) \in [\mathcal{R}] \}
+[\mathcal{R}] = \{ ([], []) \} \cup \{ (a : as, b : bs) ~|~ (a, b) \in \mathcal{R}, (as, bs) \in [\mathcal{R}] \}
 \end{align*}
 
 Andere Standardtypkonstruktoren lassen sich auf ähnliche Weise beschreiben. Nun haben wir die Mittel, zu jeder vorhandenen
@@ -346,7 +343,7 @@ Typsignatur eine Relation zu konstruieren. Eine entscheidende Erkenntnis von Wad
 Reynolds \cite{reynolds}, ist nun das Parametrizitätstheorem. Hierzu muss noch der Begriff \textit{geschlossener Term} definiert werden.
 
 \begin{mydef}
-Ein Term ist geschlossen, wenn er keine freien Variablen enthält.
+Ein Term ist geschlossen, wenn er keine freien Termvariablen enthält.
 \end{mydef}
 
 Diese Definition ist zwar relativ selbsterklärend, ist aber wichtig für das folgende Theorem, da dieses Theorem von geschlossenen
@@ -370,16 +367,16 @@ Es wurde bereits zu Beginn des Kapitels erwähnt, dass freie Typvariablen in Sig
 quantifiziert werden, weshalb hier die entsprechende relationale Aktion Anwendung findet.
 %Implizit ist $[a] \rightarrow [a]$ aber gleichbedeutend mit $\forall a . [a] \rightarrow [a]$.
 Wir können nun Schritt für Schritt die Definitionen der einzelnen Relationskonstruktionen anwenden, wodurch die Formel
-abgerollt wird: \todo{aligns noch ein bisschen verschönern}
+abgerollt wird.
 
 \begin{align*}
 &\forall A_1, A_2 \in Typen, \mathcal{A} : A_1 \Leftrightarrow A_2: \\
-&(f_{A_1}, f_{A_2}) \in [\mathcal{A}] \rightarrow [\mathcal{A}] \\
+&\hphantom{\forall} (f_{A_1}, f_{A_2}) \in [\mathcal{A}] \rightarrow [\mathcal{A}] \\
 & \\
-\Leftrightarrow &
+\Leftrightarrow ~&
 \forall A_1, A_2 \in Typen, \mathcal{A} : A_1 \Leftrightarrow A_2: \\
-& \forall (l, l') \in [\mathcal{A}]: \\
-&(f_{A_1} l, f_{A_2} l') \in [\mathcal{A}] \\
+&\hphantom{\forall} \forall (l, l') \in [\mathcal{A}]: \\
+&\hphantom{\forall \forall} (f_{A_1} l, f_{A_2} l') \in [\mathcal{A}] \\
 & \\
 %\Leftrightarrow &
 %\forall A_1, A_2 \in Typen, \mathcal{A} : A_1 \Leftrightarrow A_2: \\
@@ -399,21 +396,23 @@ spezifizieren für den Fall, dass es sich bei $\mathcal{A}$ um eine Funktion han
 %Eine Funktion $f : S \rightarrow T$ kann man auch betrachten als Relation $\{ (x, f x) | x \in S \}$. Anders gesagt: Ist
 %$\mathcal{F} : T_1 \Leftrightarrow T_2$ eine Relation zu einer Funktion f, dann gilt für alle $(x, y) \in \mathcal{F}: f x = y$.
 %Schränken wir also unsere Aussage auf Funktionen ein, können wir über alle Funktionen $g : A_1 \rightarrow A_2$ quantifizieren. 
-Aus dem abgerollten Parametrizitätstheorem haben wir ja bisher die Aussage abgeleitet, dass für alle Parameter $l, l' \in lift_{[]}(\mathcal{A})$
-die Aussage $(f_{A_1} l, f_{A_2} l') \in lift_{[]}(\mathcal{A})$ gilt. Als Funktion geschrieben heißt das, es gilt folgende Aussage.
+Aus dem abgerollten Parametrizitätstheorem haben wir ja bisher die Aussage abgeleitet, dass für alle Parameter $l, l' \in [\mathcal{A}]$
+die Aussage $(f_{A_1} l, f_{A_2} l') \in [\mathcal{A}]$ gilt.
+Als Funktion geschrieben heißt das, es gilt die folgende Aussage, wobei der Ausdruck $lift_{[]}(g)$ bedeuten soll, dass die Funktion $g$ in
+den Listenkontext gehoben wird (die Schreibweise $[g]$ würde zu unnötigen Mehrdeutigkeiten führen).
 
 \begin{align*}
 lift_{[]}(g) (f_{A_1}\ l) = f_{A_2}\ l'
 \end{align*}
 
-Das Lifting von Funktionen in den Listenkontext ist nun ganz einfach das Mapping dieser Funktionen auf Listen, sprich: die Haskell-Funktion
-$map$, angewandt auf die entsprechende Funktion.
+Das Lifting von Funktionen in den Listenkontext kann man auch anders ausdrücken als das Mapping dieser Funktionen auf Listen, sprich:
+die Haskell-Funktion $map$, angewandt auf die entsprechende Funktion.
 
 \begin{align*}
 map\ g\ (f_{A_1}\ l) = f_{A_2}\ l'
 \end{align*}
 
-Hierbei ist zu bemerken, dass nun nicht mehr über alle Paare $(l, l') \in lift_{[]}(\mathcal{A})$
+Hierbei ist zu bemerken, dass nun nicht mehr über alle Paare $(l, l') \in [\mathcal{A}]$
 quantifiziert werden muss, da es zu jedem $l \in [A_1]$ nur genau ein $l' \in [A_2]$ geben kann, für das gilt $map\ g\ l = l'$. Folglich kann man die Variable $l'$
 weglassen und stets den Ausdruck $map\ g\ l$ verwenden.
 %Da $(l, l') \in [A]$, können wir $l'$ auch anders ausdrücken als $map\ g\ l = l'$. Man erhält also:
@@ -444,7 +443,7 @@ Maybe\ \mathcal{R} = \{~(Nothing,\ Nothing)~\} \cup \{~(Just\ x, Just\ y)~|~(x, 
 
 Dass in Typsignaturen aber nicht nur über Typvariablen, sondern auch über Variablen allquantifiziert werden kann, die
 ihrerseits nicht Platzhalter für spezielle Typen, sondern für Typkonstruktoren sind, wurde bisher außer Acht gelassen. In diesem
-Abschnitt geht es nun also um Typkonstruktorvariablen von der Sorte $* \rightarrow *$, wie es von Voigtländer in \cite{voigtlander}
+Abschnitt geht es nun also um Typkonstruktorvariablen von der Sorte $* \rightarrow *$, wie es von Voigtländer \cite{voigtlander}
 vorgestellt wird. In der Einleitung wurde bereits die Funktion $fmap$ als Beispiel angegeben, die die folgende Typsignatur besitzt.
 %Es wurden jetzt 
 
@@ -467,10 +466,10 @@ es handelt sich also um einen Typkonstruktor, der einen Typ auf einen neuen Typ 
 %das heißt es handelt sich um einen Typkonstruktor, der einen Typ auf einen neuen Typ abbildet.
 Daher ist es in der Typsignatur legitim, diese Variable auf Typparameter anzuwenden, in diesem Beispiel also in $f\ a$ und $f\ b$.
 Zwei Dinge müssen zum bisherigen Ansatz hinzugefügt werden: Allquantifizierung über Typkonstruktorvariablen muss separat betrachtet werden,
-und Klasseneinschränkungen müssen beachtet werden, im obigen Beispiel $Functor f$.
+und Klasseneinschränkungen müssen beachtet werden, im obigen Beispiel \texttt{Functor\ f}.
 
 Die Allquantifizierung über Typkonstruktorvariablen funktioniert an sich ähnlich wie die Allquantifizierung über gewöhnliche
-Typvariablen. Statt beliebigen Relationen über beliebig gewählten Typen interpretiert man freie Typkonstruktorvariablen als
+Typvariablen. Statt als beliebige Relationen über beliebig gewählten Typen interpretiert man freie Typkonstruktorvariablen als
 Funktionen über beliebigen Typkonstruktoren $k_1, k_2$, die eine Relation auf eine neue abbilden, indem sie die Typkonstruktoren
 auf die Typmengen der Relation anwenden.
 %die die Typmengen der Relation jeweils auf Typmengen abbildet,
@@ -485,15 +484,16 @@ $\mathcal{F}~\mathcal{R}$ abbildet.
 \mathcal{F}~\mathcal{R} = \{ (Nothing, []) \} \cup \{(Just\ a, [b]) | (a, b) \in \mathcal{R}\}
 \end{align*}
 
-Diese Relation hat Ähnlichkeiten zu den Relationen, die für Basistypkonstruktoren wie Listen konstruiert werden
-(vgl. Abschnitt \ref{sec:free-theorems-param} \todo{Richtiger Abschnitt?}). Tatsächlich ist die bereits eingeführte
-Relationskonstruktion für Listentypkonstruktoren ebenfalls eine zulässige Relationsfunktion $\mathcal{F} : [] \Leftrightarrow []$, die
-eingesetzt werden kann \todo{eingesetzt werden kann?}.
-
+Diese Relation hat Ähnlichkeiten mit den Relationen, die für Basistypkonstruktoren wie Listen oder $Maybe$ konstruiert
+werden.
+%Tatsächlich ist die bereits eingeführte
+%Relationskonstruktion für Listentypkonstruktoren bereits eine zulässige Relationsfunktion $\mathcal{F} : [] \Leftrightarrow []$, die
+%eingesetzt werden kann \todo{eingesetzt werden kann?}.
 Das Besondere an Typkonstruktorvariablen ist eben, dass man eine Aussage über \textit{alle} Relationsfunktionen trifft,
 die infrage kommen.
 Und es kommen nicht alle Funktionen infrage. Im obigen Beispiel wird die Typkonstruktorvariable auf die Typkonstruktorklasse
-\texttt{Functor} eingeschränkt. Diese Klasse definiert eine Funktion, wie der folgenden Deklaration zu entnehmen ist.
+\texttt{Functor} eingeschränkt, deren Deklaration wie folgt aussieht.
+%Diese Klasse definiert eine Funktion \texttt{fmap}, wie der folgenden Deklaration zu entnehmen ist.
 %Dazu kommt noch die Beschränkung auf bestimmte Klassen. Hierzu bietet es sich an, die Funktion $fmap$ im Zusammenhang der
 %Typklasse \texttt{Functor} zu betrachten.
 %In einer Klassendefinition legt man Typparameter sowie
@@ -505,9 +505,11 @@ class Functor f where
   fmap :: (a -> b) -> f a -> f b
 \end{minted}
 
-Wie man sieht, hat die Klasse Functor einen Typparameter $f$ und definiert die Typsignatur zu $fmap$. Stößt man jetzt in
+Wie man sieht, hat die Klasse \texttt{Functor} einen Typparameter $f$ und definiert die Typsignatur zu $fmap$. Stößt man jetzt in
 einer Typsignatur auf eine Klassenbeschränkung wie $Functor f$ (ohne die Typkonstruktorvariablen wenig Sinn machen),
 muss man die Allquantifizierung über Typkonstruktoren weiter einschränken.
+
+% % % % % % % % BIS HIERHIN KONTROLLIERT % % % % % % % % % % % % % % %
 
 Zum einen dürfen die resultierenden Relationen natürlich nur auf Typen definiert sein, für die Instanzen der entsprechenden
 Klasse deklariert sind, in diesem Beispiel also nur Funktoren.
