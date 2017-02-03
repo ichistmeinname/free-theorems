@@ -169,16 +169,8 @@ data Relation
         --   This isn't really a difference in haskell syntax, but the
         --   resulting relational structures are different.
 
---  | RelTypeConsFunAbs RelationInfo TermVariable (TypeExpression, TypeExpression) [Restriction] Relation
-        -- ^ (thr) The same as RelTypeConsAbs, but specialised to the case
-        --   where the function works on functions instead of relations
-
   | RelTypeConsApp RelationInfo RelationVariable Relation
         -- ^ (thr) Relation corresponding to type constructor application
-
---  | RelTypeConsFunApp RelationInfo TermVariable Relation
-        -- ^ (thr) Function corresponding to type constructor application,
-        --         specialised to the case where the function works on functions
 
   | FunAbs RelationInfo (Either TermVariable TermVariable)
            (TypeExpression, TypeExpression) [Restriction] Relation

@@ -50,15 +50,12 @@ typesetAsPNG formula = unsafeInterleaveIO $ do
    hClose tempHandle
 
    tex_dir <- getPathToAdditionalTeXFiles
---   system $ "TEXINPUTS=\"" ++ tex_dir ++ ":$TEXINPUTS\" latex -interaction=batchmode --output-dir=\"" ++ tmp_dir ++ "\" " ++ pathTo "tex" ++ " > /dev/null"
-   system $ "SET TEXINPUTS=\"" ++ tex_dir ++ ":%TEXINPUTS%\""
-   let tmpcmd = "latex -interaction=batchmode -output-directory=\"" ++ tmp_dir ++ "\" " ++ pathTo "tex" ++ " > NUL"
-   system $ tmpcmd
+   system $ "TEXINPUTS=\"" ++ tex_dir ++ ":$TEXINPUTS\" latex -interaction=batchmode --output-dir=\"" ++ tmp_dir ++ "\" " ++ pathTo "tex" ++ " > /dev/null"
    removeFile $ pathTo "tex"
    removeFile $ pathTo "aux"
    removeFile $ pathTo "log"
 
-   system $ "dvipng -x 2400 -T tight -z 9 -bg transparent -o " ++ pathTo "png" ++ " " ++ pathTo "dvi" ++ " > NUL"
+   system $ "dvipng -x 2400 -T tight -z 9 -bg transparent -o " ++ pathTo "png" ++ " " ++ pathTo "dvi" ++ " > /dev/null"
    removeFile $ pathTo "dvi"
 
    pngImage <- BS.readFile $ pathTo "png"

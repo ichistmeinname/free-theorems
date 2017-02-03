@@ -180,8 +180,7 @@ unfoldFormula x y rel = case rel of
   -- (thr) Additional cases for type constructor variables
   RelTypeConsAbs ri v ts res r -> unfoldTypeConsAbs x y ri v ts res r
   RelTypeConsApp ri v rs -> return . Predicate . IsMember x y $ rel
---  RelTypeConsFunAbs ri (TVar tv) ts res r -> unfoldTypeConsAbs x y ri (RVar tv) ts res r -- TODO: create new function
---  RelTypeConsFunApp ri v rs -> return . Predicate . IsMember x y $ rel -- TODO: return a = b
+
 
 
 
@@ -234,17 +233,6 @@ unfoldAbsFun x y ri v (t1,t2) res rel = do
   return (ForallFunctions v (t1, t2) res rightSide)
 
 
-unfoldTypeConsApp ::
-    Term -> Term -> RelationInfo ->
-    RelationVariable -> [Relation] -> Unfolded Formula
-
-unfoldTypeConsApp x y ri v rs = do
-  rightSides <- mapM (unfoldFormula x y) rs
-  return (head rightSides) -- TODO: this is just for the first prameter!
--- (thr) Just for testing,this has to be replaced by the actual implementation
--- TODO: Application
-
-
 -- | (thr) Unfolding operation for type constructor abstraction.
 unfoldTypeConsAbs ::
   Term -> Term -> RelationInfo
@@ -283,12 +271,9 @@ unfoldFun x y ri rel1 rel2 =
     RelAbs _ _ _ r _    -> unfoldFunVars x y ri rel1 rel2
     FunAbs _ _ _ _ _    -> unfoldFunVars x y ri rel1 rel2
     -- (thr) Special constructors for type constructor variables
-    -- TODO: what has to be done here?
     RelTypeConsApp _ rv r -> unfoldFunPairs x y ri rel1 rel2
     RelTypeConsAbs _ _ _ _ _ -> unfoldFunVars x y ri rel1 rel2
---    RelTypeConsFunApp _ (TVar t) _ -> unfoldFunOneVar x y ri (Left (TermApp (TermVar . TVar $ "(S " ++ t ++ ")"))) rel1 rel2 -- TODO: special case for specialised fun?
---    RelTypeConsFunApp _ t r -> unfoldFun x y ri r rel2
---    RelTypeConsFunAbs _ _ _ _ _ -> unfoldFunVars x y ri rel1 rel2
+
 
 -- | Unfolding operation for relational actions of function type constructors.
 
@@ -392,7 +377,7 @@ unfoldFunVars x y ri rel1 rel2 = do
 
   let f = ForallVariables x' t1 (ForallVariables y' t2 (Implication l r))
   addRestriction x y (relationLanguageSubset ri) f
---  error $ "left: " ++ show t1 ++ ", right: " ++ show t2
+
 --  return f
 
 
@@ -608,7 +593,7 @@ collectClasses = nub . everything (++) ([] `mkQ` getCC)
                      , relationRightType = t2 }
             r   = RelVar ri' rv
          in map (\c -> (r, c)) cs
-      -- (thr) TODO: insert declaration for RelTypeConsAbs
+
       RelTypeConsAbs ri rv (t1, t2) res _ ->
         let cs  = concatMap getClasses res
             ri' = ri { relationLeftType = t1,

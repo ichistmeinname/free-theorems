@@ -165,3 +165,4 @@ cgiHelpPage =
                   -- This excludes the arbitrary but fixed types T0 to T9
                   , pre << (unlines $ f $ knownDeclarations \\ arbitraryButFixedTypes)
                   ]
+

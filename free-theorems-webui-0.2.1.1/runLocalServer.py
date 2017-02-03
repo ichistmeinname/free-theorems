@@ -32,7 +32,7 @@ class CustomHandler (CGIHTTPRequestHandler):
 
    def translate_path(self, path):
       if is_cgi(path):
-         return os.path.join (bin_dir, "free-theorems-webui.cgi.exe")
+         return os.path.join (bin_dir, "free-theorems-webui.cgi")
       else:
          return os.path.join (data_dir, *path.split("/"))
 

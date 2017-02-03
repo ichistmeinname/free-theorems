@@ -206,7 +206,7 @@ interpretM l t = case t of
 
     genri <- mkRelationInfo l t
 
-    -- TODO: right now, only single parameters are supported.
+    -- (thr) right now, only single type parameters are supported.
     (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
 
     return (RelTypeConsApp genri rvname r)
