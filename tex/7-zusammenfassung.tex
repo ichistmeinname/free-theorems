@@ -12,7 +12,7 @@ in der Anwesenheit von Typkonstruktorklassen und Typkonstruktorvariablen erläut
 beschrieben wird.
 
 Schließlich wurde die Bibliothek \textit{free-theorems} \cite{freetheorems} beschrieben und anhand einiger Beispieldaten
-veranschaulicht. Die Technik zur Herleitung von Theoremen zu Typkonstruktorklassen wurde schließlich verwendet, um der
+veranschaulicht. Die Technik zur Herleitung von Theoremen zu Typ\-konstruktorklassen wurde schließlich verwendet, um der
 beschriebenen Bibliothek die entsprechende Funktionalität hinzuzufügen.
 
 Dazu war es notwendig, die internen Datenstrukturen so zu erweitern, dass sie die hinzukommenden syntaktischen und formalen
@@ -41,8 +41,9 @@ Rahmen an Programmen zu generieren, da man auf dieses wichtige Sprachelement nic
 
 \subsection{Ausblick}
 
-In der Erweiterung der Bibliothek wird bisher nur die Sprache \texttt{BasicSubset} unterstützt, in der weder der Fixpunktoperator
-noch Striktheit vorgesehen sind. Da es sich bei diesen Sprachelementen jedoch um praktisch unverzichtbare Konstrukte
+Dass in der Erweiterung der Bibliothek bisher nur die Sprache \texttt{BasicSubset} unterstützt wird, in der weder der Fixpunktoperator
+noch Striktheit vorgesehen sind, ist eine starke Einschränkung, die die Anwendung für realitätsnahe Haskellprogramme
+deutlich erschwert. Da es sich bei diesen Sprachelementen um praktisch unverzichtbare Konstrukte
 in Haskell handelt, wäre es wünschenswert, die Implementierung dahingehend zu erweitern, dass auch
 die Teilsprachen \texttt{SubsetWithFix} und \texttt{SubsetWithSeq} unterstützt werden.
 
@@ -62,7 +63,7 @@ die Teilsprachen \texttt{SubsetWithFix} und \texttt{SubsetWithSeq} unterstützt 
 
 %Die umgesetzte Erweiterung basierte zum großen Teil auf einer Arbeit von Voigtländer \cite{voigtlander}, deren Betrach
 
-In der umgesetzten Implementierung ist nur die Typsorte $* \rightarrow *$ vorgesehen.
+Darüber hinaus ist in der umgesetzten Implementierung nur die Typsorte $* \rightarrow *$ vorgesehen.
 Aktuelle Spracherweiterungen des
 GHC Compilers ermöglichen hingegen sogar benutzerdefinierte Typsorten \cite{yorgey}. Auch
 hier wäre noch Raum für Verbesserungen.
@@ -84,7 +85,8 @@ Angenehmer stellt sich die Verwendung dar, wenn beispielsweise ein Webinterface 
 \textit{free-theorems-webui} importiert dabei eine Datei vordefinierter Deklarationen, sodass bekannte Typen aus der
 Prelude verwendet werden können und man Funktionssignaturen zu bekannten Funktionen direkt über deren Namen
 angeben kann. Bei der Umsetzung der vorliegenden Arbeit wurden Deklarationen für \texttt{Functor} und \texttt{Monad}
-eingebaut. Doch nicht nur gibt es weitere wichtige Typklassen, die jetzt ebenfalls verwendet werden können, es gibt
+zu dieser Datei hinzugefügt, um diese für Tests zur Verfügung zu haben.
+Doch nicht nur gibt es weitere wichtige Typklassen, die jetzt ebenfalls verwendet werden können, es gibt
 auch viele Funktionen, die mit Typkonstruktorvariablen arbeiten und daher bisher nicht verwendbar waren.
 
 Es bietet sich also an, die Liste der \texttt{KnownDeclarations} auszubauen und sich zu überlegen, welche

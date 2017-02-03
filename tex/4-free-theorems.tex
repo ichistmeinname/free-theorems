@@ -5,7 +5,7 @@
 \label{sec:free-theorems}
 
 Die Generierung freier Theoreme ist geradlinig und unkompliziert. Gerade deshalb ist es jedoch mühselig, diese Arbeit jedes
-Mal per Hand durchzuführen, da ja immer die gleichen Schritte durchgeführt werden. Von daher ist es wünschenswert, diesen
+Mal per Hand durchzuführen, da immer die gleichen Schritte durchgeführt werden. Von daher ist es wünschenswert, diesen
 Prozess zu automatisieren, und genau das macht die Bibliothek \textit{free-theorems} \cite{freetheorems}. Diese Bibliothek
 beinhaltet die Werkzeuge, die nötig sind, um freie Theoreme aus Haskell-Programmcode zu generieren.
 
@@ -63,14 +63,14 @@ sind, den Formel-Datentypen in Zeichenketten umzuwandeln.
 Um zu einer in Haskell geschriebenen Funktionssignatur irgendetwas zu generieren, muss zunächst eins getan werden: Aus dem
 Programmcode muss die notwendige Information herausgezogen werden, der Haskell-Code muss geparst werden.
 \textit{free-theorems} erfindet hier das Rad nicht neu sondern setzt auf einen Haskell-Parser, der mit \texttt{haskell-src-exts}
-bereits als Paket verfügbar ist \cite{haskellsrcexts} \todo{cite} (bzw. \texttt{haskell-src} als Version, die keine
+bereits als Paket verfügbar ist \cite{haskellsrcexts} (bzw. \texttt{haskell-src} als Version, die keine
 Spracherweiterungen unterstützt).
 
 Dieses Paket bietet einen Parser für den kompletten Sprachumfang von Haskell inklusive aller Spracherweiterungen, die GHC
-unterstüzt \cite{xyz} \todo{cite}. Der Parser liefert eine eigene Datenstruktur für einen abstrakten Syntaxbaum, aber der
+unterstüzt. Der Parser liefert eine eigene Datenstruktur für einen abstrakten Syntaxbaum, aber der
 enorme Sprachumfang hat natürlich zur Folge, dass dieser Syntaxbaum sehr komplex werden kann. Nun werden aber gar nicht
 sämtliche syntaktischen Möglichkeiten der Sprache benötigt, ganz im Gegenteil: Für die Generierung freier Theoreme spielen
-hauptsächlich Typsignaturen eine Rolle. Die Implementierungen, die in einem typischen Programm den Großteil des Programms
+hauptsächlich Typsignaturen eine Rolle. Die konkreten Implementierungen der Funktionen, die in einem typischen Programm den Großteil des Programms
 ausmachen, können getrost vernachlässigt werden.
 
 Aus diesem Grund führt \textit{free-theorems} eine eigene Syntaxbaum-Datenstruktur ein und überführt den Syntaxbaum,
@@ -86,7 +86,7 @@ der von \texttt{haskell-src-exts} generiert wird, in eine vereinfachte Darstellu
 %werden lediglich Typsignaturen festgehalten, Implementierungen werden vollkommen ignoriert, da sie für die Theoremgenerierung keine Rolle spielen.
 
 
-\subsubsection*{BasicSyntax}
+%\subsubsection*{BasicSyntax}
 % `````````````````````
 
 \label{sec:basic-syntax}
@@ -97,15 +97,15 @@ eine Funktionssignatur gegeben und dahinter die Haskell-Darstellung des resultie
 \begin{listing}[ht]
 %\inputminted[tabsize=2]{haskell}{ast.hs}
 \begin{minted}{haskell}
-test :: a -> b
+id :: a -> a
 
 [TypeSig
    (Signature {
-      signatureName = Ident "test" ,
+      signatureName = Ident "id" ,
       signatureType =
          TypeFun
             (TypeVar (TV (Ident "a")))
-            (TypeVar (TV (Ident "b")))
+            (TypeVar (TV (Ident "a")))
    )
 ]
 
@@ -114,12 +114,12 @@ test :: a -> b
 \label{lst:ast}
 \end{listing}
 
-Listing \ref{lst:ast} zeigt die Datenstruktur am Beispiel \texttt{test :: [a] $\rightarrow$ [a]}. Die \texttt{parse}-Funktion des Parser-Moduls von \textit{free-theorems} liefert eine Liste sämtlicher relevanter Definitionen als \texttt{BasicSyntax} zurück.
+Listing \ref{lst:ast} zeigt die Datenstruktur am Beispiel \texttt{id :: a $\rightarrow$ a}. Die \texttt{parse}-Funktion des Parser-Moduls von \textit{free-theorems} liefert eine Liste sämtlicher relevanter Definitionen als \texttt{BasicSyntax} zurück.
 In diesem Beispiel ist nur eine Typsignatur gegeben, \texttt{parse} gibt also eine einelementige Liste zurück, bestehend aus
 genau einem Konstruktor \texttt{TypeSig}, der eine Typsignatur repräsentiert. Der Datentyp erwartet einen
-\texttt{Signature}-Konstruktor, der as dem Namen der Signatur sowie einem Typausdruck besteht.
+\texttt{Signature}-Konstruktor, der aus dem Namen der Signatur sowie einem Typausdruck besteht.
 
-In diesem Fall ist der Typausdruck eine Funktion zwischen zwei Typvariablen, der Konstrktor \texttt{TypeFun} wird also
+In diesem Fall ist der Typausdruck eine Funktion zwischen zwei Typvariablen, der Konstruktor \texttt{TypeFun} wird also
 auf zwei \texttt{TypeVar}-Konstruktoren angewandt, die jeweils die Variablennamen beinhalten.
 
 Da man freie Theoreme aus den Typsignaturen von Funktionen herleitet, könnte man sich überlegen, dass man auf alles andere
@@ -135,44 +135,9 @@ diese in der zu Funktionssignatur verwendet. Neben Funktionssignaturen werden al
 benötigt.
 %Man bekommt nämlich genau dann ein Problem, wenn der Entwickler im Programm eigene Datentypen deklariert und diese in
 %den Funktionssignaturen verwendet. Neben Funktionssignaturen werden also zusätzlich auch Datentypdeklarationen benötigt.
-Hierzu gehören sowohl die \texttt{data}- als auch \texttt{type}- und \texttt{newtype}-Deklarationen (die semantischen Unterschiede
-zwischen diesen verschiedenen Deklarationen spielen dabei keine Rolle). Listing \ref{lst:ast-data} zeigt ein Beispiel für eine
+Hierzu gehören sowohl die \texttt{data}- als auch \texttt{type}- und \texttt{newtype}-Deklarationen. Listing \ref{lst:ast-data} zeigt ein Beispiel für eine
 \texttt{data}-Deklaration und deren entsprechende Darstellung als \texttt{BasicSyntax}.
 
-\texttt{DataDecl} ist dabei ein weiterer Konstruktor des \texttt{Declaration}-Datentyps. Er erwartet den \texttt{Data}-Konstruktor,
-der für einen Datentyp den Namen, die übergebenen Typvariablen und die unterschiedlichen Konstruktoren, jeweils mit Name
-und Typausdruck. Eine Besonderheit ist dabei, dass die Typausdrücke eingekapselt sind in die \texttt{BangTypeExpression}-Struktur.
-Diese bietet die Konstruktoren \texttt{Unbanged} und \texttt{Banged} und erwarten ansonsten lediglich den entsprechenden
-Typausdruck. Der Grund für diese Unterscheidung ist das in Haskell erlaubte Striktheitsflag.
-
-Es ist möglich, in Datentypdeklarationen das besondere Symbol \texttt{!} vor Datentypen eines Konstruktors zu setzen. Das hat
-zur Folge, dass dieses Argument des Datentyps stets strikt ausgewertet wird \cite{haskell}. Folgender Ausdruck sei als Beispiel
-gegeben.
-
-\begin{minted}{haskell}
-data CompInt = String !Int
-\end{minted}
-
-Tritt nun ein Ausdruck auf, in dem \texttt{CompInt} auf Argumente angewandt wird, beispielsweise
-\texttt{(CompInt "Result"\ (7 `div` 0))}, so wird das zweite Argument, das in der \texttt{data}-Deklaration mit einem Striktheitsflag
-versehen wurde, strikt ausgewertet -- was in diesem Fall zu einem Fehler führen würde, der bei einer Lazy-Auswertung nicht
-zwingend auftreten müsste.
-
-%An diesem Beispiel kann man ebenfalls sehen, dass die Konstruktorparameter in die \texttt{Unbanged}-Struktur eingebettet sind.
-%Es gibt \texttt{Unbanged} und \texttt{Banged}, was einfach sagt, ob eine Striktheitsannotation vor dem entsprechenden
-%Parameter steht oder nicht. Es soll hier nicht näher darauf eingegangen werden, wozu diese Annotation verwendet wird, in
-%Kapitel \ref{sec:striktheit-und-rekursion} wird noch ein bisschen näher darauf eingegangen.
-
-Klassendeklarationen werden insbesondere in Kapitel \ref{sec:erweiterung-um-typklassen} benötigt, wenn es darum geht,
-Typkonstruktorklassen einzuführen. Sie werden aber auch schon von \texttt{free-theorems} beachtet und in die \texttt{BasicSyntax}
-mit aufgenommen. Der Grund dafür ist, dass ja auch
-Typvariablen in Typsignaturen auftreten können, die auf eine bestimmte Klasse eingeschränkt sind. Die aus der Allquantifizierung
-resultierenden Relationen dürfen also nicht über alle Typen quantifiziert sein, sondern nur über solche, die zur entsprechenden
-Klasse passen.
-
-%Natürlich ist man hauptsächlich an den Funktionssignaturen interessiert, da man aus diesen die Theoreme ableitet. Aber natürlich können diese Signaturen ihrerseits wiederum 
-%selbst definierte Datentypen oder auch Klasseneinschränkungen enthalten. Man kommt also nicht umhin, auch diese mit einzubeziehen und ebenfalls in der BasicSyntax vorzusehen.
-%Das Beispiel in Listing \ref{lst:ast-data} zeigt eine data-Deklaration.
 
 \begin{listing}[ht]
 \begin{minted}{haskell}
@@ -199,6 +164,45 @@ data Annotated a = Annotated String a
 \caption{Beispiel}
 \label{lst:ast-data}
 \end{listing}
+
+\texttt{DataDecl} ist dabei ein weiterer Konstruktor des \texttt{Declaration}-Datentyps. Er erwartet den \texttt{Data}-Konstruktor,
+der für einen Datentyp den Namen, die übergebenen Typvariablen und die unterschiedlichen Konstruktoren übergeben bekommt, letztere jeweils mit Namen
+und Typausdruck. Eine Besonderheit ist dabei, dass die Typausdrücke eingekapselt sind in die \texttt{BangTypeExpression}-Struktur.
+Diese bietet die Konstruktoren \texttt{Unbanged} und \texttt{Banged} und erwarten ansonsten lediglich den entsprechenden
+Typausdruck. Der Grund für diese Unterscheidung ist das in Haskell erlaubte Striktheitsflag.
+
+Es ist möglich, in Datentypdeklarationen das besondere Symbol \texttt{!} vor Datentypen eines Konstruktors zu setzen. Das hat
+zur Folge, dass dieses Argument des Datentyps stets strikt ausgewertet wird \cite{haskell}. Folgender Ausdruck sei als Beispiel
+gegeben.
+
+\begin{minted}{haskell}
+data CompInt = String !Int
+\end{minted}
+
+Tritt nun ein Ausdruck auf, in dem \texttt{CompInt} auf Argumente angewandt wird, beispielsweise
+\texttt{(CompInt "Result"\ (7 `div` 0))}, so wird das zweite Argument, das in der \texttt{data}-Deklaration mit einem Striktheitsflag
+versehen wurde, strikt ausgewertet -- was in diesem Fall zu einem Fehler führen würde, der bei einer Lazy-Auswertung nicht
+zwingend auftreten müsste.
+
+Für die bisher eingeführte Generierung freier Theoreme würde ein solches Striktheitsflag natürlich keine Rolle spielen, da immer nur
+die eigentlichen Typen von Bedeutung sind. In Kapitel \ref{sec:striktheit-und-rekursion} wird jedoch kurz darauf eingegangen,
+warum Striktheit dennoch eine Rolle bei freien Theoremen spielen kann.
+
+%An diesem Beispiel kann man ebenfalls sehen, dass die Konstruktorparameter in die \texttt{Unbanged}-Struktur eingebettet sind.
+%Es gibt \texttt{Unbanged} und \texttt{Banged}, was einfach sagt, ob eine Striktheitsannotation vor dem entsprechenden
+%Parameter steht oder nicht. Es soll hier nicht näher darauf eingegangen werden, wozu diese Annotation verwendet wird, in
+%Kapitel \ref{sec:striktheit-und-rekursion} wird noch ein bisschen näher darauf eingegangen.
+
+Klassendeklarationen werden insbesondere in Kapitel \ref{sec:erweiterung-um-typklassen} benötigt, wenn es darum geht,
+Typkonstruktorklassen einzuführen. Sie werden aber auch schon von \texttt{free-theorems} beachtet und in die \texttt{BasicSyntax}
+mit aufgenommen. Der Grund dafür ist, dass ja auch
+Typvariablen in Typsignaturen auftreten können, die auf eine bestimmte Klasse eingeschränkt sind. Die aus der Allquantifizierung
+resultierenden Relationen dürfen also nicht über alle Typen quantifiziert sein, sondern nur über solche, die zur entsprechenden
+Klasse passen.
+
+%Natürlich ist man hauptsächlich an den Funktionssignaturen interessiert, da man aus diesen die Theoreme ableitet. Aber natürlich können diese Signaturen ihrerseits wiederum 
+%selbst definierte Datentypen oder auch Klasseneinschränkungen enthalten. Man kommt also nicht umhin, auch diese mit einzubeziehen und ebenfalls in der BasicSyntax vorzusehen.
+%Das Beispiel in Listing \ref{lst:ast-data} zeigt eine data-Deklaration.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -247,7 +251,9 @@ calcValues :: Int -> [Int]
 \end{minted}
 
 Dieser Code, syntaktisch absolut korrekt, würde von \texttt{check} als fehlerhaft erkannt werden, da es zwei Signaturen mit
-demselben Namen \texttt{calcValues} gibt. Lokale Überprüfungen reichen hier nicht aus, da man innerhalb einer Deklaration
+demselben Namen \texttt{calcValues} gibt.
+
+Lokale Überprüfungen reichen hier nicht aus, da man innerhalb einer Deklaration
 nicht erkennen kann, dass es an einer anderen Stelle noch eine Funktion mit diesem Namen gibt.
 
 Eine besondere Aufgabe der globalen Überprüfung ist es auch, sämtliche Typausdrücke zu \textit{schließen}; es ist in Haskell
@@ -301,7 +307,9 @@ Name&Prüfung\\
 \label{tab:global-checks}
 \end{table}
 
-Die Prüfungen arbeiten dabei in der \texttt{Writer}-Monade, in der auftretende Fehlermeldungen protokolliert werden. Außerdem
+Die Prüfungen arbeiten dabei in der \texttt{Writer}-Monade, in der auftretende Fehlermeldungen protokolliert werden.
+
+Außerdem
 wird jede \texttt{Declaration} in eine \texttt{ValidDeclaration} eingekapselt, die als zusätzliche Information noch ein Flag enthält,
 in dem festgehalten wird, ob in der Deklaration Striktheitsannotationen vorkommen.
 Sind alle globalen Überprüfungen abgeschlossen, werden die übrig bleibenden Deklarationen an den Core-Teil weitergereicht.
@@ -328,6 +336,7 @@ nächsten Abschnitt von Bedeutung sein wird.
 
 Der \texttt{BasicSyntax}-Ausdruck \texttt{TypeExp} wiederum tritt in geparsten Ausdrücken erst einmal nicht auf, er wird
 innerhalb von \texttt{interpret} verwendet, um die neu eingeführten Typvariablen bei Relationsabstraktionen auszudrücken.
+\texttt{RelFunLab} spielt nur für Ungleichungs-Theoreme eine Rolle und wird in dieser Arbeit nicht beachtet.
 %wird aber
 %erzeugt, wenn die Syntax in die Relationaldarstellung überführt wird, um neu eingeführte Typen darzustellen.
 %\todo{neu eingeführte typen?}
@@ -353,7 +362,7 @@ TypeExp & - &\\
 \label{tab:relations}
 \end{table}
 
-Wie vorangehend erwähnt, werden sämtliche freie Variablen in Typsignaturen eliminiert, was dazu führt, dass \texttt{interpret}
+Wie vorangehend erwähnt, werden sämtliche freie Variablen in Typsignaturen geschlossen, was dazu führt, dass \texttt{interpret}
 stets zuerst auf einen \texttt{forall}-Ausdruck stoßen wird, bevor es die Typvariable selbst antrifft. Das wird ausgenutzt, indem
 beim Antreffen von \texttt{forall} ein Eintrag in einer Map angelegt wird, auf den dann bei Verarbeitung jedes Vorkommens der
 Typvariable über den Variablennamen wieder zugegriffen wird.
@@ -411,8 +420,8 @@ eine Relationsvariable und transformiert die Intermediate-Struktur, indem sie s�
 durch Funktionsvariablen ersetzt.
 
 Im zweiten Schritt führt sie die \texttt{reduceLifts}-Funktion aus, die nach Möglichkeit geliftete Datentypen vereinfacht.
-Wenn es sich hierbei um eine Funktion handelt, dann wird überprüft, ob es sich beim Typen
-um Listen oder um den spezifischen Typen \texttt{Maybe} handelt. In diesen Fällen wird der Ausdruck ersetzt durch die
+Wenn es sich hierbei um eine Funktion handelt, dann wird überprüft, ob es sich beim Typ
+um Listen oder um den spezifischen Typ \texttt{Maybe} handelt. In diesen Fällen wird der Ausdruck ersetzt durch die
 Funktion $map$ bzw. $fmap$, angewandt auf die entsprechende Funktion. Man kann dies als das \textit{Lifting} der Funktion
 in den entsprechenden Kontext auffassen.
 
@@ -427,15 +436,15 @@ Man kann leicht nachvollziehen, dass diese Signatur zu folgendem freien Theorem 
 \begin{align*}
 & \forall~ T_1, T_2 \in Types, \mathcal{R} : T_1 \Leftrightarrow T_2 \\
 & \hphantom{\forall~} \forall (x, y) \in \mathcal{R} \\
-& \hphantom{\forall~ \forall} (test_{T1}\ x, test_{T2}\ y) \in lift_{[]}(\mathcal{R})
+& \hphantom{\forall~ \forall} (test_{T1}\ x, test_{T2}\ y) \in [\mathcal{R}]
 \end{align*}
 
 Ersetzt man die Relationsvariablen jetzt durch Funktionensvariablen, ergibt sich die folgende Aussage.
 
 \begin{align*}
 & \forall f : T_1 \rightarrow T_2 \\
-& \forall x \in T_1 \\
-& lift_{[]}(f) (test_{T_1}\ x) = test_{T2} (f\ x)
+& \hphantom{\forall} \forall x \in T_1 \\
+& \hphantom{\forall} lift_{[]}(f) (test_{T_1}\ x) = test_{T2} (f\ x)
 \end{align*}
 
 Zu beachten ist hier, dass der letzte Schritt nicht zwingend durchgeführt werden kann. Ein solches Lifting ist nur in besonderen
@@ -448,7 +457,7 @@ Fällen möglich, in diesem Fall entspricht das Lifting der Funktion $f$ in den 
 & map\ f\ (test_{T_1}\ x) = test_{T2} (f\ x)
 \end{align*}
 
-Handelt es sich um den Typen \texttt{Maybe}, lässt sich stattdessen $fmap\ f$ verwenden.
+Handelt es sich um den Typ \texttt{Maybe}, lässt sich stattdessen $fmap\ f$ verwenden.
 
 Die \texttt{asTheorem}-Funktion, die im nächsten Abschnitt erläutert wird, arbeitet sowohl mit Relationsvariablen als auch mit
 Funktionsvariablen.
@@ -521,8 +530,8 @@ Ein Beispiel wäre zum Beispiel das Entfernen aller unbenutztzen allquantifizier
 ist.
 
 \begin{align*}
-& \forall v \forall x . x = x \\
-\Leftrightarrow & \forall x . x = x 
+& \forall v \forall x .~ x = x \\
+\Leftrightarrow ~& \forall x . x = x 
 \end{align*}
 
 Auch möglich ist zum Beispiel die folgende Vereinfachung, die im Zusammenhang mit freien Theoremen häufig angewandt werden
@@ -549,7 +558,7 @@ dann per Pretty Printer in eine Zeichenkette umgewandelt werden.
 Schließlich bietet \textit{free-theorems} noch die Möglichkeit, die verwendeten Datentypen und Typklassen aus einer
 Signatur zu extrahieren und jeweils eine Relationaldarstellung zu generieren. Wie in Abschnitt \ref{sec:free-theorems-param}
 bereits beschrieben, stellt man verwendete Datentypen, die eine freie Typvariable als Parameter erwarten, als Relationen
-dar. Das Vorgehen ist auch hier sehr generisch, sodass dies von einer Funktion übernommen werden kann. Betrachten wir
+dar. Das Vorgehen ist auch hier sehr generisch, sodass dies von einem Programm leicht durchgeführt werden kann. Betrachten wir
 das folgende Beispiel.
 
 \begin{minted}{haskell}
@@ -559,8 +568,9 @@ test :: MyType a -> a
 \end{minted}
 
 In der Funktionssignatur zu \texttt{test} findet der selbstdefinierte Datentyp \texttt{MyType} Verwendung. Ihm wird die
-Typvariable \texttt{a} als Parameter übergeben. Im freien Theorem wurde die relationale Repräsentation eines gelifteten
-Datentyps immer durch eine Funktion \textit{lift} dargestellt. \textit{free-theorems} bietet die Funktion \texttt{unfoldLifts},
+Typvariable \texttt{a} als Parameter übergeben. Im freien Theorem wird die relationale Repräsentation eines gelifteten
+Datentyps immer durch eine Funktion \textit{lift} dargestellt (auch für Relationen -- das unterscheidet die Bibliothek vom bisher
+eingeführten Verfahren). \textit{free-theorems} bietet die Funktion \texttt{unfoldLifts},
 die sämtliche Lifts aus dem Theorem extrahiert und deren Definition als Formel generiert.
 
 Auch bei benutzerdefinierten Datentypen geht es letztlich darum, welche Ausdrücke \textit{verwandt} sind bezüglich der
@@ -607,8 +617,6 @@ In den vorangegangenen Abschnitten wurde ein kurzer Umriss der Bibliothek free-t
 Typkonstruktorklassen erweitert werden soll. Bevor die benötigten Änderungen erläutert werden, soll hier zunächst ein
 kompletter Durchlauf als Beispiel gegeben werden. Es werden sämtliche Daten betrachtetet, die auf dem Weg von einer
 Eingabezeichnekette zur resultierenden Ausgabezeichenkette entstehen.
-
-\todo{Grafik}
 
 Wir bemühen das Beispiel aus dem vorangegangenen Kapitel. Die Typsignatur ist simpel genug,
 um die grundlegende Funktionsweise zu erläutern, ohne die auftretenden Datenstrukturen unnötig kompliziert zu machen.
@@ -657,8 +665,8 @@ Datentypdeklarationen und Klassendeklarationen.
 
 Hier wurde die Darstellung ein wenig vereinfacht, um das Verständnis zu erleichtern. Zu beachten ist aber, dass sämtliche
 Funktionsimplementierungen wegfallen. Sie spielen für die Generierung freier Theoreme keine Rolle, das bedeutet aber auch,
-dass free-theorems keine Fehlerprüfungen im Implementierungsteil durchführt. Die Bibliothek kann ohne Auftreten von Fehlern
-durchlaufen, selbst der zu einer Funktionssignatur gehörige Code Fehler enthält.
+dass \textit{free-theorems} keine Fehlerprüfungen im Implementierungsteil durchführt. Die Bibliothek kann ohne Auftreten von Fehlern
+durchlaufen, selbst wenn der zu einer Funktionssignatur gehörige Code Fehler enthält.
 
 Jetzt, da die \texttt{BasicSyntax} der Beispielfunktion vorhanden ist, muss \texttt{check} aufgerufen werden, um Fehler
 zu entdecken. Ein Aufruf macht aus der Liste von \texttt{Declaration}s eine Liste von \texttt{ValidDeclaration}s. Tatsächlich
@@ -696,13 +704,13 @@ Jetzt können wir \texttt{interpret} verwenden, um zu unserer \texttt{ValidSigna
 \end{minted}
 
 Auch dieses Beispiel ist stark vereinfacht dargestellt, beinhaltet aber die wichtigsten Elemente. Zu beachten ist vor allem,
-dass es sich bei den Tupeln \texttt{("[t1]", "[t2]")} nicht wirklich um Tupel von Zeichenketten handelt, tatsächlich sind dies
-\texttt{TypeExpression}s der \texttt{BasicSyntax}-Struktur. Der Einfachheit halber werden diese hier jedoch als Zeichenketten
+dass es sich bei den Tupeln \texttt{("[t1]", "[t2]")} nicht wirklich um Tupel von Zeichenketten handelt, tatsächlich handelt es sich
+um Ausdrücke des Typs \texttt{TypeExpression} der \texttt{BasicSyntax}-Struktur. Der Einfachheit halber werden diese hier jedoch als Zeichenketten
 dargestellt, da ihre tatsächliche Form im Folgenden auch keine wirkliche Rolle mehr spielt.
 
 Wie man sehen kann, wird alles in den \texttt{Intermediate}-Datentyp eingerahmt. Dieser enthält den Namen des Ausdrucks, d.h.
-den Funktionsnamen, für den die Typsignatur überhaupt angegeben wird. Zudem ist angegeben, welche \textit{Sublanguage}
-verwendet wird. In diesem Fall ist dies \texttt{BasicSubset}; dieser Wert hängt davon ab, wie \texttt{interpret} aufgerufen wurde.
+den Funktionsnamen, für den die Typsignatur überhaupt angegeben wird. Zudem ist angegeben, welche \textit{Teilsprache}
+verwendet wird. In diesem Fall ist dies \texttt{BasicSubset}; dieser Wert hängt davon ab, welcher Parameter der \texttt{interpret}-Funktion übergeben wurde.
 
 Ansonsten spiegelt die Struktur ziemlich genau den Aufbau der \texttt{TypeSig}-Struktur wider. Zur Erinnerung: An dieser Stelle
 wird die Typsignatur auch lediglich als Konstruktion aus verschiedenen Relationaldarstellungen zusammengesetzt. Wie diese

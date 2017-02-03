@@ -35,10 +35,10 @@ eine minimal angepasste Version von \textit{free-theorems-webui} und ein Testwer
 Um das Paket aus dem Verzeichnis zu installieren, kann das Kommandozeilentool \texttt{cabal} verwendet werden,
 da es sich bei \textit{free-theorems} um ein cabal-Paket handelt. Dieses Paket wurde bei der Erweiterung um
 Typkonstruktorklassen angepasst, um mit neueren Versionen des GHC kompatibel zu sein, da die letzte Version
-von \textit{free-theorems} schon ein wenig veraltet war. So wurden Versionsnummern der eingebundenen Pakete
+von \textit{free-theorems} etwas veraltet war. So wurden Versionsnummern der eingebundenen Pakete
 sowie verwendete Spracherweiterungen angepasst.
 
-Um das Paket zu installieren, reicht der folgende Aufruf im Verzeichnis \texttt{free-theorems-0.3.2.0}, in dem sich
+Um das Paket zu installieren, reicht der folgende Aufruf im Verzeichnis namens \texttt{free-theorems-0.3.2.0}, in dem sich
 auch die Datei \texttt{free-theorems.cabal} befindet.
 
 \begin{minted}{text}
@@ -46,7 +46,7 @@ cabal install
 \end{minted}
 
 Das Paket wurde mit dem Glasgow Haskell Compiler Version 7.10.3 getestet und sollte auch mit neuren Versionen
-funktionieren. Die vom Paket benötigten Paketabhängigkeiten sollten vom cabal-Tool selbstständig aufgelöst werden.
+funktionieren. Die vom Paket benötigten Abhängigkeiten sollten vom cabal-Tool selbstständig aufgelöst werden.
 
 Um eine modifizierte Version des Weboberflächen-Pakets zu installieren, die zusätzlich mit den Typkonstruktorklassen
 \texttt{Monad} und \texttt{Functor} ausgestattet ist, reicht ebenfalls der Befehl \texttt{cabal install} im Verzeichnis
@@ -67,8 +67,8 @@ Typkonstruktorklassen im entsprechenden Feld selbst deklarieren).
 \subsection*{Verwendung}
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Sobald die Bibliothek installiert wurde, lässt sich das Modul \texttt{Language.Haskell.FreeTheorems} in eigenen
-Haskell-Modulen importieren. Eine Beispielanwendung ist in Verzeichnis \texttt{test-free-theorems} zu finden in der
+Sobald die Bibliothek installiert wurde, lässt sich \texttt{Language.Haskell.FreeTheorems} in eigenen
+Haskell-Modulen importieren. Eine Beispielanwendung ist im Verzeichnis namens \texttt{test-free-theorems} zu finden in der
 Datei \texttt{test.hs}. Diese wurde während der Erweiterung der Bibliothek hauptsächlich zum Testen entwickelt,
 liefert jedoch die meisten Funktionalitäten, die die Bibliothek \textit{free-theorems} bietet.
 
@@ -100,9 +100,7 @@ Befehl & Funktion \\
 \end{table}
 
 Die Datei \texttt{KnownDeclarations.hs}, die von \texttt{test.hs} eingebunden wird, ist eine modifizierte Version
-derselben Datei, die im Original-Paket von \texttt{free-theorems-webui-0.2.1.1} enthalten ist, wobei es sich um
+derselben Datei, die sich im Original-Paket zum Paket namens \texttt{free-theorems-webui-0.2.1.1} finden lässt, wobei es sich um
 die Weboberflächen-Implementierung für \textit{free-theorems} handelt. Der Ordner
 \texttt{free-theorems-webui-0.2.1.1} enthält diese Implementierung, wobei die \texttt{KnownDeclarations.hs} dort
 ebenfalls modifiziert wurde.
-
-Die Änderung besteht im Hinzufügen zweier Typkonstruktorklassen: \texttt{Functor} und \texttt{Monad}.

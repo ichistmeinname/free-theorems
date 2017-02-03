@@ -33,7 +33,8 @@ spielte.
 
 Der erste Schritt in der Erweiterung von \textit{free-theorems} ist also diese syntaktische Möglichkeit in der \texttt{BasicSyntax}
 vorzusehen. Da \textit{free-theorems} intern Zugriff auf einen vollständigen Haskell-Parser hat, gestaltet sich
-diese Änderung relativ einfach.
+diese Änderung relativ einfach, da die erzeugte Fehlermeldung an der entsprechenden Stelle in der \texttt{parse}-Funktion
+einfach durch eine Transformation des abstrakten Syntaxbaums in die erweiterte \texttt{BasicSyntax} ersetzt werden muss.
 %Der Zweck der vereinfachten \texttt{BasicSyntax} war, dass nicht verwendete Sprachkonstrukte
 %ignoriert werden können. Typvariablen, die auf andere Typen angewandt werden, gehörten bisher zu diesen vernachlässigbaren
 %Konstrukten. Da im Hintergrund aber ein kompletter Haskell-Parser arbeitet, lässt sich diese Erweiterung relativ einfach
@@ -64,9 +65,9 @@ dargestellt, während für Standardkonstruktoren ein \texttt{TyCon}-Ausdruck im 
 %bei \texttt{[]} und \texttt{Maybe} jedoch nicht um Variablen handelt, sondern um bekannte Typkonstruktoren, wird hier auch ein
 %anderer Datentyp verwendet.
 
-Um also dieser neuen syntaktischen Möglichkeit Rechnung zu tragen, wird die \texttt{BasicSyntax} um den Konstruktor
+Um also dieser neuen syntaktischen Möglichkeit Rechnung zu tragen, wird einfach die \texttt{BasicSyntax} um den Konstruktor
 \texttt{TypeVarApp} erweitert. Am besten wird das deutlich, wenn man betrachtet, in welchen Ausdruck das obige Beispiel
-nach der Anpassung in \texttt{BasicSyntax} überführt wird - siehe hierzu Listing \ref{lst:typevarapp}.
+nach der Anpassung in \texttt{BasicSyntax} überführt wird -- siehe hierzu Listing \ref{lst:typevarapp}.
 
 \begin{listing}[ht]
 \begin{minted}{haskell}
@@ -100,7 +101,7 @@ ohnehin schon möglich. Natürlich sollte Typvariablenapplikation in jeder Typsi
 Signatur eine Toplevel-Signatur ist oder ob sie sich innerhalb einer Klassendeklaration befindet.
 
 Die einzige Änderung, die dazu nötig ist, findet in der Funktion \texttt{mkAppTyEx} statt, die für die Überführung einer
-Typapplikation aus dem Originalsyntaxbaum in die \texttt{BasicSyntax} zuständig ist. Diese Funktion wird immer aufgerufen,
+Typapplikation aus dem Originalsyntaxbaum in die einfachere \texttt{BasicSyntax} zuständig ist. Diese Funktion wird immer aufgerufen,
 egal um welche Art von Typsignatur es sich handelt.
 %Innerhalb der
 %Klassendeklaration muss Variablenapplikation natürlich auch möglich sein. Das ist aber automatisch möglich, da sich die Änderungen
@@ -131,7 +132,7 @@ test :: forall a. a -> a
 
 Die Typsignatur dieses Beispiels lässt sich als Relation $\forall \mathcal{R}. \mathcal{R} \rightarrow \mathcal{R}$ auffassen.
 Dabei ist $\forall \mathcal{R}. \mathcal{A}(\mathcal{R})$ so definiert, dass über alle Relationen aller Typmengen allquantifiziert
-wird (vgl. Abschnitt \ref{sec:free-theorems-param}). \todo{richtig so?} So weit ist das Vorgehen bereits bekannt und auch schon
+wird (vgl. Abschnitt \ref{sec:free-theorems-param}). So weit ist das Vorgehen bereits bekannt und auch schon
 in \textit{free-theorems} implementiert.
 
 Interessant ist nun, wie es sich verhält, wenn eine solche Typvariable auf Typausdrücke angewandt wird, wie das folgende
@@ -189,7 +190,7 @@ RelTypeConsApp & \\
 \label{tab:reltypeconsapp}
 \end{table}
 
-Die meisten Parameter sollten selbsterklärend sein. Die Bedeutung der \texttt{RelationInfo}-Struktur wurde ja bereits in Abschnitt \ref{sec:free-theorems-interpret} erläutert \todo{das fehlt noch}. Wichtig ist hier, dass in \texttt{RelTypeConsAbs} das
+Die meisten Parameter sollten selbsterklärend sein. Die Bedeutung der \texttt{RelationInfo}-Struktur wurde ja bereits in Abschnitt \ref{sec:free-theorems-interpret} erläutert. Wichtig ist hierbei, dass in der \texttt{RelTypeConsAbs}-Struktur das
 Tupel von \texttt{TypeExpressions} keine Typvariablen sind, sondern dass es sich hierbei um Variablen für Typkonstruktoren handelt.
 
 Mit \texttt{RelConsFunVar} wird noch ein zusätzlicher Konstruktor für den \texttt{Relation}-Datentyp eingeführt. Dieser hat
@@ -284,7 +285,7 @@ Da es sich hierbei nicht mehr zwingend um Relationen handelt, wenn Typkonstrukto
 Funktionen auf Relationen afutreten können, wird jetzt an dieser Stelle eine Fallunterscheidung gemacht.
 
 In Abschnitt \ref{sec:free-theorems-interpret} wurde auch beschrieben, dass die Implementierung von \textit{free-theorems} hier eine
-\texttt{Map} als Umgebung nutzt, in der Typvariablen den dazugehörigen Variablen-Ausdrücken zugeordnet werden. \todo{wurde es?}
+\texttt{Map} als Umgebung nutzt, in der Typvariablen den dazugehörigen Variablen-Ausdrücken zugeordnet werden.
 
 Dieser Vorgang wird nun aufgeteilt. Es wird zunächst überprüft, ob die Typvariable, über die allquantifiziert wird, in der
 restlichen Typsignatur auf Parameter angewandt wird. Wird ein solches Vorkommen nicht gefunden, wird wie üblich vorgegangen
@@ -292,12 +293,10 @@ und es wird eine \texttt{RelAbs}-Struktur erzeugt; zudem wird in der angesproche
 die erzeugte Relationsvariablen-Struktur \texttt{RelVar} zugeordnet.
 
 Wird stattdessen eine Applikation der Typvariablen gefunden, wird diese im Folgenden als Typkonstruktorvariable angesehen,
-und es wird statt \texttt{RelAbs} ein \texttt{RelTypeConsAbs}-Ausdruck erzeugt.
+und es wird nicht \texttt{RelAbs}, sondern stattdessen ein \texttt{RelTypeConsAbs}-Ausdruck erzeugt.
+Von den Parametern her unterscheiden sich die Konstruktoren nicht.
 
-%Es wird überprüft, ob die entsprechende Typvariable, über die allquantifiziert wird, in der restlichen Typsignatur auf Parameter
-%angewandt wird. Gibt es irgendwo ein solches Vorkommen, wird statt der \texttt{RelAbs} die neue \texttt{RelTypeConsAbs}-Struktur
-%verwendet.
-Von den Parametern her unterscheiden sich die Konstruktoren nicht. Der \texttt{RelTypeConsAbs}-Konstruktor wird nur
+Der \texttt{RelTypeConsAbs}-Konstruktor wird nur
 eingeführt, damit die entsprechende Typkonstruktorvariable nicht wie normale Typvariablen verwendet wird.
 Zum Beispiel macht es keinen Sinn, die Relationsfunktionen zu Typkonstruktorvariablen auf
 Funktionen zu spezialisieren. Auch sieht natürlich die resultierende Formel für Typkonstruktorabstraktion anders aus als die
@@ -343,8 +342,8 @@ Typkonstruktorvariable. Das folgende Beispiel zeigt das freie Theorem für die T
 
 \begin{align*}
 & \forall k_1, k_2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2, \mathcal{K}\ \text{beachtet Functor} \\
-& \forall T_1, T_2 \in Typen, \mathcal{R} : T_1 \Leftrightarrow T_2 \\
-& \forall (x, y) \in \mathcal{R} . (test_{t_1\ k_1}\ x, test_{t_2\ k_2}\ y) \in \mathcal{K}\ \mathcal{R}
+& \hphantom{\forall} \forall T_1, T_2 \in Typen, \mathcal{R} : T_1 \Leftrightarrow T_2 \\
+& \hphantom{\forall \forall} \forall (x, y) \in \mathcal{R} . (test_{t_1\ k_1}\ x, test_{t_2\ k_2}\ y) \in \mathcal{K}\ \mathcal{R}
 \end{align*}
 
 Spezialisiert man in diesem Beispiel die Relation $\mathcal{R}$ auf eine Funktion $f$, kann man auf die Idee kommen, dieses Theorem
@@ -352,10 +351,9 @@ wie folgt zu transformieren.
 
 \begin{align*}
 & \forall k_1, k_2 \in (* \rightarrow *), \mathcal{K} : k_1 \Leftrightarrow k_2, \mathcal{K}\ \text{beachtet Functor} \\
-& \forall T_1, T_2 \in Typen, f : T_1 \rightarrow T_2 \\
-& \forall x \in T_1 . \text{fmap}\ f\ (test_{t_1 k_1}\ x) = test_{t_2 k_2} (f\ x)
+& \hphantom{\forall} \forall T_1, T_2 \in Typen, f : T_1 \rightarrow T_2 \\
+& \hphantom{\forall \forall} \forall x \in T_1 . \text{fmap}\ f\ (test_{t_1 k_1}\ x) = test_{t_2 k_2} (f\ x)
 \end{align*}
-% TODO: Was ist, wenn Functor-Gesetze gelten?
 
 Aus den oben genannten Gründen muss dies aber nicht immer gelten. Die jeweilige \texttt{fmap}-Funktion könnte beispielsweise
 die Reihenfolge der Daten ändern, die übergebene Funktion ignorieren, etc.
@@ -535,7 +533,7 @@ Dieser Schritt ist wieder relativ selbsterklärend, da lediglich jede Typkonstru
 eine Relation. Die Typen sind dabei die Typkonstruktoren, angewandt auf die Typvariablen.
 
 An dieser Stelle liegt also eine \texttt{Intermediate}-Struktur vor, die die Relationaldarstellung der Typsignatur enthält. Als
-nächstes soll diese Relationaldarstellung spezialisiert werden auf Funktionen, es wird als zunächst durch einen Aufruf von
+nächstes soll diese Relationaldarstellung spezialisiert werden auf Funktionen, es wird als zunächst durch einen Aufruf der Funktion
 \texttt{relationVariables} die Liste aller Relationsvariablen ermittelt, für jede dieser Variablen wird dann \texttt{specialise}
 aufgerfen.
 
@@ -564,8 +562,8 @@ Die \texttt{Intermediate}-Struktur sieht daraufhin so aus wie in Listing \ref{ls
 Wie man sieht, werden sämtliche Vorkommen von Relationsvariablen durch entsprechende Funktionsvariablen ersetzt, auch
 die Variablen, die innerhalb der \texttt{RelTypeConsApp}-Struktur stehen. An den Applikationsausdrücken selbst hat sich
 nichts geändert. Zu beachten ist noch, dass die als Tupel dargestellten Zeichenketten in \texttt{RelTypeConsApp} nur
-der Einfachheit in dieser Form zu sehen sind -- tatsächlich handelt es sich jeweils um \texttt{RelationInfo}-Ausdrücke, in
-allgemein in jedem Ausdruck des \texttt{Relation}-Datentyp vorkommen und den jeweils dargestellten Typ beinhalten.
+der Einfachheit in dieser Form zu sehen sind -- tatsächlich handelt es sich jeweils um \texttt{RelationInfo}-Ausdrücke, die
+allgemein in jedem Ausdruck des \texttt{Relation}-Datentyps vorkommen und den jeweils dargestellten Typ beinhalten.
 
 An dieser Stelle kann also die Umwandlung in die Formel des freine Theorems stattfinden, wozu die Funktion \texttt{asTheorem}
 bemüht wird. Diese Funktion führt nun das Abrollen der jeweiligen Relationsdefinitionen durch und erzeugt eine
@@ -583,6 +581,6 @@ werden, das Interessante ist die durch den Pretty Printer resultierende Zeichenk
            (fmap_{t1}_{t3}_{k1} p y, fmap_{t2}_{t4}_{k2} q z) in R1 g)"
 \end{minted}
 
-Und es zeigt sich, dass diese Zeichenkette dem in Abschnitt \texttt{sec:freie-theoreme-anwendung} per Hand hergeleiteten
+Und es zeigt sich, dass diese Zeichenkette dem in Abschnitt \ref{sec:freie-theoreme-anwendung} per Hand hergeleiteten
 freien Theorem zu \texttt{fmap} entspricht.
 % TODO: Beispieldurchlauf zuende schreiben

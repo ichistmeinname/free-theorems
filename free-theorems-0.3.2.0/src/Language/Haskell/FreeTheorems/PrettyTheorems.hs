@@ -156,7 +156,7 @@ prettyFormula pc (ForallTypeConstructors v (t1,t2) res f) =
         sep
           [ fsep $
               [ text "forall"
-              , ts, text "in", text "(* -> *)" <> comma -- TODO: depend on actual kind?
+              , ts, text "in", text "(* -> *)" <> comma
               , rv, text ":"
               , ts'
                 <> if null res then char '.' else comma ]

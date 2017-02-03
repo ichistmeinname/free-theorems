@@ -219,9 +219,7 @@ checkClassVarArities vds ds = foldChecks checkClassVarArity ds
                                         (Just ar') -> if checkExpressionForVar tv ar' e then []
                                                                                         else [tv])
                                        ++ (checkTypeAbsExpression tv rs e)
---       otherwise -> error "FIXME: right now, only single class constraint is supported"
-     -- TODO: (thr) since multiple super classes are allowed we need to check if
-     --             all super classes have the same amount of variables
+
 
 
 ------- Acyclic tests ---------------------------------------------------------

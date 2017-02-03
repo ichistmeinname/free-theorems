@@ -37,8 +37,8 @@ ob die Theoreme als Gleichungen oder als Ungleichungen erwünscht sind.
 %erläutert.
 
 Im Folgenden soll kurz auf die Problematik eingegangen werden, die durch die Existenz dieser Operatoren entsteht. Es wird
-skizziert, inwiefern man die konstruierten Relationen einschränken muss, damit die generierten freien Theoreme Gültigkeit
-behalten.
+angedeutet, inwiefern man die konstruierten Relationen einschränken muss, damit die generierten freien Theoreme Gültigkeit
+behalten, allerdings würde ein tieferes Einsteigen in diese Thematik an dieser Stelle zu weit führen.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -69,11 +69,11 @@ fak = fix h
 
 \texttt{fak} ist also definiert als der kleinste Fixpunkt der Funktion $h$, die eine beliebige Funktion $f$ abbildet auf
 eine neue Funktion, die für $x = 0$ einfach $1$ zurückgibt und ansonsten die übergebene Funktion $f$ aufruft mit dem
-Argument $x - 1$.
+Argument $x - 1$ und deren Ergebnis mit $x$ multipliziert.
 Der gesuchte Fixpunkt von $h$ ist folglich eine solche Funktion, die durch erneute Anwendung von $h$ nicht mehr
 verändert wird.
 %Natürlich ist eine solche Funktion im Endlichen nicht zu finden, doch das ist auch nicht notwendig, da
-Haskell Lazy Evaluation für die Auswertung nutzt.
+%Haskell Lazy Evaluation für die Auswertung nutzt.
 
 Letztlich ist $h$ also eine Funktion, die als Parameter eine Funktion übergeben bekommt, die den nächsten Rekursionsschritt
 darstellt; der Fixpunktoperator ist somit die semantische Grundlage für Rekursion.
@@ -102,11 +102,11 @@ f\ (map\ g\ l) = map\ g\ (f\ l)
 
 %Dabei macht die Funktion \texttt{fix} nichts anderes, als den kleinsten Fixpunkt der übergebenen Funktion zurückzugeben.
 
-Dementsprechend müssen nach Wadler \cite{wadler} alle relationalen Interpretationen von Typen \textit{zulässig}, (sprich: 
-\textit{strikt} und \textit{stetig}) sein.
+Dementsprechend müssen nach Wadler \cite{wadler} alle relationalen Interpretationen von Typen \textit{zulässig} (sprich: 
+\textit{strikt} und \textit{stetig}) sein, damit freie Theoreme ihre Gültigkeit behalten.
 
-Auch Voigtländer \cite{voigtlander} beschreibt, was dies für Typkonstruktorvariablen heißt: Allquantifizierte Relationsfunktionen müssen zusätzlich
-Striktheit bewahren.
+Nach Voigtländer \cite{voigtlander} heißt dies für Typkonstruktorvariablen, dass allquantifizierte Relationsfunktionen zusätzlich
+Striktheit bewahren müssen.
 %Wadler stellt einige Bedingungen fest, die an die Typmengen gestellt werden müssen, damit mit Fixpunkten gearbeitet
 %werden kann.
 
@@ -159,8 +159,10 @@ Die Idee hinter der Darstellung als Ungleichungen, beschrieben von Johann und Vo
 freien Theoreme auseinander, weil es passieren kann, dass eine Seite der resultierenden Gleichung $\bot$ wird.
 Man kann die Aussage jedoch als Ungleichung darstellen, indem man die Typrelationen asymmetrisch konstruiert; sie
 ordnen dann nicht mehr jeweils zwei Ausdrücke als ``gleichwertig'' einander zu, sondern legen eine Ordnung fest, die
-die \textit{Definiertheit} widerspiegelt \cite{johann}. So bleibt es möglich, gültige Aussagen zu treffen, ohne zu starke
-Einschränkungen auf die quantifizierten Relationen festzulegen.
+die \textit{Definiertheit} widerspiegelt \cite{johann}.
+So reicht es, für Relationen zu fordern, dass sie zulässig, total und linksabgeschlossen sind.
+%So bleibt es möglich, gültige Aussagen zu treffen, ohne zu starke
+%Einschränkungen auf die quantifizierten Relationen festzulegen.
 
 Es soll an dieser Stelle nicht weiter darauf eingegangen werden, wie diese Ungleichungen hergeleitet werden, da dies zu weit
 über die eigentliche Thematik hinausgehen würde. Es sei aber erwähnt, dass die Bibliothek \textit{free-theorems} sie bereits
@@ -187,9 +189,9 @@ stets auf den Typen $T_1, T_2$ definiert sind.
 Bezeichnung & Beschreibung \\
 \hline
 $Rel^{(fix, =)}(T_1, T_2)$ & Menge aller zulässigen Relationen \\
-$Rel^{(fix, \sqsubseteq)}(T_1, T_2)$ & Menge aller zulässigen und links-abgeschlossenen Relationen \\
+$Rel^{(fix, \sqsubseteq)}(T_1, T_2)$ & Menge aller zulässigen und linksabgeschlossenen Relationen \\
 $Rel^{(seq, =)}(T_1, T_2)$ & Menge aller zulässigen und bottom-reflexiven Relationen \\
-$Rel^{(seq, \sqsubseteq)}(T_1, T_2)$ & Menge der zulässigen, totalen und links-abgeschlossenen Relationen \\
+$Rel^{(seq, \sqsubseteq)}(T_1, T_2)$ & Menge der zulässigen, totalen und linksabgeschlossenen Relationen \\
 \hline
 \end{tabular}
 \caption{Relationen für die verschiedenen Teilsprachen}
@@ -202,7 +204,7 @@ $Rel^{(seq, \sqsubseteq)}(T_1, T_2)$ & Menge der zulässigen, totalen und links-
 %total und links-abgeschlossen sind.
 
 Natürlich müssen auch die relationalen Aktionen dementsprechend angepasst werden. So wird beispielsweise die relationale
-Aktion zum Funktionstypkonstruktor in der Teilsprache \texttt{SubsetWithFix} folgendermaßen gebildet.
+Aktion zum Funktionstypkonstruktor in der Teilsprache \texttt{SubsetWithSeq} folgendermaßen gebildet.
 
 \begin{align*}
 \mathcal{R} \rightarrow^{seq} \mathcal{S} = \{~(f, g)~|~(f \neq \bot \Rightarrow g \neq \bot) \wedge

@@ -173,8 +173,7 @@ data Relation
         -- ^ (thr) The same as RelTypeConsAbs, but specialised to the case
         --   where the function works on functions instead of relations
 
-  | RelTypeConsApp RelationInfo RelationVariable Relation -- (thr) TODO: shouldn't be RelationVariable,
-                                                          --       should be Relation (?)
+  | RelTypeConsApp RelationInfo RelationVariable Relation
         -- ^ (thr) Relation corresponding to type constructor application
 
 --  | RelTypeConsFunApp RelationInfo TermVariable Relation

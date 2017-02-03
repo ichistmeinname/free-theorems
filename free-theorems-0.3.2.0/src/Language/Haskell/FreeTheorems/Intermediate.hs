@@ -206,32 +206,9 @@ interpretM l t = case t of
 
     genri <- mkRelationInfo l t
 
-    -- (thr) TODO: The following lines should be moved to a function
-    -- TODO: ONLY the first is interpreted!
+    -- TODO: right now, only single parameters are supported.
     (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
---    let t1 = relationLeftType ri
---    let t2 = relationRightType ri
---    let t1' = relationLeftType (relationInfo r)
---    let t2' = relationRightType (relationInfo r)
---    let (TypeExp (TF (Ident t1))) = relationLeftType ri
---    let (TypeExp (TF (Ident t2))) = relationRightType ri
---    let (TypeExp (TF (Ident t1'))) = relationLeftType (relationInfo r)
---    let (TypeExp (TF (Ident t2'))) = relationRightType (relationInfo r)
---    let newt1 = TypeExp (TF (Ident (t1 ++ " " ++ t1')))
---    let newt2 = TypeExp (TF (Ident (t2 ++ " " ++ t2')))
-    -- TODO: what if tv1 or tv2 are NOT TypeVariables
---    let (TypeVar tv1) = t1
---    let (TypeVar tv2) = t2
 
---    let newt1 = (TypeExp (TF (Ident $ concatTypeStr t1 t1')))
---    let newt2 = (TypeExp (TF (Ident $ concatTypeStr t2 t2')))
---    let newreli = RelationInfo l newt1 newt2
-
---    let (RVar i) = rv
---    case rv of
---      (RelVar _ v)  -> return (RelTypeConsApp genri v r)
---      otherwise -> error "FIXME: Doesn't work"
---    let (TV (Ident v')) = v
     return (RelTypeConsApp genri rvname r)
 
   where
@@ -360,7 +337,6 @@ relationVariables (Intermediate _ _ rel _ _ _ _) = getRVar True rel
 -- | Specialises a relation variable to a function variable in an intermediate
 --   structure.
 
--- TODO: (thr) replaceRelVar: should RelVarApp (?) be replaced?
 specialise :: Intermediate -> RelationVariable -> Intermediate
 specialise ir rv = reduceLifts (replaceRelVar ir rv Left)
 
@@ -432,12 +408,6 @@ replaceRelVar ir (RVar rv) leftOrRight =
 --   If the argument is a function then lifted lists are replaced by map and
 --   lifted Maybes are replaced by fmap.
 
--- (thr) TODO:  extend to type constructor variables: replace type constructor
---              variable applications by the respective functions (depending
---              on type)
---              Problem: how do we know at this point, which types are
---              represented by the variable?
-
 reduceLifts :: Intermediate -> Intermediate
 reduceLifts ir =
 --  ir { intermediateRelation = reduceEverywhere (intermediateRelation ir) }
@@ -458,15 +428,6 @@ reduceLifts ir =
       RelAbs ri rv ts res r -> RelAbs ri rv ts res (re ok r)
       FunAbs ri fv ts res r -> FunAbs ri fv ts res (re ok r)
       RelTypeConsAbs ri rv ts res rel -> RelTypeConsAbs ri rv ts res (re ok rel)
-      RelTypeConsApp ri (RVar rv) rel' ->
-                                  if ok
---                                     then reduceTypeConApp ri (re ok rel')
-
-                                    -- TODO: cannot reduce (see thesis)
---                                    then reduce (RelLift ri (ConVar (Ident rv)) [(re ok rel')])
---                                    then reduce rel
-                                    then rel
-                                    else rel
       otherwise             -> rel
 
     mk' ok ri r = case theoremType (relationLanguageSubset ri) of
@@ -480,13 +441,6 @@ reduceLifts ir =
     mk ok ri r = case theoremType (relationLanguageSubset ri) of
                    EquationalTheorem   -> True
                    InequationalTheorem -> ok
-
-    -- (thr) TODO: doesn't really work yet, instead using reduce
-    reduceTypeConApp ri rel = case rel of
-      FunVar ri (Left f) -> FunVar ri . Left $ TermApp (TermVar (TVar "$map")) f
-      FunVar ri (Right f) -> FunVar ri . Right $ TermApp (TermVar (TVar "$map")) f
-      otherwise          -> rel
-      -- TODO: extend to inequational theorems
 
     -- Transforms a lifted constructor to a function, if possible.
     -- This function is applied in a bottom-up manner, therefore the
@@ -512,7 +466,6 @@ reduceLifts ir =
     funSymbol con = case con of
       ConList             -> Just . TVar $ "map"
       Con (Ident "Maybe") -> Just . TVar $ "fmap"
---      ConVar (Ident v)    -> Just . TVar $ "lift{" ++ v ++ "}" -- TODO: check the variable type
       otherwise           -> Nothing
 
     -- Checks if 'rel' is a 'left' function. If so, its term and type is

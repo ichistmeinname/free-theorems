@@ -311,8 +311,8 @@ checkClassDeclNotRecursive ident sigs =
 
 checkClassVarParamCount :: ClassDeclaration -> ErrorOr ()
 checkClassVarParamCount cd = errorIf (isNothing . getClassArity $ cd)
-  (pp $ "Different occurences of type constructor " ++
-      "variable ?? with different arities.") -- TODO: give additional error details
+  (pp $ "Different occurences of type constructor, " ++
+      "variable with different arities.")
 
 
 -- | Checks that no FixedTypeExpression occurs in the given list of named
