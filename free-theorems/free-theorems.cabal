@@ -1,9 +1,9 @@
 name:           free-theorems
-version:        0.3.2.0
+version:        0.3.3.9
 license:        PublicDomain
 license-file:   LICENSE
-author:         Sascha Boehme
-maintainer:     voigt@tcs.inf.tu-dresden.de
+author:         Sascha Boehme, Thomas Rossow
+maintainer:     sad@informatik.uni-kiel.de
 synopsis:       Automatic generation of free theorems.
 description:
     The free-theorems library allows to automatically generate free
@@ -17,8 +17,8 @@ description:
     In the last two sublanguages, also inequational free theorems
     may be derived in addition to classical equational results.
 category:       Language
-tested-with: 	GHC==7.6.1
-cabal-version:  >= 1.2.3
+tested-with: 	GHC == 8.0.2
+cabal-version:  >= 1.24.0
 build-type:	Simple
 
 extra-source-files:
