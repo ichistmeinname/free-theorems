@@ -1,9 +1,9 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
 
 module Language.Haskell.FreeTheorems.Theorems.Simplify
-	( simplify
+        ( simplify
         , simplifyUnfoldedLift
- 	)
+        )
 where
 
 import Data.Generics
@@ -26,10 +26,10 @@ type ScopeInfo = [TermVariable]
 
 gsimplify :: Data d => (d -> d)
 gsimplify = everywhereScoped (\s -> id
-				    `extT` simplifyTerm
+                                    `extT` simplifyTerm
                                     `extT` simplifyPredicate
                                     `extT` simplifyFormula s
-			     ) []
+                             ) []
 
 everywhereScoped :: (ScopeInfo -> GenericT) -> ScopeInfo -> GenericT
 everywhereScoped = everywhereContext gupdateScope
@@ -52,24 +52,24 @@ updateScopeFormula _                                  = id
 simplifyFormula :: ScopeInfo -> Formula -> Formula
 
 -- Remove unused quantified variables
-simplifyFormula	_ (ForallVariables tv _ f) | not (tv `occursIn` f) = f
- 
+simplifyFormula _ (ForallVariables tv _ f) | not (tv `occursIn` f) = f
+
 -- ∀v.f v == g v ⇒ f == g
-simplifyFormula	_ (ForallVariables tv _ (Predicate (t1 `IsEqual` t2)))
+simplifyFormula _ (ForallVariables tv _ (Predicate (t1 `IsEqual` t2)))
                                            | Just (f1,v1) <- toFunApp t1
                                            , Just (f2,v2) <- toFunApp t2
                                            , v1 == v2
-				           , (TermVar tv) == v1
+                                           , (TermVar tv) == v1
                                            = gsimplify $ Predicate (f1 `IsEqual` f2)
- 
+
 -- Find definitions, and apply as far as possible
 simplifyFormula s (ForallVariables tv t f) | [def] <- possibleDefs tv f
-		  	                   = gsimplify $ -- Will loop if the definition
+                                           = gsimplify $ -- Will loop if the definition
                                                          -- would not remove itself
-					        ForallVariables tv t
+                                                ForallVariables tv t
                                                 (replaceTerm s (TermVar tv) def f)
 -- Remove empty Implication
-simplifyFormula _ (Implication (Predicate IsTrue) f) 
+simplifyFormula _ (Implication (Predicate IsTrue) f)
                                            = f
 
 -- Nothing to optimize
@@ -103,7 +103,7 @@ simplifyTerm (TermComp (f : (TermComp fs) : r))
 
 -- Nothing to optimize
 simplifyTerm t                = t
-	
+
 
 -- Actions
 
@@ -139,12 +139,10 @@ gAny :: Typeable b => (b -> Bool) -> GenericQ Bool
 gAny p = everything (||) (False `mkQ` p)
 
 -- | Extend version of 'everywhere', which keeps information about the context around
-everywhereContext :: (ctx -> GenericQ ctx) -> 
-	             (ctx -> GenericT) ->
+everywhereContext :: (ctx -> GenericQ ctx) ->
+                     (ctx -> GenericT) ->
                       ctx ->
-		      GenericT
+                      GenericT
 everywhereContext ctxUpdate f ctx d
-	= let ctx' = ctxUpdate ctx d
+        = let ctx' = ctxUpdate ctx d
           in f ctx (gmapT (everywhereContext ctxUpdate f ctx') d)
-
-

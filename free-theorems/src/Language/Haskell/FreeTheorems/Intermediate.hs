@@ -369,7 +369,7 @@ replaceRelVar ir (RVar rv) leftOrRight =
       RelAbs ri (RVar r) ts res rel' ->
         let res'' = either (const funResL) (const funResR) fv
             -- hack! should be somehow better implemented
-	    -- if BottomReflecting is not present, we had
+            -- if BottomReflecting is not present, we had
             -- TypeAbsLab quantification in (SubsetWithSeq Equational)
             res'  = if elem BottomReflecting res || elem Total res then res'' else filter (/= Total) res''
          in if rv == r
