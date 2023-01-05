@@ -17,7 +17,13 @@ description:
     In the last two sublanguages, also inequational free theorems
     may be derived in addition to classical equational results.
 category:       Language
-tested-with: 	GHC == 8.6.5
+tested-with:
+  GHC ==8.6.5
+   || ==8.8.4
+   || ==8.10.7
+   || ==9.0.2
+   || ==9.2.4
+   || ==9.4.2
 cabal-version:  >= 1.24.0
 build-type:	Simple
 
@@ -39,7 +45,7 @@ library
       base >= 4.12 && < 5
     , mtl >= 1.0
     , haskell-src >= 1.0
-    , haskell-src-exts >= 1.20 && < 1.21
+    , haskell-src-exts >= 1.21 && < 1.22
     , pretty >= 1.0.0.0
     , containers >= 0.1.0.1
     , syb >= 0.1.0.0
