@@ -207,7 +207,10 @@ interpretM l t = case t of
     genri <- mkRelationInfo l t
 
     -- (thr) right now, only single type parameters are supported.
-    (r:_) <- mapM (interpretM l) ts   -- interpret the subtypes
+    rs <- mapM (interpretM l) ts  -- interpret the subtypes
+    let r = case rs of
+          [] -> error "empty list in interpretM"
+          (r:_) -> r
 
     return (RelTypeConsApp genri rvname r)
 

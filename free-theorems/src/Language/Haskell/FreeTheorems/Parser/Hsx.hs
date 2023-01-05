@@ -394,8 +394,11 @@ mkTypeExpressionT (TyVar _ var)     = liftM S.TypeVar
 mkTypeExpressionT (TyApp _ ty1 ty2) = lift (mkAppTyEx ty1 [ty2])
 mkTypeExpressionT (TyCon _ qname)   = lift (mkTypeConstructorApp qname [])
 
-mkTypeExpressionT (TyInfix l ty1 qname ty2) = -- infix type constructor
+mkTypeExpressionT (TyInfix l ty1 mpname ty2) = -- infix type constructor
   mkTypeExpressionT (TyApp l (TyApp l (TyCon l qname) ty1) ty2)
+  where qname = case mpname of
+          PromotedName _ q -> q
+          UnpromotedName _ q -> q
 
 mkTypeExpressionT (TyFun _ ty1 ty2) = do
   t1 <- mkTypeExpressionT ty1
