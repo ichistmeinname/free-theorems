@@ -24,7 +24,7 @@ tested-with:
    || ==9.0.2
    || ==9.2.4
    || ==9.4.2
-cabal-version:  >= 1.24.0
+cabal-version:  1.24.0
 build-type:	Simple
 
 extra-source-files:
@@ -41,9 +41,10 @@ extra-source-files:
     runtests
 
 library
+  default-language: Haskell98
   build-depends:
       base >= 4.12 && < 5
-    , mtl >= 1.0
+    , mtl >= 2.2.1
     , haskell-src >= 1.0
     , haskell-src-exts >= 1.21 && < 1.22
     , pretty >= 1.0.0.0
@@ -77,13 +78,9 @@ library
 
   hs-source-dirs: src
 
-  extensions:
+  default-extensions:
     DeriveDataTypeable,
     Rank2Types,
     FlexibleInstances,
     UndecidableInstances
-
-  if impl(ghc >= 6.10)
-    extensions: ScopedTypeVariables
-  else
-    extensions: PatternSignatures
+    ScopedTypeVariables

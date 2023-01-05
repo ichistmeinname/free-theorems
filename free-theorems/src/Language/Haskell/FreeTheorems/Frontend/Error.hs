@@ -9,7 +9,7 @@ module Language.Haskell.FreeTheorems.Frontend.Error where
 
 
 import Control.Monad (foldM)
-import Control.Monad.Error (Error(..), throwError)
+import Control.Monad.Except (throwError)
 import Control.Monad.Writer (Writer, runWriter, tell)
 import Data.List (intersperse)
 import Text.PrettyPrint (Doc, empty, text, fsep, ($$), nest)
@@ -40,11 +40,6 @@ type Parsed a = Writer [Doc] a
 --   by a pretty-printable @Doc@.
 
 type ErrorOr a = Either Doc a
-
--- needed to make 'ErrorOr' a monad
-instance Error Doc where
-  noMsg    = empty
-  strMsg s = text s
 
 
 

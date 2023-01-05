@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# LANGUAGE PatternGuards #-}
 
 module Language.Haskell.FreeTheorems.Theorems.Simplify
         ( simplify

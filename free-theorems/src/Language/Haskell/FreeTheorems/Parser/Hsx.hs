@@ -5,7 +5,7 @@ module Language.Haskell.FreeTheorems.Parser.Hsx (parse) where
 
 
 import Control.Monad (foldM, liftM, liftM2, when)
-import Control.Monad.Error (Error (..), throwError)
+import Control.Monad.Except (throwError)
 import Control.Monad.Reader (ReaderT, runReaderT, local, ask)
 import Control.Monad.Trans (lift)
 import Control.Monad.Writer (Writer, tell)
