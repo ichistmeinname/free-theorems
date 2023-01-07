@@ -328,6 +328,8 @@ prettyTermVariable (TVar v) = text v
 prettyRelation :: PrettyControl -> Bool -> Relation -> Doc
 prettyRelation _ _ (RelVar _ rv) = prettyRelationVariable rv
 
+prettyRelation _ _ (RelConsFunVar _ rv) = prettyRelationVariable rv
+
 prettyRelation pc _ (FunVar ri (Left t)) =
   case theoremType (relationLanguageSubset ri) of
     EquationalTheorem   -> prettyTerm (noParens pc) t
