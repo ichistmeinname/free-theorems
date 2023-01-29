@@ -10,7 +10,7 @@ module Language.Haskell.FreeTheorems.Frontend.CheckGlobal (checkGlobal) where
 import Debug.Trace
 
 import Control.Monad (when)
-import Control.Monad.Error (throwError)
+import Control.Monad.Except (throwError)
 import Control.Monad.Writer (tell)
 import Data.Generics (Typeable, Data, everything, everywhereM, extQ, mkQ, mkM)
 import Data.List (intersperse, intercalate, partition, nub, intersect, find)
