@@ -1,9 +1,4 @@
-{-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 610
 {-# LANGUAGE ScopedTypeVariables #-}
-#else
-{-# LANGUAGE PatternSignatures #-}
-#endif
 
 module Language.Haskell.FreeTheorems.Unfold (
     asTheorem

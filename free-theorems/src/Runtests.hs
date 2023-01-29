@@ -1,5 +1,4 @@
-
-
+module Main (main) where
 
 import FrontendTypeExpressionsTests as FrontendTypeExpressions (tests)
 import FrontendCheckLocalTests as FrontendCheckLocal (tests)
@@ -17,5 +16,3 @@ main = do
   FrontendCheckGlobal.tests
   FrontendOther.tests
   ParserPrettyPrinter.tests
-  
-

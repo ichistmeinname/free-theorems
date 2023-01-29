@@ -10,7 +10,7 @@ module Language.Haskell.FreeTheorems.Parser.Haskell98 (parse) where
 
 
 import Control.Monad (foldM, liftM, liftM2)
-import Control.Monad.Error (throwError)
+import Control.Monad.Except (throwError)
 import Control.Monad.Writer (Writer, tell)
 import Data.Generics (everywhere, mkT)
 import Data.List (nub)
