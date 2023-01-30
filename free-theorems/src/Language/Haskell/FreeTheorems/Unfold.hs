@@ -165,6 +165,7 @@ asCompleteTheorem i =
 unfoldFormula :: Term -> Term -> Relation -> Unfolded Formula
 unfoldFormula x y rel = case rel of
   RelVar _ _           -> return . Predicate . IsMember x y $ rel
+  RelConsFunVar _ _    -> return . Predicate . IsMember x y $ rel
   FunVar ri term       -> unfoldTerm x y ri term
   RelBasic ri          -> unfoldBasic x y ri
   RelLift _ _ _        -> return . Predicate . IsMember x y $ rel

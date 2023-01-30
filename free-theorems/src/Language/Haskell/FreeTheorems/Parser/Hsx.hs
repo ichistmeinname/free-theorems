@@ -12,7 +12,8 @@ import Control.Monad.Writer (Writer, tell)
 import Data.Generics (everywhere, mkT)
 import Data.Maybe (fromMaybe)
 import Data.List (nub, (\\), intersect)
-import Language.Haskell.Exts.Parser (parseModule, ParseResult(..))
+import Language.Haskell.Exts.Extension (Extension(EnableExtension), KnownExtension(RankNTypes))
+import Language.Haskell.Exts.Parser (defaultParseMode, parseModuleWithMode, ParseMode(..), ParseResult(..))
 import Language.Haskell.Exts.SrcLoc (SrcLoc, SrcSpanInfo, srcFilename, srcColumn, srcLine, fromSrcInfo)
 import Language.Haskell.Exts.Syntax
 --import Language.Haskell.Syntax;
@@ -72,13 +73,15 @@ import Language.Haskell.FreeTheorems.Frontend.Error
 --   successfully.
 
 parse :: String -> Parsed [S.Declaration]
-parse text = case parseModule text of
+parse text = case parseModuleWithMode mode text of
   ParseOk hsModule -> let decls = transform . filterDeclarations $ hsModule
                        in foldM collectDeclarations [] decls
   ParseFailed l _  -> do tell [pp ("Parse error at (" ++ show (srcLine l)
                                    ++ ":" ++ show (srcColumn l) ++ ").")]
                          return []
   where
+    mode = defaultParseMode { extensions = [EnableExtension RankNTypes] }
+
     collectDeclarations :: [S.Declaration] -> Decl SrcSpanInfo -> Parsed [S.Declaration]
     collectDeclarations ds d =
       case mkDeclaration d of
