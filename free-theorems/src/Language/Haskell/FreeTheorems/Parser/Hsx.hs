@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Language.Haskell.FreeTheorems.Parser.Hsx (parse) where
@@ -358,12 +359,22 @@ mkContext cx = case cx of
     (CxEmpty _)    -> return []
 
     where
+#if MIN_VERSION_haskell_src_exts(1,22,0)
+      trans (TypeA _ (TyApp _ (TyCon _ qname) (TyVar _ var))) = do
+#else
       trans (ClassA _ qname [TyVar _ var]) = do
+#endif
         ident <- liftM S.TC (mkIdentifierQ qname)
         tv    <- mkTypeVariable var
         return $ (ident, tv)
 
-      trans (ClassA _ _ _) = throwError errContext
+#if MIN_VERSION_haskell_src_exts(1,22,0)
+      trans (TypeA _ _) =
+#else
+      trans (ClassA _ _ _) =
+#endif
+        throwError errContext
+
       trans (IParam _ _ _) = throwError errImplicit
 
 errContext =
