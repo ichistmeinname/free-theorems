@@ -43,7 +43,7 @@ test-suite runtests
       base
     , containers >= 0.1.0.1
     , haskell-src >= 1.0
-    , haskell-src-exts >= 1.21 && < 1.22
+    , haskell-src-exts >= 1.21 && < 1.24
     , mtl >= 2.2.1
     , pretty >= 1.0.0.0
     , syb >= 0.1.0.0
@@ -65,7 +65,7 @@ library
       base >= 4.12 && < 5
     , containers >= 0.1.0.1
     , haskell-src >= 1.0
-    , haskell-src-exts >= 1.21 && < 1.22
+    , haskell-src-exts >= 1.21 && < 1.24
     , mtl >= 2.2.1
     , pretty >= 1.0.0.0
     , syb >= 0.1.0.0
